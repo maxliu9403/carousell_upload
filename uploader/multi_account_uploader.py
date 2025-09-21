@@ -97,7 +97,7 @@ class MultiAccountUploader:
                 
                 # 为每个账号创建新的浏览器实例，使用动态获取的profile_id
                 playwright, browser, page = start_browser(
-                    self.config.api_url,
+                    self.config.api_port,
                     self.config.api_key,
                     profile_id
                 )

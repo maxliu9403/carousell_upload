@@ -28,7 +28,7 @@ def check_browser_api_health(api_port: int, api_key: str) -> bool:
         logger.info(f"正在检查浏览器API健康状态: {health_url}")
         
         # 发送健康检查请求
-        response = requests.get(health_url, headers=headers, timeout=10)
+        response = requests.post(health_url, headers=headers, timeout=10)
         
         # 检查HTTP状态码
         if response.status_code == 200:
@@ -52,9 +52,11 @@ def check_browser_api_health(api_port: int, api_key: str) -> bool:
         logger.error(f"❌ 浏览器API健康检查发生未知错误: {e}")
         return False
 
-def start_browser(api_url: str, api_key: str, profile_id: str):
+def start_browser(api_port: int, api_key: str, profile_id: str):
     """启动指纹浏览器并返回 Playwright 对象"""
     try:
+        # 构建API URL
+        api_url = f"http://127.0.0.1:{api_port}/browser/open"
         headers = {"x-api-key": api_key}
         resp = requests.post(api_url, headers=headers, json={"id": profile_id, "args": []})
         resp.raise_for_status()  # 检查 HTTP 状态码

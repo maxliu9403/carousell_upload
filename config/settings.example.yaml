@@ -3,9 +3,9 @@
 
 browser:
   # API 密钥
-  api_key: "your_api_key_here"
+  api_key: "bba29e64820c4282ade6afc480b5c78e"
   # 用于获取浏览器窗口列表的端口
-  api_port: 54345
+  api_port: 54347
 
 upload:
   # 支持的图片格式

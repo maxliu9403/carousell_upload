@@ -16,8 +16,8 @@ def run():
         # 输出配置信息到日志
         logger.info("=" * 50)
         logger.info("系统配置信息:")
-        logger.info(f"  浏览器API地址: {config.api_url}")
-        logger.info(f"  浏览器API端口: {config.api_port}")
+        logger.info(f"  浏览器API地址: http://127.0.0.1:{config.api_port}")
+        logger.info(f"  浏览器API_KEY: {config.api_key}")
         logger.info(f"  支持图片格式: {', '.join(config.image_extensions)}")
         logger.info(f"  商品描述数量: {len(config.descriptions)}")
         logger.info(f"  男性尺码: {', '.join(config.male_sizes)}")

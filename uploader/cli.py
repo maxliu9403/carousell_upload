@@ -51,8 +51,8 @@ def main():
         # 输出配置信息到日志
         logger.info("=" * 50)
         logger.info("系统配置信息:")
-        logger.info(f"  浏览器API地址: {config.api_url}")
-        logger.info(f"  浏览器API端口: {config.api_port}")
+        logger.info(f"  浏览器API地址: http://127.0.0.1:{config.api_port}")
+        logger.info(f"  浏览器API_KEY: {config.api_key}")
         logger.info(f"  支持图片格式: {', '.join(config.image_extensions)}")
         logger.info(f"  商品描述数量: {len(config.descriptions)}")
         logger.info(f"  男性尺码: {', '.join(config.male_sizes)}")
@@ -75,7 +75,7 @@ def main():
         # 启动浏览器（使用默认profile_id，实际应用中应该通过BrowserID动态获取）
         # 注意：这里需要根据实际需求调整，可能需要从Excel或其他地方获取BrowserID
         playwright, browser, page = start_browser(
-            config.api_url, 
+            config.api_port, 
             config.api_key, 
             "default_profile_id"  # 临时使用默认值，实际应该动态获取
         )

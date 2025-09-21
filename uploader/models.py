@@ -24,9 +24,4 @@ class UploadConfig:
     male_sizes: List[str]
     female_sizes: List[str]
     meetup_locations: List[str]
-    
-    @property
-    def api_url(self) -> str:
-        """自动生成API地址"""
-        return f"http://127.0.0.1:{self.api_port}/browser/open"
 

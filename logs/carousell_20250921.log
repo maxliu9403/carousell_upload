@@ -1206,3 +1206,158 @@ Call log:
 2025-09-21 21:49:53 - carousell_uploader - ERROR - 1. 浏览器服务是否已启动
 2025-09-21 21:49:53 - carousell_uploader - ERROR - 2. API端口是否正确
 2025-09-21 21:49:53 - carousell_uploader - ERROR - 3. API密钥是否正确
+2025-09-21 22:10:25 - carousell_uploader - INFO - 配置文件加载成功
+2025-09-21 22:10:25 - carousell_uploader - INFO - Actions配置已加载: 超时时间=8000ms, 重试次数=3, 重试间隔=1.0s
+2025-09-21 22:10:26 - carousell_uploader - INFO - 配置文件加载成功
+2025-09-21 22:10:26 - carousell_uploader - INFO - 开始执行 Carousell 多账号上传任务
+2025-09-21 22:10:26 - carousell_uploader - INFO - ==================================================
+2025-09-21 22:10:26 - carousell_uploader - INFO - 系统配置信息:
+2025-09-21 22:10:26 - carousell_uploader - INFO -   浏览器API地址: http://127.0.0.1:54345/browser/open
+2025-09-21 22:10:26 - carousell_uploader - INFO -   浏览器API端口: 54345
+2025-09-21 22:10:26 - carousell_uploader - INFO -   支持图片格式: .jpg, .jpeg, .png
+2025-09-21 22:10:26 - carousell_uploader - INFO -   商品描述数量: 8
+2025-09-21 22:10:26 - carousell_uploader - INFO -   男性尺码: 40, 41, 42, 43, 44, 45
+2025-09-21 22:10:26 - carousell_uploader - INFO -   女性尺码: 36, 37, 38, 39, 40
+2025-09-21 22:10:26 - carousell_uploader - INFO -   面交地点数量: 10
+2025-09-21 22:10:26 - carousell_uploader - INFO - ==================================================
+2025-09-21 22:10:26 - carousell_uploader - INFO - 🔍 正在检查浏览器API健康状态...
+2025-09-21 22:10:26 - carousell_uploader - INFO - 正在检查浏览器API健康状态: http://127.0.0.1:54345/health
+2025-09-21 22:10:26 - carousell_uploader - ERROR - ❌ 无法连接到浏览器API服务 (端口: 54345)
+2025-09-21 22:10:26 - carousell_uploader - ERROR - 请检查浏览器服务是否已启动
+2025-09-21 22:10:26 - carousell_uploader - ERROR - ❌ 浏览器API健康检查失败，程序退出
+2025-09-21 22:10:26 - carousell_uploader - ERROR - 请检查以下项目:
+2025-09-21 22:10:26 - carousell_uploader - ERROR - 1. 浏览器服务是否已启动
+2025-09-21 22:10:26 - carousell_uploader - ERROR - 2. API端口是否正确
+2025-09-21 22:10:26 - carousell_uploader - ERROR - 3. API密钥是否正确
+2025-09-21 22:17:22 - carousell_uploader - INFO - 配置文件加载成功
+2025-09-21 22:17:22 - carousell_uploader - INFO - Actions配置已加载: 超时时间=8000ms, 重试次数=3, 重试间隔=1.0s
+2025-09-21 22:17:23 - carousell_uploader - INFO - 配置文件加载成功
+2025-09-21 22:17:23 - carousell_uploader - INFO - 开始执行 Carousell 多账号上传任务
+2025-09-21 22:17:23 - carousell_uploader - INFO - ==================================================
+2025-09-21 22:17:23 - carousell_uploader - INFO - 系统配置信息:
+2025-09-21 22:17:23 - carousell_uploader - INFO -   浏览器API地址: http://127.0.0.1:54345/browser/open
+2025-09-21 22:17:23 - carousell_uploader - INFO -   浏览器API端口: 54345
+2025-09-21 22:17:23 - carousell_uploader - INFO -   支持图片格式: .jpg, .jpeg, .png
+2025-09-21 22:17:23 - carousell_uploader - INFO -   商品描述数量: 8
+2025-09-21 22:17:23 - carousell_uploader - INFO -   男性尺码: 40, 41, 42, 43, 44, 45
+2025-09-21 22:17:23 - carousell_uploader - INFO -   女性尺码: 36, 37, 38, 39, 40
+2025-09-21 22:17:23 - carousell_uploader - INFO -   面交地点数量: 10
+2025-09-21 22:17:23 - carousell_uploader - INFO - ==================================================
+2025-09-21 22:17:23 - carousell_uploader - INFO - 🔍 正在检查浏览器API健康状态...
+2025-09-21 22:17:23 - carousell_uploader - INFO - 正在检查浏览器API健康状态: http://127.0.0.1:54345/health
+2025-09-21 22:17:23 - carousell_uploader - ERROR - ❌ 无法连接到浏览器API服务 (端口: 54345)
+2025-09-21 22:17:23 - carousell_uploader - ERROR - 请检查浏览器服务是否已启动
+2025-09-21 22:17:23 - carousell_uploader - ERROR - ❌ 浏览器API健康检查失败，程序退出
+2025-09-21 22:17:23 - carousell_uploader - ERROR - 请检查以下项目:
+2025-09-21 22:17:23 - carousell_uploader - ERROR - 1. 浏览器服务是否已启动
+2025-09-21 22:17:23 - carousell_uploader - ERROR - 2. API端口是否正确
+2025-09-21 22:17:23 - carousell_uploader - ERROR - 3. API密钥是否正确
+2025-09-21 22:18:34 - carousell_uploader - INFO - 配置文件加载成功
+2025-09-21 22:18:34 - carousell_uploader - INFO - Actions配置已加载: 超时时间=8000ms, 重试次数=3, 重试间隔=1.0s
+2025-09-21 22:18:34 - carousell_uploader - INFO - ========7777777777777=======
+2025-09-21 22:18:34 - carousell_uploader - INFO - 配置文件加载成功
+2025-09-21 22:18:34 - carousell_uploader - INFO - 开始执行 Carousell 多账号上传任务
+2025-09-21 22:18:34 - carousell_uploader - INFO - ==================================================
+2025-09-21 22:18:34 - carousell_uploader - INFO - 系统配置信息:
+2025-09-21 22:18:34 - carousell_uploader - INFO -   浏览器API地址: http://127.0.0.1:54345/browser/open
+2025-09-21 22:18:34 - carousell_uploader - INFO -   浏览器API端口: 54345
+2025-09-21 22:18:34 - carousell_uploader - INFO -   支持图片格式: .jpg, .jpeg, .png
+2025-09-21 22:18:34 - carousell_uploader - INFO -   商品描述数量: 8
+2025-09-21 22:18:34 - carousell_uploader - INFO -   男性尺码: 40, 41, 42, 43, 44, 45
+2025-09-21 22:18:34 - carousell_uploader - INFO -   女性尺码: 36, 37, 38, 39, 40
+2025-09-21 22:18:34 - carousell_uploader - INFO -   面交地点数量: 10
+2025-09-21 22:18:34 - carousell_uploader - INFO - ==================================================
+2025-09-21 22:18:34 - carousell_uploader - INFO - 🔍 正在检查浏览器API健康状态...
+2025-09-21 22:18:34 - carousell_uploader - INFO - 正在检查浏览器API健康状态: http://127.0.0.1:54345/health
+2025-09-21 22:18:34 - carousell_uploader - ERROR - ❌ 无法连接到浏览器API服务 (端口: 54345)
+2025-09-21 22:18:34 - carousell_uploader - ERROR - 请检查浏览器服务是否已启动
+2025-09-21 22:18:34 - carousell_uploader - ERROR - ❌ 浏览器API健康检查失败，程序退出
+2025-09-21 22:18:34 - carousell_uploader - ERROR - 请检查以下项目:
+2025-09-21 22:18:34 - carousell_uploader - ERROR - 1. 浏览器服务是否已启动
+2025-09-21 22:18:34 - carousell_uploader - ERROR - 2. API端口是否正确
+2025-09-21 22:18:34 - carousell_uploader - ERROR - 3. API密钥是否正确
+2025-09-21 22:19:55 - carousell_uploader - INFO - 配置文件加载成功
+2025-09-21 22:19:55 - carousell_uploader - INFO - Actions配置已加载: 超时时间=8000ms, 重试次数=3, 重试间隔=1.0s
+2025-09-21 22:19:55 - carousell_uploader - INFO - 配置文件加载成功
+2025-09-21 22:19:55 - carousell_uploader - INFO - 开始执行 Carousell 多账号上传任务
+2025-09-21 22:19:55 - carousell_uploader - INFO - ==================================================
+2025-09-21 22:19:55 - carousell_uploader - INFO - 系统配置信息:
+2025-09-21 22:19:55 - carousell_uploader - INFO -   浏览器API地址: http://127.0.0.1:54345
+2025-09-21 22:19:55 - carousell_uploader - INFO -   浏览器API_KEY端口: bba29e64820c4282ade6afc480b5c78e
+2025-09-21 22:19:55 - carousell_uploader - INFO -   支持图片格式: .jpg, .jpeg, .png
+2025-09-21 22:19:55 - carousell_uploader - INFO -   商品描述数量: 8
+2025-09-21 22:19:55 - carousell_uploader - INFO -   男性尺码: 40, 41, 42, 43, 44, 45
+2025-09-21 22:19:55 - carousell_uploader - INFO -   女性尺码: 36, 37, 38, 39, 40
+2025-09-21 22:19:55 - carousell_uploader - INFO -   面交地点数量: 10
+2025-09-21 22:19:55 - carousell_uploader - INFO - ==================================================
+2025-09-21 22:19:55 - carousell_uploader - INFO - 🔍 正在检查浏览器API健康状态...
+2025-09-21 22:19:55 - carousell_uploader - INFO - 正在检查浏览器API健康状态: http://127.0.0.1:54345/health
+2025-09-21 22:19:55 - carousell_uploader - ERROR - ❌ 无法连接到浏览器API服务 (端口: 54345)
+2025-09-21 22:19:55 - carousell_uploader - ERROR - 请检查浏览器服务是否已启动
+2025-09-21 22:19:55 - carousell_uploader - ERROR - ❌ 浏览器API健康检查失败，程序退出
+2025-09-21 22:19:55 - carousell_uploader - ERROR - 请检查以下项目:
+2025-09-21 22:19:55 - carousell_uploader - ERROR - 1. 浏览器服务是否已启动
+2025-09-21 22:19:55 - carousell_uploader - ERROR - 2. API端口是否正确
+2025-09-21 22:19:55 - carousell_uploader - ERROR - 3. API密钥是否正确
+2025-09-21 22:30:28 - carousell_uploader - INFO - 配置文件加载成功
+2025-09-21 22:30:28 - carousell_uploader - INFO - Actions配置已加载: 超时时间=8000ms, 重试次数=3, 重试间隔=1.0s
+2025-09-21 22:30:29 - carousell_uploader - INFO - 配置文件加载成功
+2025-09-21 22:30:29 - carousell_uploader - INFO - 开始执行 Carousell 多账号上传任务
+2025-09-21 22:30:29 - carousell_uploader - INFO - ==================================================
+2025-09-21 22:30:29 - carousell_uploader - INFO - 系统配置信息:
+2025-09-21 22:30:29 - carousell_uploader - INFO -   浏览器API地址: http://127.0.0.1:54347
+2025-09-21 22:30:29 - carousell_uploader - INFO -   浏览器API_KEY: bba29e64820c4282ade6afc480b5c78e
+2025-09-21 22:30:29 - carousell_uploader - INFO -   支持图片格式: .jpg, .jpeg, .png
+2025-09-21 22:30:29 - carousell_uploader - INFO -   商品描述数量: 8
+2025-09-21 22:30:29 - carousell_uploader - INFO -   男性尺码: 40, 41, 42, 43, 44, 45
+2025-09-21 22:30:29 - carousell_uploader - INFO -   女性尺码: 36, 37, 38, 39, 40
+2025-09-21 22:30:29 - carousell_uploader - INFO -   面交地点数量: 10
+2025-09-21 22:30:29 - carousell_uploader - INFO - ==================================================
+2025-09-21 22:30:29 - carousell_uploader - INFO - 🔍 正在检查浏览器API健康状态...
+2025-09-21 22:30:29 - carousell_uploader - INFO - 正在检查浏览器API健康状态: http://127.0.0.1:54347/health
+2025-09-21 22:30:29 - carousell_uploader - ERROR - ❌ 浏览器API健康检查失败，HTTP状态码: 404
+2025-09-21 22:30:29 - carousell_uploader - ERROR - ❌ 浏览器API健康检查失败，程序退出
+2025-09-21 22:30:29 - carousell_uploader - ERROR - 请检查以下项目:
+2025-09-21 22:30:29 - carousell_uploader - ERROR - 1. 浏览器服务是否已启动
+2025-09-21 22:30:29 - carousell_uploader - ERROR - 2. API端口是否正确
+2025-09-21 22:30:29 - carousell_uploader - ERROR - 3. API密钥是否正确
+2025-09-21 22:31:33 - carousell_uploader - INFO - 配置文件加载成功
+2025-09-21 22:31:33 - carousell_uploader - INFO - Actions配置已加载: 超时时间=8000ms, 重试次数=3, 重试间隔=1.0s
+2025-09-21 22:31:33 - carousell_uploader - INFO - 配置文件加载成功
+2025-09-21 22:31:33 - carousell_uploader - INFO - 开始执行 Carousell 多账号上传任务
+2025-09-21 22:31:33 - carousell_uploader - INFO - ==================================================
+2025-09-21 22:31:33 - carousell_uploader - INFO - 系统配置信息:
+2025-09-21 22:31:33 - carousell_uploader - INFO -   浏览器API地址: http://127.0.0.1:54347
+2025-09-21 22:31:33 - carousell_uploader - INFO -   浏览器API_KEY: bba29e64820c4282ade6afc480b5c78e
+2025-09-21 22:31:33 - carousell_uploader - INFO -   支持图片格式: .jpg, .jpeg, .png
+2025-09-21 22:31:33 - carousell_uploader - INFO -   商品描述数量: 8
+2025-09-21 22:31:33 - carousell_uploader - INFO -   男性尺码: 40, 41, 42, 43, 44, 45
+2025-09-21 22:31:33 - carousell_uploader - INFO -   女性尺码: 36, 37, 38, 39, 40
+2025-09-21 22:31:33 - carousell_uploader - INFO -   面交地点数量: 10
+2025-09-21 22:31:33 - carousell_uploader - INFO - ==================================================
+2025-09-21 22:31:33 - carousell_uploader - INFO - 🔍 正在检查浏览器API健康状态...
+2025-09-21 22:31:33 - carousell_uploader - INFO - 正在检查浏览器API健康状态: http://127.0.0.1:54347/health
+2025-09-21 22:31:33 - carousell_uploader - ERROR - ❌ 浏览器API健康检查失败，HTTP状态码: 404
+2025-09-21 22:31:33 - carousell_uploader - ERROR - ❌ 浏览器API健康检查失败，程序退出
+2025-09-21 22:31:33 - carousell_uploader - ERROR - 请检查以下项目:
+2025-09-21 22:31:33 - carousell_uploader - ERROR - 1. 浏览器服务是否已启动
+2025-09-21 22:31:33 - carousell_uploader - ERROR - 2. API端口是否正确
+2025-09-21 22:31:33 - carousell_uploader - ERROR - 3. API密钥是否正确
+2025-09-21 22:33:39 - carousell_uploader - INFO - 配置文件加载成功
+2025-09-21 22:33:39 - carousell_uploader - INFO - Actions配置已加载: 超时时间=8000ms, 重试次数=3, 重试间隔=1.0s
+2025-09-21 22:33:40 - carousell_uploader - INFO - 配置文件加载成功
+2025-09-21 22:33:40 - carousell_uploader - INFO - 开始执行 Carousell 多账号上传任务
+2025-09-21 22:33:40 - carousell_uploader - INFO - ==================================================
+2025-09-21 22:33:40 - carousell_uploader - INFO - 系统配置信息:
+2025-09-21 22:33:40 - carousell_uploader - INFO -   浏览器API地址: http://127.0.0.1:54347
+2025-09-21 22:33:40 - carousell_uploader - INFO -   浏览器API_KEY: bba29e64820c4282ade6afc480b5c78e
+2025-09-21 22:33:40 - carousell_uploader - INFO -   支持图片格式: .jpg, .jpeg, .png
+2025-09-21 22:33:40 - carousell_uploader - INFO -   商品描述数量: 8
+2025-09-21 22:33:40 - carousell_uploader - INFO -   男性尺码: 40, 41, 42, 43, 44, 45
+2025-09-21 22:33:40 - carousell_uploader - INFO -   女性尺码: 36, 37, 38, 39, 40
+2025-09-21 22:33:40 - carousell_uploader - INFO -   面交地点数量: 10
+2025-09-21 22:33:40 - carousell_uploader - INFO - ==================================================
+2025-09-21 22:33:40 - carousell_uploader - INFO - 🔍 正在检查浏览器API健康状态...
+2025-09-21 22:33:40 - carousell_uploader - INFO - 正在检查浏览器API健康状态: http://127.0.0.1:54347/health
+2025-09-21 22:33:40 - carousell_uploader - INFO - ✅ 浏览器API健康检查通过
+2025-09-21 22:33:40 - carousell_uploader - INFO - ✅ 浏览器API健康检查通过，继续执行...
