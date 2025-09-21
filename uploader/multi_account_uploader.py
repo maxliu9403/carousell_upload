@@ -6,6 +6,7 @@ from .carousell_uploader import CarousellUploader
 from .browser import start_browser, get_profile_id_by_browser_id, fetch_all_browser_windows
 from .excel_parser import ExcelProductParser
 from .logger import logger
+from .record_manager import SuccessRecordManager
 
 class MultiAccountUploader:
     """多账号串行上传器"""
@@ -15,6 +16,7 @@ class MultiAccountUploader:
         self.excel_path = excel_path
         self.region = region
         self.parser = ExcelProductParser(excel_path)
+        self.record_manager = SuccessRecordManager()
     
     def run_upload_cycle(self) -> Dict[str, Any]:
         """
@@ -30,13 +32,46 @@ class MultiAccountUploader:
             products_data = self.parser.parse_products(self.region)
             if not products_data:
                 logger.warning("没有找到可上传的商品")
-                return {"success": False, "message": "没有找到可上传的商品"}
+                return {
+                    "success": False, 
+                    "message": "没有找到可上传的商品",
+                    "total_accounts": 0,
+                    "total_products": 0,
+                    "success_count": 0,
+                    "failed_count": 0,
+                    "success_rate": 0.0,
+                    "account_details": []
+                }
             
-            # 2. 获取所有浏览器窗口
-            browser_windows = fetch_all_browser_windows(self.config.api_port, self.config.api_key)
+            # 2. 获取已成功的BrowserID，跳过已完成的账号
+            successful_browser_ids = self.record_manager.get_successful_browser_ids(self.excel_path, self.region)
+            logger.info(f"已成功的BrowserID: {sorted(successful_browser_ids)}")
             
-            # 3. 按浏览器ID分组商品
-            products_by_browser = self._group_products_by_browser(products_data, browser_windows)
+            # 3. 过滤掉已成功的BrowserID，只保留需要处理的商品
+            filtered_products_data = self._filter_products_by_success(products_data, successful_browser_ids)
+            if not filtered_products_data:
+                logger.info("所有商品都已成功上传，无需继续处理")
+                # 返回完整的结果结构，避免KeyError
+                return {
+                    "success": True, 
+                    "message": "所有商品都已成功上传",
+                    "total_accounts": 0,
+                    "total_products": len(products_data),
+                    "success_count": len(products_data),
+                    "failed_count": 0,
+                    "success_rate": 100.0,
+                    "account_details": []
+                }
+            
+            # 4. 获取需要的BrowserID列表
+            needed_browser_ids = set(product['browser_id'] for product in filtered_products_data)
+            logger.info(f"需要处理的BrowserID: {sorted(needed_browser_ids)}")
+            
+            # 5. 只获取需要的浏览器窗口数据
+            browser_windows = self._fetch_needed_browser_windows(needed_browser_ids)
+            
+            # 6. 按浏览器ID分组商品
+            products_by_browser = self._group_products_by_browser(filtered_products_data, browser_windows)
             
             # 4. 串行上传每个账号的商品
             results = self._upload_by_accounts(products_by_browser, browser_windows)
@@ -46,8 +81,53 @@ class MultiAccountUploader:
             
         except Exception as e:
             logger.error(f"多账号上传失败: {e}")
-            return {"success": False, "message": str(e)}
+            return {
+                "success": False, 
+                "message": str(e),
+                "total_accounts": 0,
+                "total_products": 0,
+                "success_count": 0,
+                "failed_count": 0,
+                "success_rate": 0.0,
+                "account_details": []
+            }
     
+    def _filter_products_by_success(self, products_data: List[Dict[str, Any]], successful_browser_ids: set) -> List[Dict[str, Any]]:
+        """过滤掉已成功的BrowserID对应的商品"""
+        filtered_products = []
+        skipped_count = 0
+        
+        for product in products_data:
+            browser_id = product['browser_id']
+            if browser_id in successful_browser_ids:
+                skipped_count += 1
+                continue
+            filtered_products.append(product)
+        
+        logger.info(f"商品过滤完成: 原始 {len(products_data)} 个，过滤后 {len(filtered_products)} 个，跳过 {skipped_count} 个")
+        return filtered_products
+    
+    def _fetch_needed_browser_windows(self, needed_browser_ids: set) -> Dict[int, Dict[str, str]]:
+        """只获取需要的浏览器窗口数据"""
+        if not needed_browser_ids:
+            return {}
+        
+        logger.info(f"正在获取 {len(needed_browser_ids)} 个BrowserID的窗口数据...")
+        
+        # 获取所有浏览器窗口
+        all_browser_windows = fetch_all_browser_windows(self.config.api_port, self.config.api_key)
+        
+        # 只保留需要的BrowserID
+        needed_browser_windows = {}
+        for browser_id in needed_browser_ids:
+            browser_id_int = int(browser_id)
+            if browser_id_int in all_browser_windows:
+                needed_browser_windows[browser_id_int] = all_browser_windows[browser_id_int]
+            else:
+                logger.warning(f"BrowserID {browser_id} 在浏览器窗口中未找到")
+        
+        logger.info(f"成功获取 {len(needed_browser_windows)} 个BrowserID的窗口数据")
+        return needed_browser_windows
     
     def _group_products_by_browser(self, products_data: List[Dict[str, Any]], browser_windows: Dict[int, Dict[str, str]]) -> Dict[str, List[Dict[str, Any]]]:
         """按浏览器ID分组商品"""
@@ -119,6 +199,14 @@ class MultiAccountUploader:
                         if success:
                             account_result['success_count'] += 1
                             logger.info(f"商品 {product_data['sku']} 上传成功")
+                            
+                            # 记录成功
+                            self.record_manager.record_success(
+                                self.excel_path,
+                                self.region,
+                                browser_id,
+                                product_data['sku']
+                            )
                         else:
                             account_result['failed_count'] += 1
                             account_result['failed_products'].append(product_data['sku'])

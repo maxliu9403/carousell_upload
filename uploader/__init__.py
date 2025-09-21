@@ -24,6 +24,7 @@ from .utils import (
 )
 from .excel_parser import ExcelProductParser
 from .multi_account_uploader import MultiAccountUploader
+from .record_manager import SuccessRecordManager
 
 __all__ = [
     "CarousellUploader",
@@ -46,6 +47,7 @@ __all__ = [
     "get_random_meetup_location",
     "enrich_product_info",
     "ExcelProductParser",
-    "MultiAccountUploader"
+    "MultiAccountUploader",
+    "SuccessRecordManager"
 ]
 

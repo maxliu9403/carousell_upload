@@ -62,6 +62,16 @@ def run():
         # 创建多账号上传器
         multi_uploader = MultiAccountUploader(config, excel_path, region)
         
+        # 显示历史记录摘要
+        record_summary = multi_uploader.record_manager.get_record_summary(excel_path, region)
+        if record_summary['total_products'] > 0:
+            logger.info("📊 历史记录摘要:")
+            logger.info(f"  已成功浏览器数量: {record_summary['total_browsers']}")
+            logger.info(f"  已成功商品数量: {record_summary['total_products']}")
+            logger.info(f"  浏览器详情: {record_summary['browser_details']}")
+        else:
+            logger.info("📊 无历史记录，将执行完整上传")
+        
         # 执行上传循环
         result = multi_uploader.run_upload_cycle()
         

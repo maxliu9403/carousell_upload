@@ -28,7 +28,7 @@ def check_browser_api_health(api_port: int, api_key: str) -> bool:
         logger.info(f"正在检查浏览器API健康状态: {health_url}")
         
         # 发送健康检查请求
-        response = requests.post(health_url, headers=headers, timeout=10)
+        response = requests.post(health_url, headers=headers, timeout=20)
         
         # 检查HTTP状态码
         if response.status_code == 200:
@@ -116,7 +116,7 @@ def fetch_all_browser_windows(api_port: int, token: str) -> Dict[int, Dict[str, 
 
     logger.info("1. 发送第一页请求，获取总数量信息")
     try:
-        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        response = requests.post(url, json=payload, headers=headers, timeout=60)
         response.raise_for_status()
         json_data = response.json()
 
@@ -154,7 +154,7 @@ def fetch_all_browser_windows(api_port: int, token: str) -> Dict[int, Dict[str, 
             logger.info(f"   c. 请求第 {page + 1} 页数据")
 
             try:
-                response = requests.post(url, json=payload, headers=headers, timeout=10)
+                response = requests.post(url, json=payload, headers=headers, timeout=60)
                 response.raise_for_status()
                 json_data = response.json()
 

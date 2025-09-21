@@ -1,6 +1,8 @@
 browser:
-  api_key: "bba29e64820c4282ade6afc480b5c78e"
-  api_port: 54347  # 用于获取浏览器窗口列表的端口
+  # api_key: "bba29e64820c4282ade6afc480b5c78e"
+  # api_port: 54347  # 用于获取浏览器窗口列表的端口
+  api_key: "5a526120de58406c8c96c0e3393410ce"
+  api_port: 54345  # 用于获取浏览器窗口列表的端口
 
 upload:
   image_extensions: [".jpg", ".jpeg", ".png"]

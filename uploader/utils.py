@@ -16,14 +16,17 @@ def get_random_size(config: UploadConfig, gender: str) -> str:
     - female: 从 female_sizes 中选择
     - unisex: 从 male_sizes 中选择（默认）
     """
-    if gender.lower() == "female":
+    if gender.lower() == "female" or gender.lower() == "women" or gender.lower() == "womens":
         size = random.choice(config.female_sizes)
         logger.info(f"随机选择女性尺码: {size}")
-    else:
+    elif gender.lower() == "male" or gender.lower() == "men" or gender.lower() == "mens":
         # male 或 unisex 都使用男性尺码
         size = random.choice(config.male_sizes)
         logger.info(f"随机选择男性尺码: {size}")
-    
+    else:
+        # unisex 使用 40
+        size = 40
+        logger.info(f"随机选择尺码: {size}")
     return size
 
 def get_random_meetup_location(config: UploadConfig) -> str:
