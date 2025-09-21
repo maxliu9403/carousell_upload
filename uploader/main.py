@@ -1,0 +1,85 @@
+from .config import create_upload_config
+from .browser import start_browser
+from .carousell_uploader import CarousellUploader
+from .models import ProductInfo
+from .logger import logger
+from .multi_account_uploader import MultiAccountUploader
+from .excel_parser import ExcelProductParser
+
+def run():
+    """主运行函数"""
+    try:
+        # 加载配置
+        config = create_upload_config()
+        logger.info("开始执行 Carousell 多账号上传任务")
+        
+        # 输出配置信息到日志
+        logger.info("=" * 50)
+        logger.info("系统配置信息:")
+        logger.info(f"  浏览器API地址: {config.api_url}")
+        logger.info(f"  浏览器API端口: {config.api_port}")
+        logger.info(f"  支持图片格式: {', '.join(config.image_extensions)}")
+        logger.info(f"  商品描述数量: {len(config.descriptions)}")
+        logger.info(f"  男性尺码: {', '.join(config.male_sizes)}")
+        logger.info(f"  女性尺码: {', '.join(config.female_sizes)}")
+        logger.info(f"  面交地点数量: {len(config.meetup_locations)}")
+        logger.info("=" * 50)
+        
+        # 获取用户输入
+        excel_path = input("请输入 Excel 文件路径: ").strip()
+        if not excel_path:
+            logger.error("Excel 文件路径不能为空")
+            return
+        
+        # 地域选择
+        print("\n请选择上传地域:")
+        print("1. HK (香港)")
+        print("2. MY (马来西亚)")
+        print("3. SG (新加坡)")
+        
+        region_choice = input("请输入选择 (1/2/3): ").strip()
+        region_mapping = {"1": "HK", "2": "MY", "3": "SG"}
+        
+        if region_choice not in region_mapping:
+            logger.error("无效的地域选择")
+            return
+        
+        region = region_mapping[region_choice]
+        logger.info(f"选择的地域: {region}")
+        
+        # 创建多账号上传器
+        multi_uploader = MultiAccountUploader(config, excel_path, region)
+        
+        # 执行上传循环
+        result = multi_uploader.run_upload_cycle()
+        
+        if result['success']:
+            logger.info("所有账号上传完成！")
+        else:
+            logger.error(f"上传过程中出现错误: {result.get('message', '未知错误')}")
+        
+        # 显示详细结果
+        print("\n" + "=" * 60)
+        print("上传结果详情:")
+        print(f"总账号数: {result['total_accounts']}")
+        print(f"总商品数: {result['total_products']}")
+        print(f"成功数量: {result['success_count']}")
+        print(f"失败数量: {result['failed_count']}")
+        print(f"成功率: {result['success_rate']:.2f}%")
+        
+        if result['failed_count'] > 0:
+            print("\n失败的商品:")
+            for account in result['account_details']:
+                if account['failed_products']:
+                    print(f"  浏览器 {account['browser_id']}: {', '.join(account['failed_products'])}")
+        
+        print("=" * 60)
+        
+        input("🔵 按回车键结束程序...")
+        
+    except Exception as e:
+        logger.error(f"程序执行出错: {e}")
+        raise
+
+if __name__ == "__main__":
+    run()

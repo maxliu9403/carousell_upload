@@ -1,0 +1,43 @@
+browser:
+  api_key: "bba29e64820c4282ade6afc480b5c78e"
+  api_port: 54347  # 用于获取浏览器窗口列表的端口
+
+upload:
+  image_extensions: [".jpg", ".jpeg", ".png"]
+
+# 商品信息配置
+product:
+  descriptions:
+    - "高品质商品，适合日常使用"
+    - "全新商品，包装完好"
+    - "优质材料制作，经久耐用"
+    - "时尚设计，舒适体验"
+    - "品牌正品，质量保证"
+    - "精美包装，送礼佳品"
+    - "实用性强，性价比高"
+    - "经典款式，永不过时"
+  
+  # 男性尺码：40-45
+  male_sizes: ["40", "41", "42", "43", "44", "45"]
+  
+  # 女性尺码：36-40
+  female_sizes: ["36", "37", "38", "39", "40"]
+  
+  # 面交地点
+  meetup_locations:
+    - "MTR"
+    - "Central"
+    - "Orchard"
+    - "Marina Bay"
+    - "Chinatown"
+    - "Little India"
+    - "Bugis"
+    - "Tampines"
+    - "Jurong East"
+    - "Woodlands"
+
+# 页面操作配置
+actions:
+  default_timeout: 8000    # 默认超时时间（毫秒）
+  retry_times: 3           # 重试次数
+  retry_delay: 1.0         # 每次重试间隔（秒）

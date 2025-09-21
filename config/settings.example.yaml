@@ -1,0 +1,61 @@
+# Carousell 上传工具配置文件示例
+# 复制此文件为 settings.yaml 并填入您的实际配置
+
+browser:
+  # API 密钥
+  api_key: "your_api_key_here"
+  # 用于获取浏览器窗口列表的端口
+  api_port: 54345
+
+upload:
+  # 支持的图片格式
+  image_extensions: [".jpg", ".jpeg", ".png", ".gif", ".webp"]
+
+# 商品信息配置
+product:
+  descriptions:
+    - "高品质商品，适合日常使用"
+    - "全新商品，包装完好"
+    - "优质材料制作，经久耐用"
+    - "时尚设计，舒适体验"
+    - "品牌正品，质量保证"
+    - "精美包装，送礼佳品"
+    - "实用性强，性价比高"
+    - "经典款式，永不过时"
+  
+  # 男性尺码：40-45
+  male_sizes: ["40", "41", "42", "43", "44", "45"]
+  
+  # 女性尺码：36-40
+  female_sizes: ["36", "37", "38", "39", "40"]
+  
+  # 面交地点
+  meetup_locations:
+    - "MTR"
+    - "Central"
+    - "Orchard"
+    - "Marina Bay"
+    - "Chinatown"
+    - "Little India"
+    - "Bugis"
+    - "Tampines"
+    - "Jurong East"
+    - "Woodlands"
+
+# 页面操作配置
+actions:
+  default_timeout: 8000    # 默认超时时间（毫秒）
+  retry_times: 3           # 重试次数
+  retry_delay: 1.0         # 每次重试间隔（秒）
+
+# 可选：商品默认信息
+product_defaults:
+  title: "默认商品标题"
+  price: "50"
+  category: "others"
+  brand: ""
+  condition: "new"  # new, used
+  gender: "unisex"  # male, female, unisex
+  location: "All of Singapore"
+  multi_quantity: false
+
