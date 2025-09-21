@@ -219,7 +219,8 @@ product_defaults:
 ### 功能特点
 
 - **智能跳过**: 自动跳过已成功的BrowserID，避免重复上传
-- **唯一标识**: 基于Excel文件hash、地域、BrowserID和SKU的唯一标识
+- **唯一标识**: 基于Excel文件路径、地域、日期的唯一标识
+- **时间窗口**: 同一天内的修改被认为是同一批次，支持文件内容变化
 - **断点续传**: 支持中断后继续执行，只处理未完成的账号
 - **记录管理**: 提供完整的记录查询、统计和清理功能
 
@@ -227,14 +228,13 @@ product_defaults:
 
 ```json
 {
-  "version": "1.0",
   "created_at": "2025-09-21T22:20:48",
   "updated_at": "2025-09-21T22:25:30",
   "records": {
-    "file_hash_HK": {
+    "/path/to/products.xlsx_HK_2025-09-21": {
       "excel_path": "/path/to/products.xlsx",
       "region": "HK",
-      "file_hash": "abc123...",
+      "date": "2025-09-21",
       "created_at": "2025-09-21T22:20:48",
       "updated_at": "2025-09-21T22:25:30",
       "browser_records": {

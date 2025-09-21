@@ -1,5 +1,4 @@
 import json
-import hashlib
 import os
 from pathlib import Path
 from typing import Dict, List, Set, Any
@@ -23,7 +22,6 @@ class SuccessRecordManager:
         """加载记录文件"""
         if not self.record_file.exists():
             return {
-                "version": "1.0",
                 "created_at": datetime.now().isoformat(),
                 "records": {}
             }
@@ -36,7 +34,6 @@ class SuccessRecordManager:
         except Exception as e:
             logger.warning(f"加载记录文件失败: {e}，将创建新文件")
             return {
-                "version": "1.0",
                 "created_at": datetime.now().isoformat(),
                 "records": {}
             }
@@ -51,25 +48,13 @@ class SuccessRecordManager:
         except Exception as e:
             logger.error(f"保存记录文件失败: {e}")
     
-    def _get_file_hash(self, file_path: str) -> str:
-        """获取文件hash值"""
-        try:
-            with open(file_path, 'rb') as f:
-                content = f.read()
-                return hashlib.md5(content).hexdigest()
-        except Exception as e:
-            logger.warning(f"获取文件hash失败: {e}")
-            # 如果无法获取hash，使用文件路径和修改时间作为标识
-            try:
-                stat = os.stat(file_path)
-                return hashlib.md5(f"{file_path}_{stat.st_mtime}".encode()).hexdigest()
-            except:
-                return hashlib.md5(file_path.encode()).hexdigest()
-    
     def _get_record_key(self, excel_path: str, region: str) -> str:
-        """生成记录的唯一键"""
-        file_hash = self._get_file_hash(excel_path)
-        return f"{file_hash}_{region}"
+        """生成记录的唯一键：文件路径_地域_日期"""
+        # 使用当前日期作为时间窗口
+        date_str = datetime.now().strftime("%Y-%m-%d")
+        # 使用文件路径的标准化形式
+        normalized_path = os.path.normpath(excel_path)
+        return f"{normalized_path}_{region}_{date_str}"
     
     def get_successful_browser_ids(self, excel_path: str, region: str) -> Set[str]:
         """
@@ -139,7 +124,7 @@ class SuccessRecordManager:
             self.records["records"][record_key] = {
                 "excel_path": excel_path,
                 "region": region,
-                "file_hash": self._get_file_hash(excel_path),
+                "date": datetime.now().strftime("%Y-%m-%d"),
                 "created_at": datetime.now().isoformat(),
                 "browser_records": {}
             }
@@ -176,7 +161,7 @@ class SuccessRecordManager:
             self.records["records"][record_key] = {
                 "excel_path": excel_path,
                 "region": region,
-                "file_hash": self._get_file_hash(excel_path),
+                "date": datetime.now().strftime("%Y-%m-%d"),
                 "created_at": datetime.now().isoformat(),
                 "browser_records": {}
             }
@@ -213,7 +198,7 @@ class SuccessRecordManager:
         return {
             "excel_path": excel_path,
             "region": region,
-            "file_hash": record_data.get("file_hash", ""),
+            "date": record_data.get("date", ""),
             "total_browsers": total_browsers,
             "total_products": total_products,
             "browser_details": {
@@ -238,10 +223,10 @@ class SuccessRecordManager:
             logger.info("已清除所有成功记录")
         elif region is None:
             # 清除指定Excel文件的所有记录
-            file_hash = self._get_file_hash(excel_path)
+            normalized_path = os.path.normpath(excel_path)
             keys_to_remove = [
                 key for key in self.records["records"].keys() 
-                if key.startswith(file_hash)
+                if key.startswith(normalized_path)
             ]
             for key in keys_to_remove:
                 del self.records["records"][key]
