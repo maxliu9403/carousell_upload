@@ -32,7 +32,7 @@ class ExcelProductParser:
             required_columns = [
                 'URL', 'SKU', 'BrowserID', 'ProductNameCn', 'ProductNameEn',
                 'GenderCn', 'GenderEn', 'HKPrice', 'SGPrice', 'MYPrice',
-                'Brand', 'folder'
+                'Brand', 'Folder'
             ]
             
             missing_columns = [col for col in required_columns if col not in df.columns]
@@ -61,7 +61,7 @@ class ExcelProductParser:
                         'gender_en': str(row['GenderEn']) if not pd.isna(row['GenderEn']) else '',
                         'price': str(row[price_column]) if not pd.isna(row[price_column]) else '0',
                         'brand': str(row['Brand']) if not pd.isna(row['Brand']) else '',
-                        'folder': str(row['folder']) if not pd.isna(row['folder']) else '',
+                        'folder': str(row['Folder']) if not pd.isna(row['Folder']) else '',
                         'region': region
                     }
                     

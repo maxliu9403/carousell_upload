@@ -1183,3 +1183,26 @@ Call log:
 2025-09-21 20:43:16 - carousell_uploader - WARNING - 点击失败: .D_ayX > .D_oI > .D_oU，原因: 多次重试后仍失败
 2025-09-21 20:43:16 - carousell_uploader - WARNING - 第1次失败: Page.wait_for_selector: Target page, context or browser has been closed
 2025-09-21 20:43:17 - carousell_uploader - WARNING - 第2次失败: Page.wait_for_selector: Target page, context or browser has been closed
+2025-09-21 21:49:52 - carousell_uploader - INFO - 配置文件加载成功
+2025-09-21 21:49:52 - carousell_uploader - INFO - Actions配置已加载: 超时时间=8000ms, 重试次数=3, 重试间隔=1.0s
+2025-09-21 21:49:53 - carousell_uploader - INFO - 配置文件加载成功
+2025-09-21 21:49:53 - carousell_uploader - INFO - 开始执行 Carousell 多账号上传任务
+2025-09-21 21:49:53 - carousell_uploader - INFO - ==================================================
+2025-09-21 21:49:53 - carousell_uploader - INFO - 系统配置信息:
+2025-09-21 21:49:53 - carousell_uploader - INFO -   浏览器API地址: http://127.0.0.1:54347/browser/open
+2025-09-21 21:49:53 - carousell_uploader - INFO -   浏览器API端口: 54347
+2025-09-21 21:49:53 - carousell_uploader - INFO -   支持图片格式: .jpg, .jpeg, .png
+2025-09-21 21:49:53 - carousell_uploader - INFO -   商品描述数量: 8
+2025-09-21 21:49:53 - carousell_uploader - INFO -   男性尺码: 40, 41, 42, 43, 44, 45
+2025-09-21 21:49:53 - carousell_uploader - INFO -   女性尺码: 36, 37, 38, 39, 40
+2025-09-21 21:49:53 - carousell_uploader - INFO -   面交地点数量: 10
+2025-09-21 21:49:53 - carousell_uploader - INFO - ==================================================
+2025-09-21 21:49:53 - carousell_uploader - INFO - 🔍 正在检查浏览器API健康状态...
+2025-09-21 21:49:53 - carousell_uploader - INFO - 正在检查浏览器API健康状态: http://127.0.0.1:54347/health
+2025-09-21 21:49:53 - carousell_uploader - ERROR - ❌ 无法连接到浏览器API服务 (端口: 54347)
+2025-09-21 21:49:53 - carousell_uploader - ERROR - 请检查浏览器服务是否已启动
+2025-09-21 21:49:53 - carousell_uploader - ERROR - ❌ 浏览器API健康检查失败，程序退出
+2025-09-21 21:49:53 - carousell_uploader - ERROR - 请检查以下项目:
+2025-09-21 21:49:53 - carousell_uploader - ERROR - 1. 浏览器服务是否已启动
+2025-09-21 21:49:53 - carousell_uploader - ERROR - 2. API端口是否正确
+2025-09-21 21:49:53 - carousell_uploader - ERROR - 3. API密钥是否正确

@@ -7,7 +7,7 @@ Carousell 上传器模块
 from .carousell_uploader import CarousellUploader
 from .models import ProductInfo, UploadConfig
 from .config import create_upload_config, load_config
-from .browser import start_browser, fetch_all_browser_windows, get_profile_id_by_browser_id
+from .browser import start_browser, fetch_all_browser_windows, get_profile_id_by_browser_id, check_browser_api_health
 from .actions import (
     click_with_wait,
     input_with_wait,
@@ -34,6 +34,7 @@ __all__ = [
     "start_browser",
     "fetch_all_browser_windows",
     "get_profile_id_by_browser_id",
+    "check_browser_api_health",
     "click_with_wait",
     "input_with_wait", 
     "upload_folder_with_keyboard",

@@ -3,6 +3,55 @@ from playwright.sync_api import sync_playwright  # pyright: ignore[reportMissing
 from typing import Dict, Any
 from .logger import logger
 
+def check_browser_api_health(api_port: int, api_key: str) -> bool:
+    """
+    检查浏览器API是否正常
+    
+    Args:
+        api_port (int): 接口服务端口号
+        api_key (str): API密钥
+    
+    Returns:
+        bool: True表示API正常，False表示API异常
+    
+    Raises:
+        Exception: 当API检查失败时抛出异常
+    """
+    try:
+        # 构建健康检查URL
+        health_url = f"http://127.0.0.1:{api_port}/health"
+        headers = {
+            "x-api-key": api_key,
+            "Content-Type": "application/json"
+        }
+        
+        logger.info(f"正在检查浏览器API健康状态: {health_url}")
+        
+        # 发送健康检查请求
+        response = requests.get(health_url, headers=headers, timeout=10)
+        
+        # 检查HTTP状态码
+        if response.status_code == 200:
+            logger.info("✅ 浏览器API健康检查通过")
+            return True
+        else:
+            logger.error(f"❌ 浏览器API健康检查失败，HTTP状态码: {response.status_code}")
+            return False
+            
+    except requests.exceptions.ConnectionError:
+        logger.error(f"❌ 无法连接到浏览器API服务 (端口: {api_port})")
+        logger.error("请检查浏览器服务是否已启动")
+        return False
+    except requests.exceptions.Timeout:
+        logger.error("❌ 浏览器API健康检查超时")
+        return False
+    except requests.exceptions.RequestException as e:
+        logger.error(f"❌ 浏览器API健康检查请求失败: {e}")
+        return False
+    except Exception as e:
+        logger.error(f"❌ 浏览器API健康检查发生未知错误: {e}")
+        return False
+
 def start_browser(api_url: str, api_key: str, profile_id: str):
     """启动指纹浏览器并返回 Playwright 对象"""
     try:

@@ -1,5 +1,5 @@
 from .config import create_upload_config
-from .browser import start_browser
+from .browser import start_browser, check_browser_api_health
 from .carousell_uploader import CarousellUploader
 from .models import ProductInfo
 from .logger import logger
@@ -24,6 +24,18 @@ def run():
         logger.info(f"  女性尺码: {', '.join(config.female_sizes)}")
         logger.info(f"  面交地点数量: {len(config.meetup_locations)}")
         logger.info("=" * 50)
+        
+        # 检查浏览器API健康状态
+        logger.info("🔍 正在检查浏览器API健康状态...")
+        if not check_browser_api_health(config.api_port, config.api_key):
+            logger.error("❌ 浏览器API健康检查失败，程序退出")
+            logger.error("请检查以下项目:")
+            logger.error("1. 浏览器服务是否已启动")
+            logger.error("2. API端口是否正确")
+            logger.error("3. API密钥是否正确")
+            return
+        
+        logger.info("✅ 浏览器API健康检查通过，继续执行...")
         
         # 获取用户输入
         excel_path = input("请输入 Excel 文件路径: ").strip()

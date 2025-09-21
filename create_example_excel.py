@@ -40,7 +40,7 @@ def create_example_excel():
         'SGPrice': ['80', '95', '70', '55', '65'],
         'MYPrice': ['250', '300', '220', '180', '200'],
         'Brand': ['Nike', 'Adidas', 'New Balance', 'Converse', 'Puma'],
-        'folder': [
+        'Folder': [
             '/Users/liuxiang/Desktop/nike_images',
             '/Users/liuxiang/Desktop/adidas_images', 
             '/Users/liuxiang/Desktop/nb_images',
@@ -72,7 +72,7 @@ def create_example_excel():
     print("I列 = SGPrice: 新加坡价格")
     print("J列 = MYPrice: 马来西亚价格")
     print("K列 = Brand: 品牌")
-    print("L列 = folder: 图片文件夹路径")
+    print("L列 = Folder: 图片文件夹路径")
 
 if __name__ == "__main__":
     create_example_excel()
