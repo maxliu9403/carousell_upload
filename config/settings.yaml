@@ -4,6 +4,12 @@ browser:
   api_key: "5a526120de58406c8c96c0e3393410ce"
   api_port: 54345  # 用于获取浏览器窗口列表的端口
 
+# 地域域名配置
+domains:
+  SG: "https://www.carousell.sg"
+  HK: "https://www.carousell.com.hk"
+  MY: "https://www.carousell.com.my"
+
 upload:
   image_extensions: [".jpg", ".jpeg", ".png"]
 
@@ -25,18 +31,41 @@ product:
   # 女性尺码：36-40
   female_sizes: ["36", "37", "38", "39", "40"]
   
-  # 面交地点
+  # 面交地点 - 按地域分类
   meetup_locations:
-    - "MTR"
-    - "Central"
-    - "Orchard"
-    - "Marina Bay"
-    - "Chinatown"
-    - "Little India"
-    - "Bugis"
-    - "Tampines"
-    - "Jurong East"
-    - "Woodlands"
+    SG:  # 新加坡
+      - "MTR"
+      - "Central"
+      - "Orchard"
+      - "Marina Bay"
+      - "Chinatown"
+      - "Little India"
+      - "Bugis"
+      - "Tampines"
+      - "Jurong East"
+      - "Woodlands"
+    HK:  # 香港
+      - "Central"
+      - "Tsim Sha Tsui"
+      - "Causeway Bay"
+      - "Mong Kok"
+      - "Admiralty"
+      - "Wan Chai"
+      - "Sheung Wan"
+      - "Jordan"
+      - "Prince Edward"
+      - "Lai Chi Kok"
+    MY:  # 马来西亚
+      - "KL Sentral"
+      - "Bukit Bintang"
+      - "Pavilion"
+      - "Sunway Pyramid"
+      - "Mid Valley"
+      - "1 Utama"
+      - "The Gardens"
+      - "Suria KLCC"
+      - "Times Square"
+      - "IOI City Mall"
 
 # 页面操作配置
 actions:

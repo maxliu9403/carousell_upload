@@ -13,7 +13,10 @@ from .actions import (
     input_with_wait,
     upload_folder_with_keyboard,
     human_delay,
-    scroll_page
+    scroll_page,
+    click_blank_area,
+    click_center,
+    smart_goto
 )
 from .logger import logger
 from .utils import (
@@ -41,6 +44,8 @@ __all__ = [
     "upload_folder_with_keyboard",
     "human_delay",
     "scroll_page",
+    "click_blank_area",
+    "click_center",
     "logger",
     "get_random_description",
     "get_random_size",

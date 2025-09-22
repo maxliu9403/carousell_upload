@@ -40,6 +40,66 @@ def human_delay(a: float = 1.0, b: float = 2.0):
     """模拟真人随机延迟"""
     time.sleep(random.uniform(a, b))
 
+def click_blank_area(page: Page, x: int = None, y: int = None):
+    """
+    点击页面空白处
+    
+    Args:
+        page: Playwright页面对象
+        x: 点击的X坐标，为None时使用随机位置
+        y: 点击的Y坐标，为None时使用随机位置
+    """
+    try:
+        # 获取页面尺寸
+        viewport = page.viewport_size
+        if not viewport:
+            viewport = {"width": 1920, "height": 1080}
+        
+        # 如果没有指定坐标，使用页面中心附近的随机位置
+        if x is None:
+            x = random.randint(viewport["width"] // 4, viewport["width"] * 3 // 4)
+        if y is None:
+            y = random.randint(viewport["height"] // 4, viewport["height"] * 3 // 4)
+        
+        # 点击空白处
+        page.mouse.click(x, y)
+        logger.info(f"点击空白处: ({x}, {y})")
+        
+        # 添加短暂延迟
+        human_delay(0.5, 1.0)
+        
+    except Exception as e:
+        logger.error(f"点击空白处失败: {e}")
+        raise
+
+def click_center(page: Page):
+    """
+    点击当前屏幕中心点位置
+    
+    Args:
+        page: Playwright页面对象
+    """
+    try:
+        # 获取页面尺寸
+        viewport = page.viewport_size
+        if not viewport:
+            viewport = {"width": 1920, "height": 1080}
+        
+        # 计算屏幕中心点坐标
+        center_x = viewport["width"] // 2
+        center_y = viewport["height"] // 2
+        
+        # 点击屏幕中心点
+        page.mouse.click(center_x, center_y)
+        logger.info(f"点击屏幕中心点: ({center_x}, {center_y})")
+        
+        # 添加短暂延迟
+        human_delay(0.5, 1.0)
+        
+    except Exception as e:
+        logger.error(f"点击屏幕中心点失败: {e}")
+        raise
+
 def retry_action(action, retries: int = RETRY_TIMES, delay: float = RETRY_DELAY):
     """
     通用重试封装
@@ -204,3 +264,42 @@ def upload_folder_with_keyboard(folder_path: str, image_exts: set):
     pyautogui.hotkey("ctrl", "v"); time.sleep(0.3 + random.random() * 0.3)
     pyautogui.press("enter")
     logger.info(f"已选择文件夹中所有文件上传: {', '.join(files)}")
+
+def smart_goto(page: Page, url: str, wait_until: str = "domcontentloaded", timeout: int = 15000, retry_times: int = 3):
+    """
+    智能页面导航，支持重试和多种等待策略
+    
+    Args:
+        page: Playwright页面对象
+        url: 目标URL
+        wait_until: 等待条件 ("load", "domcontentloaded", "networkidle", "commit")
+        timeout: 超时时间（毫秒）
+        retry_times: 重试次数
+    """
+    for attempt in range(retry_times):
+        try:
+            logger.info(f"正在导航到: {url} (尝试 {attempt + 1}/{retry_times})")
+            
+            # 执行页面导航
+            response = page.goto(url, wait_until=wait_until, timeout=timeout)
+            
+            # 检查响应状态
+            if response and response.status >= 400:
+                logger.warning(f"页面响应状态码: {response.status}")
+                if attempt < retry_times - 1:
+                    logger.info(f"等待 {2 ** attempt} 秒后重试...")
+                    time.sleep(2 ** attempt)  # 指数退避
+                    continue
+            
+            logger.info(f"✅ 页面导航成功: {url}")
+            return response
+            
+        except Exception as e:
+            logger.error(f"页面导航失败 (尝试 {attempt + 1}/{retry_times}): {e}")
+            if attempt < retry_times - 1:
+                wait_time = 2 ** attempt
+                logger.info(f"等待 {wait_time} 秒后重试...")
+                time.sleep(wait_time)
+            else:
+                logger.error(f"页面导航最终失败: {url}")
+                raise

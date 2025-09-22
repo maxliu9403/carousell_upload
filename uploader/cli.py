@@ -80,8 +80,8 @@ def main():
             "default_profile_id"  # 临时使用默认值，实际应该动态获取
         )
         
-        # 创建上传器
-        uploader = CarousellUploader(page, config)
+        # 创建上传器（CLI模式默认使用SG地域）
+        uploader = CarousellUploader(page, config, "SG")
         
         # 执行完整流程（上传商品 + 管理商品列表）
         product_info = create_product_info_from_args(args)

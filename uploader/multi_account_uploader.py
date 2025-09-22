@@ -182,7 +182,7 @@ class MultiAccountUploader:
                     profile_id
                 )
                 
-                uploader = CarousellUploader(page, self.config)
+                uploader = CarousellUploader(page, self.config, self.region)
                 
                 # 上传该账号的所有商品
                 for product_data in products:

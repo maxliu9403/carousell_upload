@@ -92,6 +92,25 @@ class ExcelProductParser:
         
         return price_mapping[region]
     
+    def _get_title_by_region(self, product_data: Dict[str, Any]) -> str:
+        """根据地域获取对应的商品标题"""
+        region = product_data['region']
+        
+        if region == 'HK':
+            # HK地域使用中文标题
+            title = product_data['product_name_cn'] or product_data['product_name_en']
+        elif region == 'SG':
+            # SG地域使用英文标题
+            title = product_data['product_name_en'] or product_data['product_name_cn']
+        elif region == 'MY':
+            # MY地域使用英文标题
+            title = product_data['product_name_en'] or product_data['product_name_cn']
+        else:
+            # 默认使用英文标题
+            title = product_data['product_name_en'] or product_data['product_name_cn']
+        
+        return title
+    
     def create_product_info(self, product_data: Dict[str, Any]) -> ProductInfo:
         """
         将解析的数据转换为 ProductInfo 对象
@@ -103,10 +122,7 @@ class ExcelProductParser:
             ProductInfo: 商品信息对象
         """
         # 根据地域选择商品名称
-        if product_data['region'] == 'HK':
-            title = product_data['product_name_cn'] or product_data['product_name_en']
-        else:
-            title = product_data['product_name_en'] or product_data['product_name_cn']
+        title = self._get_title_by_region(product_data)
         
         # 根据地域选择性别
         if product_data['region'] == 'HK':

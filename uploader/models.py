@@ -23,5 +23,6 @@ class UploadConfig:
     descriptions: List[str]
     male_sizes: List[str]
     female_sizes: List[str]
-    meetup_locations: List[str]
+    meetup_locations: dict  # 改为字典，支持按地域分类
+    domains: dict  # 地域域名配置
 
