@@ -25,6 +25,27 @@ product:
     - "实用性强，性价比高"
     - "经典款式，永不过时"
   
+  # 支持的商品类目
+  categories:
+    sneakers:
+      name: "运动鞋"
+      search_keyword: "sneakers"
+      subcategories:
+        male: "男装波鞋"
+        female: "女装波鞋"
+    bags:
+      name: "包包"
+      search_keyword: "bags"
+      subcategories:
+        male: "男装包包"
+        female: "女装包包"
+    clothes:
+      name: "服装"
+      search_keyword: "clothes"
+      subcategories:
+        male: "男装"
+        female: "女装"
+  
   # 男性尺码：40-45
   male_sizes: ["40", "41", "42", "43", "44", "45"]
   

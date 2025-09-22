@@ -57,7 +57,9 @@ def main():
         logger.info(f"  商品描述数量: {len(config.descriptions)}")
         logger.info(f"  男性尺码: {', '.join(config.male_sizes)}")
         logger.info(f"  女性尺码: {', '.join(config.female_sizes)}")
-        logger.info(f"  面交地点数量: {len(config.meetup_locations)}")
+        # 显示各地域面交地点数量
+        for region, locations in config.meetup_locations.items():
+            logger.info(f"  {region}地域面交地点数量: {len(locations)}")
         logger.info("=" * 50)
         
         # 检查浏览器API健康状态
@@ -80,14 +82,15 @@ def main():
             "default_profile_id"  # 临时使用默认值，实际应该动态获取
         )
         
-        # 创建上传器（CLI模式默认使用SG地域）
+        # 创建上传器（CLI模式默认使用SG地域和sneakers类目）
         uploader = CarousellUploader(page, config, "SG")
         
         # 执行完整流程（上传商品 + 管理商品列表）
         product_info = create_product_info_from_args(args)
         # 注意：CLI模式下需要指定文件夹路径，这里使用默认路径
         default_folder = "/Users/liuxiang/Desktop/262/modified"  # 可以根据需要调整
-        success = uploader.upload_product(product_info, default_folder)
+        # CLI模式默认使用sneakers类目
+        success = uploader.upload_product(product_info, default_folder, "sneakers")
         
         if not success:
             logger.error("完整流程执行失败")

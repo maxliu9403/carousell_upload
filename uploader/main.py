@@ -22,7 +22,9 @@ def run():
         logger.info(f"  商品描述数量: {len(config.descriptions)}")
         logger.info(f"  男性尺码: {', '.join(config.male_sizes)}")
         logger.info(f"  女性尺码: {', '.join(config.female_sizes)}")
-        logger.info(f"  面交地点数量: {len(config.meetup_locations)}")
+        # 显示各地域面交地点数量
+        for region, locations in config.meetup_locations.items():
+            logger.info(f"  {region}地域面交地点数量: {len(locations)}")
         logger.info("=" * 50)
         
         # 检查浏览器API健康状态
@@ -59,8 +61,24 @@ def run():
         region = region_mapping[region_choice]
         logger.info(f"选择的地域: {region}")
         
+        # 选择商品类目
+        print("\n请选择商品类目:")
+        print("1. sneakers (运动鞋)")
+        print("2. bags (包包)")
+        print("3. clothes (服装)")
+        
+        category_choice = input("请输入选择 (1/2/3): ").strip()
+        category_mapping = {"1": "sneakers", "2": "bags", "3": "clothes"}
+        
+        if category_choice not in category_mapping:
+            logger.error("无效的类目选择")
+            return
+        
+        category = category_mapping[category_choice]
+        logger.info(f"选择的类目: {category}")
+        
         # 创建多账号上传器
-        multi_uploader = MultiAccountUploader(config, excel_path, region)
+        multi_uploader = MultiAccountUploader(config, excel_path, region, category)
         
         # 显示历史记录摘要
         record_summary = multi_uploader.record_manager.get_record_summary(excel_path, region)

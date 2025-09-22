@@ -11,10 +11,11 @@ from .record_manager import SuccessRecordManager
 class MultiAccountUploader:
     """多账号串行上传器"""
     
-    def __init__(self, config: UploadConfig, excel_path: str, region: str):
+    def __init__(self, config: UploadConfig, excel_path: str, region: str, category: str = "sneakers"):
         self.config = config
         self.excel_path = excel_path
         self.region = region
+        self.category = category
         self.parser = ExcelProductParser(excel_path)
         self.record_manager = SuccessRecordManager()
     
@@ -192,9 +193,9 @@ class MultiAccountUploader:
                         # 创建 ProductInfo 对象
                         product_info = self.parser.create_product_info(product_data)
                         
-                        # 执行上传，传递文件夹路径
+                        # 执行上传，传递文件夹路径和类目
                         folder_path = product_data['folder'] if product_data['folder'] else None
-                        success = uploader.upload_product(product_info, folder_path)
+                        success = uploader.upload_product(product_info, folder_path, self.category)
                         
                         if success:
                             account_result['success_count'] += 1
