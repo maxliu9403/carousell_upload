@@ -181,6 +181,45 @@ def fetch_all_browser_windows(api_port: int, token: str) -> Dict[int, Dict[str, 
     return browser_window_map
 
 
+def close_browser_by_profile_id(api_port: int, api_key: str, profile_id: str) -> bool:
+    """
+    通过profile_id关闭浏览器窗口
+    
+    Args:
+        api_port (int): 接口服务端口号
+        api_key (str): API密钥
+        profile_id (str): 浏览器配置文件ID
+    
+    Returns:
+        bool: True表示关闭成功，False表示关闭失败
+    """
+    try:
+        # 构建关闭浏览器URL
+        close_url = f"http://127.0.0.1:{api_port}/browser/close"
+        headers = {
+            "x-api-key": api_key,
+            "Content-Type": "application/json"
+        }
+        
+        # 发送关闭请求
+        resp = requests.post(close_url, headers=headers, json={"id": profile_id})
+        resp.raise_for_status()  # 检查 HTTP 状态码
+        
+        data = resp.json()
+        if data.get("success"):
+            logger.info(f"浏览器窗口关闭成功: id={profile_id}")
+            return True
+        else:
+            logger.warning(f"浏览器窗口关闭失败: id={profile_id}, 响应: {data}")
+            return False
+            
+    except requests.RequestException as e:
+        logger.error(f"关闭浏览器API请求失败: profile_id={profile_id}, 错误: {e}")
+        return False
+    except Exception as e:
+        logger.error(f"关闭浏览器失败: profile_id={profile_id}, 错误: {e}")
+        return False
+
 def get_profile_id_by_browser_id(api_port: int, token: str, browser_id: str, browser_windows: Dict[int, Dict[str, str]] = None) -> str:
     """
     根据BrowserID获取对应的profile_id

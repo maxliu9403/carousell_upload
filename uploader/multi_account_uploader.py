@@ -3,7 +3,7 @@ from pathlib import Path
 from playwright.sync_api import Page  # pyright: ignore[reportMissingImports]
 from core.models import ProductInfo, UploadConfig
 from .carousell_uploader import CarousellUploader, CriticalOperationFailed
-from browser.browser import start_browser, get_profile_id_by_browser_id, fetch_all_browser_windows
+from browser.browser import start_browser, get_profile_id_by_browser_id, fetch_all_browser_windows, close_browser_by_profile_id
 from data.excel_parser import ExcelProductParser
 from core.logger import logger
 from data.record_manager import SuccessRecordManager
@@ -149,6 +149,7 @@ class MultiAccountUploader:
         current_uploader = None
         current_browser = None
         current_playwright = None
+        current_profile_id = None
         
         logger.info(f"开始按Excel顺序执行 {len(products_data)} 个商品的上传")
         
@@ -174,8 +175,9 @@ class MultiAccountUploader:
                     profile_id
                 )
                 
-                current_uploader = CarousellUploader(page, self.config, self.region)
+                current_uploader = CarousellUploader(page, self.config, self.region, browser_id, sku)
                 current_browser_id = browser_id
+                current_profile_id = profile_id
                 
             except Exception as e:
                 logger.error(f"启动浏览器 {browser_id} 失败: {e}")
@@ -245,25 +247,41 @@ class MultiAccountUploader:
                 })
             
             # 每个产品上架后立即关闭浏览器窗口
-            if current_browser:
+            if current_browser and current_profile_id:
                 try:
-                    current_browser.close()
-                    current_playwright.stop()
-                    logger.info(f"✅ 商品 {sku} 处理完成，已关闭浏览器 {browser_id}")
+                    # 使用API接口关闭浏览器
+                    close_success = close_browser_by_profile_id(
+                        self.config.api_port,
+                        self.config.api_key,
+                        current_profile_id
+                    )
+                    
+                    if close_success:
+                        logger.info(f"✅ 商品 {sku} 处理完成，已通过API关闭浏览器 {browser_id} (profile_id: {current_profile_id})")
+                    else:
+                        logger.warning(f"⚠️ 商品 {sku} 处理完成，但API关闭浏览器失败 {browser_id} (profile_id: {current_profile_id})")
+                    
+                    # 尝试关闭Playwright连接
+                    try:
+                        current_playwright.stop()
+                    except Exception as e:
+                        logger.debug(f"关闭Playwright连接时出错: {e}")
                     
                     # 重置浏览器相关变量
                     current_browser = None
                     current_playwright = None
                     current_uploader = None
                     current_browser_id = None
+                    current_profile_id = None
                     
                 except Exception as e:
-                    logger.warning(f"关闭浏览器 {browser_id} 时出错: {e}")
+                    logger.error(f"关闭浏览器 {browser_id} 时出错: {e}")
                     # 即使关闭失败也要重置变量
                     current_browser = None
                     current_playwright = None
                     current_uploader = None
                     current_browser_id = None
+                    current_profile_id = None
         
         # 注意：每个产品处理完后都已经关闭浏览器，无需额外关闭
         

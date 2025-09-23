@@ -9,9 +9,10 @@ def get_browser_functions():
         start_browser,
         fetch_all_browser_windows,
         get_profile_id_by_browser_id,
-        check_browser_api_health
+        check_browser_api_health,
+        close_browser_by_profile_id
     )
-    return start_browser, fetch_all_browser_windows, get_profile_id_by_browser_id, check_browser_api_health
+    return start_browser, fetch_all_browser_windows, get_profile_id_by_browser_id, check_browser_api_health, close_browser_by_profile_id
 
 def get_action_functions():
     from .actions import (
@@ -38,7 +39,8 @@ try:
         start_browser,
         fetch_all_browser_windows,
         get_profile_id_by_browser_id,
-        check_browser_api_health
+        check_browser_api_health,
+        close_browser_by_profile_id
     )
     from .actions import (
         retry_action,
@@ -60,6 +62,7 @@ except ImportError:
     fetch_all_browser_windows = None
     get_profile_id_by_browser_id = None
     check_browser_api_health = None
+    close_browser_by_profile_id = None
     retry_action = None
     click_with_wait = None
     input_with_wait = None
@@ -80,6 +83,7 @@ __all__ = [
     'fetch_all_browser_windows',
     'get_profile_id_by_browser_id',
     'check_browser_api_health',
+    'close_browser_by_profile_id',
     'retry_action',
     'click_with_wait',
     'input_with_wait',

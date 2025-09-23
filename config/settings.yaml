@@ -16,14 +16,8 @@ upload:
 # 商品信息配置
 product:
   descriptions:
-    - "高品质商品，适合日常使用"
-    - "全新商品，包装完好"
-    - "优质材料制作，经久耐用"
-    - "时尚设计，舒适体验"
-    - "品牌正品，质量保证"
-    - "精美包装，送礼佳品"
-    - "实用性强，性价比高"
-    - "经典款式，永不过时"
+    - "Brand new with box, all sizes available"
+    - "In-stock and ready to ship"
   
   # 支持的商品类目
   categories:
@@ -91,5 +85,5 @@ product:
 # 页面操作配置
 actions:
   default_timeout: 8000    # 默认超时时间（毫秒）
-  retry_times: 3           # 重试次数
+  retry_times: 1           # 重试次数
   retry_delay: 1.0         # 每次重试间隔（秒）
