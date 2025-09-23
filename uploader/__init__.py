@@ -1,58 +1,49 @@
 """
-Carousell 上传器模块
-
-包含所有上传相关的功能模块。
+上传功能模块
+包含Carousell上传器和多账号上传器
 """
 
-from .carousell_uploader import CarousellUploader
-from .models import ProductInfo, UploadConfig
-from .config import create_upload_config, load_config
-from .browser import start_browser, fetch_all_browser_windows, get_profile_id_by_browser_id, check_browser_api_health
-from .actions import (
-    click_with_wait,
-    input_with_wait,
-    upload_folder_with_keyboard,
-    human_delay,
-    scroll_page,
-    click_blank_area,
-    click_center,
-    smart_goto
-)
-from .logger import logger
-from .utils import (
-    get_random_description,
-    get_random_size,
-    get_random_meetup_location,
-    enrich_product_info
-)
-from .excel_parser import ExcelProductParser
-from .multi_account_uploader import MultiAccountUploader
-from .record_manager import SuccessRecordManager
+# 延迟导入，避免在模块级别导入时出现依赖问题
+def get_uploaders():
+    from .carousell_uploader import CarousellUploader
+    from .multi_account_uploader import MultiAccountUploader
+    return CarousellUploader, MultiAccountUploader
+
+def get_utils():
+    from .utils import (
+        get_random_description,
+        get_random_size,
+        get_random_meetup_location,
+        enrich_product_info
+    )
+    return get_random_description, get_random_size, get_random_meetup_location, enrich_product_info
+
+# 为了向后兼容，提供直接导入（如果依赖包可用）
+try:
+    from .carousell_uploader import CarousellUploader
+    from .multi_account_uploader import MultiAccountUploader
+    from .utils import (
+        get_random_description,
+        get_random_size,
+        get_random_meetup_location,
+        enrich_product_info
+    )
+except ImportError:
+    # 如果依赖包未安装，提供占位符
+    CarousellUploader = None
+    MultiAccountUploader = None
+    get_random_description = None
+    get_random_size = None
+    get_random_meetup_location = None
+    enrich_product_info = None
 
 __all__ = [
-    "CarousellUploader",
-    "ProductInfo", 
-    "UploadConfig",
-    "create_upload_config",
-    "load_config",
-    "start_browser",
-    "fetch_all_browser_windows",
-    "get_profile_id_by_browser_id",
-    "check_browser_api_health",
-    "click_with_wait",
-    "input_with_wait", 
-    "upload_folder_with_keyboard",
-    "human_delay",
-    "scroll_page",
-    "click_blank_area",
-    "click_center",
-    "logger",
-    "get_random_description",
-    "get_random_size",
-    "get_random_meetup_location",
-    "enrich_product_info",
-    "ExcelProductParser",
-    "MultiAccountUploader",
-    "SuccessRecordManager"
+    'get_uploaders',
+    'get_utils',
+    'CarousellUploader',
+    'MultiAccountUploader',
+    'get_random_description',
+    'get_random_size',
+    'get_random_meetup_location',
+    'enrich_product_info'
 ]
-

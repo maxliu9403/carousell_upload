@@ -1,12 +1,12 @@
 from typing import List, Dict, Any
 from pathlib import Path
 from playwright.sync_api import Page
-from .models import ProductInfo, UploadConfig
+from core.models import ProductInfo, UploadConfig
 from .carousell_uploader import CarousellUploader
-from .browser import start_browser, get_profile_id_by_browser_id, fetch_all_browser_windows
-from .excel_parser import ExcelProductParser
-from .logger import logger
-from .record_manager import SuccessRecordManager
+from browser.browser import start_browser, get_profile_id_by_browser_id, fetch_all_browser_windows
+from data.excel_parser import ExcelProductParser
+from core.logger import logger
+from data.record_manager import SuccessRecordManager
 
 class MultiAccountUploader:
     """多账号串行上传器"""

@@ -1,14 +1,14 @@
 from typing import Optional
 from playwright.sync_api import Page  # pyright: ignore[reportMissingImports]
-from .models import ProductInfo, UploadConfig
-from .actions import (
+from core.models import ProductInfo, UploadConfig
+from browser.actions import (
     click_with_wait, 
     upload_folder_with_keyboard, 
     human_delay, 
     input_with_wait, 
     smart_goto
 )
-from .logger import logger
+from core.logger import logger
 from .utils import enrich_product_info
 
 class CarousellUploader:
@@ -196,8 +196,10 @@ class CarousellUploader:
         # 输入other，跳服务
         input_with_wait(self.page, "input.D_Kr", "others", must_exist=True)
         
+        # 等待出现搜索结果
+        self.page.wait_for_timeout(2000)
         # 点击服务
-        self._safe_click_subcategory(".D_aGw:nth-child(2) > .D_aGE > .D_lz", "服務")
+        self._safe_click_subcategory("div.D_aGw:nth-child(2)", "服務")
 
     def _fill_basic_info(self, enriched_info: ProductInfo):
         """填写基本信息"""

@@ -3,8 +3,8 @@
 测试获取浏览器窗口信息的脚本
 """
 
-from uploader.browser import fetch_all_browser_windows
-from uploader.logger import logger
+from browser.browser import fetch_all_browser_windows
+from core.logger import logger
 
 def test_fetch_browser_windows():
     """测试获取浏览器窗口信息"""

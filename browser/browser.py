@@ -1,7 +1,7 @@
 import requests  # pyright: ignore[reportMissingModuleSource]
 from playwright.sync_api import sync_playwright  # pyright: ignore[reportMissingImports]
 from typing import Dict, Any
-from .logger import logger
+from core.logger import logger
 
 def check_browser_api_health(api_port: int, api_key: str) -> bool:
     """

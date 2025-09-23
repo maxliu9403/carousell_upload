@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from typing import Dict, List, Set, Any
 from datetime import datetime
-from .logger import logger
+from core.logger import logger
 
 class SuccessRecordManager:
     """成功记录管理器"""

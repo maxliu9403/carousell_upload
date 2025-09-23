@@ -1,11 +1,11 @@
 import argparse
 import sys
 from pathlib import Path
-from .config import create_upload_config
-from .browser import start_browser, check_browser_api_health
-from .carousell_uploader import CarousellUploader
-from .models import ProductInfo
-from .logger import logger
+from core.config import create_upload_config
+from browser.browser import start_browser, check_browser_api_health
+from uploader.carousell_uploader import CarousellUploader
+from core.models import ProductInfo
+from core.logger import logger
 
 def create_product_info_from_args(args) -> ProductInfo:
     """从命令行参数创建商品信息"""

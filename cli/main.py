@@ -1,10 +1,10 @@
-from .config import create_upload_config
-from .browser import start_browser, check_browser_api_health
-from .carousell_uploader import CarousellUploader
-from .models import ProductInfo
-from .logger import logger
-from .multi_account_uploader import MultiAccountUploader
-from .excel_parser import ExcelProductParser
+from core.config import create_upload_config
+from browser.browser import start_browser, check_browser_api_health
+from uploader.carousell_uploader import CarousellUploader
+from core.models import ProductInfo
+from core.logger import logger
+from uploader.multi_account_uploader import MultiAccountUploader
+from data.excel_parser import ExcelProductParser
 
 def run():
     """主运行函数"""

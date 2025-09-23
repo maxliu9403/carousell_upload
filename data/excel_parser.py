@@ -1,8 +1,8 @@
 import pandas as pd
 from typing import List, Dict, Any, Optional
 from pathlib import Path
-from .models import ProductInfo
-from .logger import logger
+from core.models import ProductInfo
+from core.logger import logger
 
 class ExcelProductParser:
     """Excel 商品信息解析器"""

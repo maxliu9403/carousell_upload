@@ -4,8 +4,8 @@ import random
 import pyautogui
 import pyperclip
 from playwright.sync_api import Page, TimeoutError as PlaywrightTimeout  # pyright: ignore[reportMissingImports]
-from .logger import logger
-from .config import load_config
+from core.logger import logger
+from core.config import load_config
 
 # ========= 从配置文件加载参数 =========
 def _load_actions_config():

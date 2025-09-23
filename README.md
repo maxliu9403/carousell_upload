@@ -17,6 +17,9 @@
 - 🌍 多地域支持 (HK/MY/SG)
 - 👥 多账号串行上传
 - 🔗 动态BrowserID到profile_id映射
+- 🏗️ 模块化架构设计
+- 🔧 延迟导入机制
+- 📦 清晰的依赖管理
 
 ## 📦 安装依赖
 
@@ -78,19 +81,19 @@ actions:
 ### 方法一：使用默认配置运行
 
 ```bash
-python -m uploader.main
+python -m cli.main
 ```
 
 ### 方法二：使用命令行参数
 
 ```bash
-python -m uploader.cli --title "Asics 运动鞋" --price "60" --category "sneakers" --brand "Asics" --gender "male"
+python -m cli.cli --title "Asics 运动鞋" --price "60" --category "sneakers" --brand "Asics" --gender "male"
 ```
 
 ### 方法三：Excel 批量多账号上传
 
 ```bash
-python -m uploader.main
+python -m cli.main
 ```
 
 程序会提示您：
@@ -100,7 +103,7 @@ python -m uploader.main
 ### 方法四：使用浏览器窗口管理接口
 
 ```python
-from uploader.browser import fetch_all_browser_windows
+from browser.browser import fetch_all_browser_windows
 
 # 获取所有浏览器窗口信息
 api_port = 54347
@@ -154,27 +157,70 @@ python create_example_excel.py
 
 ## 📁 项目结构
 
+项目采用模块化设计，按功能将代码分离到不同的模块中：
+
 ```
 carousell/
-├── config/
-│   ├── settings.yaml          # 主配置文件
-│   └── settings.example.yaml  # 配置示例文件
-├── uploader/
+├── core/                     # 核心功能模块
+│   ├── __init__.py
+│   ├── config.py             # 配置管理
+│   ├── models.py             # 数据模型
+│   └── logger.py             # 日志系统
+├── browser/                  # 浏览器操作模块
+│   ├── __init__.py
+│   ├── browser.py            # 浏览器管理
+│   └── actions.py            # 页面操作
+├── data/                     # 数据处理模块
+│   ├── __init__.py
+│   ├── excel_parser.py       # Excel 解析器
+│   └── record_manager.py     # 记录管理
+├── uploader/                 # 上传功能模块
+│   ├── __init__.py
+│   ├── carousell_uploader.py # 核心上传逻辑
+│   ├── multi_account_uploader.py # 多账号上传器
+│   └── utils.py              # 工具函数
+├── cli/                      # 命令行接口
 │   ├── __init__.py
 │   ├── main.py               # 主程序入口
-│   ├── cli.py                # 命令行接口
-│   ├── carousell_uploader.py # 核心上传逻辑
-│   ├── models.py             # 数据模型
-│   ├── config.py             # 配置管理
-│   ├── browser.py            # 浏览器管理
-│   ├── actions.py            # 页面操作
-│   ├── logger.py             # 日志系统
-│   ├── utils.py              # 工具函数
-│   ├── excel_parser.py       # Excel 解析器
-│   └── multi_account_uploader.py # 多账号上传器
+│   └── cli.py                # CLI接口
+├── config/                   # 配置文件
+│   ├── settings.yaml         # 主配置文件
+│   └── settings.example.yaml # 配置示例文件
 ├── logs/                     # 日志文件目录
 ├── requirements.txt          # 依赖列表
 └── README.md                # 项目说明
+```
+
+### 🏗️ 模块说明
+
+- **core/**: 核心功能模块，包含配置管理、数据模型和日志系统
+- **browser/**: 浏览器操作模块，负责浏览器控制和页面操作
+- **data/**: 数据处理模块，处理Excel解析和记录管理
+- **uploader/**: 上传功能模块，包含Carousell上传器和多账号上传器
+- **cli/**: 命令行接口模块，提供主程序入口和CLI接口
+- **config/**: 配置文件目录，存放YAML配置文件
+- **logs/**: 日志文件目录，存放运行日志
+
+### 📦 模块导入示例
+
+```python
+# 导入核心功能
+from core import ProductInfo, UploadConfig, logger
+from core.config import create_upload_config
+
+# 导入浏览器功能
+from browser import start_browser, check_browser_api_health
+from browser.actions import click_with_wait, smart_goto
+
+# 导入数据处理
+from data import ExcelProductParser, SuccessRecordManager
+
+# 导入上传功能
+from uploader import CarousellUploader, MultiAccountUploader
+from uploader.utils import enrich_product_info
+
+# 导入CLI接口
+from cli import run, cli_main
 ```
 
 ## 🔧 高级配置
@@ -300,6 +346,26 @@ product_defaults:
 3. **页面元素找不到**
    - 网站可能更新了页面结构
    - 检查网络连接是否正常
+
+4. **模块导入失败**
+   - 确保所有依赖包已正确安装
+   - 检查Python路径设置
+   - 验证模块文件是否存在
+
+5. **配置文件问题**
+   - 确保 `config/settings.yaml` 文件存在
+   - 检查YAML文件格式是否正确
+   - 验证配置项是否完整
+
+### 模块化架构优势
+
+新的模块化设计提供了以下优势：
+
+- **清晰的职责分离**: 每个模块都有明确的职责范围
+- **更好的可维护性**: 代码结构更清晰，便于维护和扩展
+- **灵活的依赖管理**: 使用延迟导入避免循环依赖
+- **向后兼容性**: 保持了原有的API接口
+- **易于测试**: 模块化设计便于单元测试
 
 ### 日志查看
 

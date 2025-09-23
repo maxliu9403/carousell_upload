@@ -7,9 +7,9 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from uploader.config import create_upload_config
-from uploader.browser import fetch_all_browser_windows, get_profile_id_by_browser_id
-from uploader.logger import logger
+from core.config import create_upload_config
+from browser.browser import fetch_all_browser_windows, get_profile_id_by_browser_id
+from core.logger import logger
 
 def test_browser_mapping():
     """测试浏览器映射功能"""

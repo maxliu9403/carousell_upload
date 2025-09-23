@@ -1,7 +1,7 @@
 import random
 from typing import List
-from .models import ProductInfo, UploadConfig
-from .logger import logger
+from core.models import ProductInfo, UploadConfig
+from core.logger import logger
 
 def get_random_description(config: UploadConfig) -> str:
     """从配置中随机选择一个商品描述"""
