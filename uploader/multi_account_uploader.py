@@ -221,11 +221,11 @@ class MultiAccountUploader:
                     # 输出美化的截断日志
                     logger.info("🎊" + "=" * 58 + "🎊")
                     logger.info("🎉 商品处理完成 - 详细信息 🎉")
-                    logger.info("📍 所在地域: " + f"{self.region} 🌍")
-                    logger.info("🌐 浏览器ID: " + f"{browser_id} 💻")
-                    logger.info("📦 商品SKU: " + f"{sku} 🏷️")
-                    logger.info("✅ 处理状态: 成功 🎯")
-                    logger.info("⏰ 完成时间: " + f"{self._get_current_time()} ⏱️")
+                    logger.info("📍 所在地域: " + f"{self.region}")
+                    logger.info("🌐 浏览器ID: " + f"{browser_id}")
+                    logger.info("📦 商品SKU: " + f"{sku}")
+                    logger.info("✅ 处理状态: 成功")
+                    logger.info("⏰ 完成时间: " + f"{self._get_current_time()}")
                     logger.info("🎊" + "=" * 58 + "🎊")
                     
                     results.append({
@@ -235,17 +235,16 @@ class MultiAccountUploader:
                         'error': None
                     })
                 else:
-                    logger.error(f"❌ 商品 {sku} 上传失败")
-                    
+
                     # 输出美化的截断日志（失败情况）
-                    logger.error("💥" + "=" * 58 + "💥")
+                    logger.error("💥" + "=" * 50 + "💥")
                     logger.error("❌ 商品处理失败 - 详细信息 ❌")
-                    logger.error("📍 所在地域: " + f"{self.region} 🌍")
-                    logger.error("🌐 浏览器ID: " + f"{browser_id} 💻")
-                    logger.error("📦 商品SKU: " + f"{sku} 🏷️")
-                    logger.error("❌ 处理状态: 失败 💔")
-                    logger.error("⏰ 失败时间: " + f"{self._get_current_time()} ⏱️")
-                    logger.error("💥" + "=" * 58 + "💥")
+                    logger.error("📍 所在地域: " + f"{self.region}")
+                    logger.error("🌐 浏览器ID: " + f"{browser_id}")
+                    logger.error("📦 商品SKU: " + f"{sku}")
+                    logger.error("❌ 处理状态: 失败")
+                    logger.error("⏰ 失败时间: " + f"{self._get_current_time()}")
+                    logger.error("💥" + "=" * 50 + "💥")
                     
                     results.append({
                         'browser_id': browser_id,
@@ -258,15 +257,15 @@ class MultiAccountUploader:
                 logger.error(f"🚨 关键操作失败，立即停止当前商品流程: {sku} - {e}")
                 
                 # 输出美化的截断日志（关键操作失败）
-                logger.error("🚨" + "=" * 58 + "🚨")
+                logger.error("🚨" + "=" * 50 + "🚨")
                 logger.error("🚨 关键操作失败 - 详细信息 🚨")
-                logger.error("📍 所在地域: " + f"{self.region} 🌍")
-                logger.error("🌐 浏览器ID: " + f"{browser_id} 💻")
-                logger.error("📦 商品SKU: " + f"{sku} 🏷️")
-                logger.error("🚨 处理状态: 关键操作失败 ⚠️")
-                logger.error("❌ 失败原因: " + f"{e} 🔍")
-                logger.error("⏰ 失败时间: " + f"{self._get_current_time()} ⏱️")
-                logger.error("🚨" + "=" * 58 + "🚨")
+                logger.error("📍 所在地域: " + f"{self.region}")
+                logger.error("🌐 浏览器ID: " + f"{browser_id}")
+                logger.error("📦 商品SKU: " + f"{sku}")
+                logger.error("🚨 处理状态: 关键操作失败")
+                logger.error("❌ 失败原因: " + f"{e}")
+                logger.error("⏰ 失败时间: " + f"{self._get_current_time()}")
+                logger.error("🚨" + "=" * 50 + "🚨")
                 
                 results.append({
                     'browser_id': browser_id,
@@ -280,15 +279,15 @@ class MultiAccountUploader:
                 logger.error(f"上传商品 {sku} 时出错: {e}")
                 
                 # 输出美化的截断日志（普通异常）
-                logger.error("💥" + "=" * 58 + "💥")
+                logger.error("💥" + "=" * 50 + "💥")
                 logger.error("💥 异常处理失败 - 详细信息 💥")
-                logger.error("📍 所在地域: " + f"{self.region} 🌍")
-                logger.error("🌐 浏览器ID: " + f"{browser_id} 💻")
-                logger.error("📦 商品SKU: " + f"{sku} 🏷️")
-                logger.error("💥 处理状态: 异常失败 🔥")
-                logger.error("❌ 异常原因: " + f"{e} 🔍")
-                logger.error("⏰ 失败时间: " + f"{self._get_current_time()} ⏱️")
-                logger.error("💥" + "=" * 58 + "💥")
+                logger.error("📍 所在地域: " + f"{self.region}")
+                logger.error("🌐 浏览器ID: " + f"{browser_id}")
+                logger.error("📦 商品SKU: " + f"{sku}")
+                logger.error("💥 处理状态: 异常失败")
+                logger.error("❌ 异常原因: " + f"{e}")
+                logger.error("⏰ 失败时间: " + f"{self._get_current_time()}")
+                logger.error("💥" + "=" * 50 + "💥")
                 
                 results.append({
                     'browser_id': browser_id,
