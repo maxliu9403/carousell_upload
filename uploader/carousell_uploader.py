@@ -1,4 +1,4 @@
-from typing import Optional
+# from typing import Optional  # 未使用，已删除
 from playwright.sync_api import Page  # pyright: ignore[reportMissingImports]
 from core.models import ProductInfo, UploadConfig
 from browser.actions import (
@@ -399,9 +399,8 @@ class CarousellUploader:
 
     def _activate_product(self):
         """第五部分：激活商品"""
-        domain = self._get_domain_by_region()
-        smart_goto(self.page, f"{domain}/manage-listings/", wait_until="domcontentloaded", timeout=30000)
-        logger.info("🌐 已打开目标页面")
+        # 导航到管理页面
+        self._navigate_to_manage_page()
 
         # 点击 未活跃
         safe_click_with_wait(self.page, "button.D_bvY:nth-child(2)", must_exist=True,
