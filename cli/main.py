@@ -1,6 +1,6 @@
 from core.config import create_upload_config
 from browser.browser import start_browser, check_browser_api_health
-from uploader.carousell_uploader import CarousellUploader
+from uploader.carousell_uploader_new import CarousellUploader
 from core.models import ProductInfo
 from core.logger import logger
 from uploader.multi_account_uploader import MultiAccountUploader

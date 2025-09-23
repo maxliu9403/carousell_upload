@@ -28,7 +28,7 @@ domains:
 ### 3. 配置加载更新 (`uploader/config.py`)
 - 在 `create_upload_config()` 函数中添加域名配置加载
 
-### 4. 上传器优化 (`uploader/carousell_uploader.py`)
+### 4. 上传器优化 (`uploader/carousell_uploader_new.py`)
 - 添加 `_get_domain_by_region()` 方法，根据地域获取对应域名
 - 更新所有 `page.goto()` 调用，使用动态域名：
   - `_upload_product_part1()`: 首页访问

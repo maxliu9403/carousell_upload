@@ -2,7 +2,8 @@ from typing import List, Dict, Any
 from pathlib import Path
 from playwright.sync_api import Page  # pyright: ignore[reportMissingImports]
 from core.models import ProductInfo, UploadConfig
-from .carousell_uploader import CarousellUploader, CriticalOperationFailed
+from .carousell_uploader_new import CarousellUploader
+from .base_uploader import CriticalOperationFailed
 from browser.browser import start_browser, get_profile_id_by_browser_id, fetch_all_browser_windows, close_browser_by_profile_id
 from data.excel_parser import ExcelProductParser
 from core.logger import logger

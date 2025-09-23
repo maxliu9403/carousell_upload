@@ -175,7 +175,7 @@ carousell/
 │   └── record_manager.py     # 记录管理
 ├── uploader/                 # 上传功能模块
 │   ├── __init__.py
-│   ├── carousell_uploader.py # 核心上传逻辑
+│   ├── carousell_uploader_new.py # 核心上传逻辑（模块化）
 │   ├── multi_account_uploader.py # 多账号上传器
 │   └── utils.py              # 工具函数
 ├── cli/                      # 命令行接口

@@ -63,7 +63,7 @@ class UploadConfig:
     categories: dict  # 商品类目配置
 ```
 
-### 3. 工厂函数实现 (`uploader/carousell_uploader.py`)
+### 3. 工厂函数实现 (`uploader/carousell_uploader_new.py`)
 
 #### 主工厂函数：
 ```python
