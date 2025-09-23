@@ -397,7 +397,7 @@ class MultiAccountUploader:
     
     def _print_big_money_style_log(self):
         """打印爆单日志"""
-        logger.info("🔥🔥🔥🔥 爆单！！！ 爆单！！！ 🔥🔥🔥🔥")
+        logger.info("🔥🔥🔥🔥 爆单！！！ 🔥🔥🔥🔥")
         logger.info("")
         logger.info("💥 产品大卖！订单爆满！💥")
         logger.info("🎯 早日财务自由！🎯")
@@ -405,5 +405,5 @@ class MultiAccountUploader:
         logger.info("")
         logger.info("🚀🚀🚀 恭喜发财！🚀🚀🚀")
         logger.info("")
-        logger.info("🚗🚗🚗" + "=" * 50 + "🚗🚗🚗")
+        logger.info("🚗🚗🚗" + "=" * 46 + "🚗🚗🚗")
         logger.info("")
