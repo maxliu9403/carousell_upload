@@ -18,8 +18,14 @@ class CriticalOperationFailed(Exception):
 def safe_click_with_wait(page: Page, selector: str, must_exist: bool = False, timeout: int = None, 
                         browser_id: str = None, sku: str = None, operation: str = "点击操作"):
     """安全的点击操作，must_exist=True时失败会抛出CriticalOperationFailed"""
+    # 先提示正在执行的操作
+    log_prefix = f"BrowserID: {browser_id}, SKU: {sku}, " if browser_id and sku else ""
+    logger.info(f"{log_prefix}正在{operation}: {selector}")
+    
     try:
-        return click_with_wait(page, selector, must_exist, timeout)
+        result = click_with_wait(page, selector, must_exist, timeout)
+        logger.info(f"{log_prefix}{operation}成功: {selector}")
+        return result
     except RuntimeError as e:
         if must_exist:
             error_msg = f"关键{operation}失败"
@@ -28,13 +34,21 @@ def safe_click_with_wait(page: Page, selector: str, must_exist: bool = False, ti
             error_msg += f", CSS选择器: {selector}, 失败原因: {e}"
             logger.error(error_msg)
             raise CriticalOperationFailed(error_msg)
+        else:
+            logger.warning(f"{log_prefix}{operation}失败: {selector}, 原因: {e}")
         raise
 
 def safe_input_with_wait(page: Page, selector: str, text: str, must_exist: bool = False, timeout: int = None,
                         browser_id: str = None, sku: str = None, operation: str = "输入操作"):
     """安全的输入操作，must_exist=True时失败会抛出CriticalOperationFailed"""
+    # 先提示正在执行的操作
+    log_prefix = f"BrowserID: {browser_id}, SKU: {sku}, " if browser_id and sku else ""
+    logger.info(f"{log_prefix}正在{operation}: {selector}, 输入内容: '{text}'")
+    
     try:
-        return input_with_wait(page, selector, text, must_exist, timeout)
+        result = input_with_wait(page, selector, text, must_exist, timeout)
+        logger.info(f"{log_prefix}{operation}成功: {selector}")
+        return result
     except RuntimeError as e:
         if must_exist:
             error_msg = f"关键{operation}失败"
@@ -43,6 +57,8 @@ def safe_input_with_wait(page: Page, selector: str, text: str, must_exist: bool 
             error_msg += f", CSS选择器: {selector}, 输入内容: '{text}', 失败原因: {e}"
             logger.error(error_msg)
             raise CriticalOperationFailed(error_msg)
+        else:
+            logger.warning(f"{log_prefix}{operation}失败: {selector}, 输入内容: '{text}', 原因: {e}")
         raise
 
 class CarousellUploader:
