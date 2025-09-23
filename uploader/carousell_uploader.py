@@ -199,7 +199,7 @@ class CarousellUploader:
         # 等待出现搜索结果
         self.page.wait_for_timeout(2000)
         # 点击服务
-        self._safe_click_subcategory("div.D_aGw:nth-child(2)", "服務")
+        self._safe_click_subcategory(".D_aGw:nth-child(2) > .D_aGE > .D_lz", "服務")
 
     def _fill_basic_info(self, enriched_info: ProductInfo):
         """填写基本信息"""
