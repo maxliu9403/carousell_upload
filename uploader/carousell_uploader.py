@@ -98,7 +98,7 @@ class CarousellUploader:
     def _get_upload_method(self, category: str):
         """根据类目获取对应的上传方法"""
         upload_methods = {
-            "sneakers": self._upload_sneakers_by_service,
+            "sneakers": self._upload_sneakers,
             # "bags": self._upload_bags,
             # "clothes": self._upload_clothes
         }
@@ -108,25 +108,7 @@ class CarousellUploader:
         
         return upload_methods[category]
     
-    def _upload_sneakers_by_direct(self, enriched_info: ProductInfo, folder_path: str) -> bool:
-        """运动鞋类目直上传方法"""
-        try:
-            logger.info("使用运动鞋类目上传方法")
-            
-            # ========= 第一部分：上传商品 =========
-            self._upload_sneakers_by_direct(enriched_info, folder_path)
-            
-            # ========= 第二部分：发布商品 =========
-            self._publish_product()
-
-            logger.info("运动鞋上传流程执行成功")
-            return True
-            
-        except Exception as e:
-            logger.error(f"运动鞋上传流程执行失败: {e}")
-            return False
-
-    def _upload_sneakers_by_service(self, enriched_info: ProductInfo, folder_path: str) -> bool:
+    def _upload_sneakers(self, enriched_info: ProductInfo, folder_path: str) -> bool:
         """运动鞋跳服务上传方法"""
         try:
             logger.info("使用运动鞋类目上传方法")
@@ -359,26 +341,6 @@ class CarousellUploader:
         else:
             logger.info("页面中存在已选好的面交地点，跳过面交相关操作")
 
-    def _handle_other_settings(self):
-        """处理其他设置 - 仅用于直上传方式"""
-        # 条件判断：关闭送货
-        if not self.page.query_selector("button.D_ol"):
-            logger.info("关闭送货")
-            safe_click_with_wait(self.page, "#FieldSetField-Container-field_delivery_v2 .D_oy", must_exist=True,
-                               browser_id=self.browser_id, sku=self.sku, operation="关闭送货")
-        else:
-            logger.info("跳过关闭送货操作")
-
-        # 条件判断：关闭买家保障
-        if self.page.query_selector("span.D_aNX"):
-            logger.info("关闭买家保障")
-            safe_click_with_wait(self.page, "#FieldSetField-Container-field_caroupay .D_oy", must_exist=True,
-                               browser_id=self.browser_id, sku=self.sku, operation="关闭买家保障")
-            safe_click_with_wait(self.page, "button.D_Jp:nth-child(1)", must_exist=True,
-                               browser_id=self.browser_id, sku=self.sku, operation="确认关闭买家保障")
-        else:
-            logger.info("跳过关闭买家保障操作")
-
     def _select_location_by_region(self):
         """根据地域选择Location"""
         # 点击 选择 Location
@@ -388,109 +350,6 @@ class CarousellUploader:
         # 选择 All of Singapore
         safe_click_with_wait(self.page, "div.D_bMM:nth-child(2)", must_exist=False,
                            browser_id=self.browser_id, sku=self.sku, operation="选择All of Singapore")
-
-    def _upload_sneakers_by_direct(self, enriched_info: ProductInfo, folder_path: str):
-        """直上传运动鞋"""
-        # 打开主页
-        self._navigate_to_homepage()
-        
-        # 开始上传流程
-        self._start_upload_flow(folder_path)
-        
-        # 选择运动鞋类目
-        self._select_sneakers_category_direct(enriched_info)
-        
-        # 填写基本信息
-        self._fill_basic_info(enriched_info)
-        
-        # 填写运动鞋详细信息
-        self._fill_sneakers_details_direct(enriched_info)
-        
-        # 处理面交设置
-        self._handle_meetup_settings_direct(enriched_info)
-        
-        # 处理其他设置
-        self._handle_other_settings()
-
-    def _select_sneakers_category_direct(self, enriched_info: ProductInfo):
-        """直接选择运动鞋类目"""
-        # 选择类目
-        safe_click_with_wait(self.page, "div.D_aGp", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="直接选择运动鞋类目")
-
-        # 输入运动鞋搜索关键词
-        safe_input_with_wait(self.page, ".D_aEi > .D_Kv", "sneakers", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="输入运动鞋搜索关键词")
-        
-        # 根据性别选择子类目
-        if enriched_info.gender.lower() in ["male", "men", "mens"]:
-            # 点击 男装波鞋
-            self._safe_click_subcategory(".D_aGw:nth-child(2) > .D_aGE", "男装波鞋")
-        else:
-            # 点击女装波鞋
-            self._safe_click_subcategory(".D_aGw:nth-child(3) > .D_aGE", "女装波鞋")
-
-    def _fill_sneakers_details_direct(self, enriched_info: ProductInfo):
-        """直接填写运动鞋详细信息"""
-        # 点击 新旧
-        safe_click_with_wait(self.page, "#FieldSetField-Container-field_layered_condition .D_pT:nth-child(1)", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击新旧条件")
-
-        # 点击 品牌
-        safe_click_with_wait(self.page, "#FieldSetField-Container-field_brand_enum .D_sp", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击品牌选择")
-
-        # 点击搜索品牌
-        safe_input_with_wait(self.page, ".D_vs .D_Kr", "Other", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="输入品牌搜索")
-
-        # 点击other
-        safe_click_with_wait(self.page, "li.D_acN", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击Other品牌")
-
-        # 输入品牌
-        safe_input_with_wait(self.page, "input#brand", enriched_info.brand, must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="输入品牌名称")
-
-        # 点击size
-        safe_click_with_wait(self.page, "#FieldSetField-Container-field_size .D_sp", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击尺寸选择")
-
-        # 输入size
-        safe_input_with_wait(self.page, ".D_vs .D_Kr", str(enriched_info.size), must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="输入尺寸搜索")
-
-        # 点击查找的size
-        safe_click_with_wait(self.page, ".D_acN:nth-child(1) .D_lz", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击选择尺寸")
-
-        # 输入产品描述
-        safe_input_with_wait(self.page, "textarea.D_tk", enriched_info.description, must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="输入产品描述")
-
-        # 输入产品价格
-        safe_input_with_wait(self.page, "input#price", enriched_info.price, must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="输入产品价格")
-
-    def _handle_meetup_settings_direct(self, enriched_info: ProductInfo):
-        """直接处理面交设置"""
-        # 检查是否存在 input.D_uN 选择器，如果不存在则执行面交相关操作
-        if not self.page.query_selector("input.D_uN"):
-            logger.info("页面中不存在已选好的面交地点，执行面交相关操作")
-            
-            # 开启面交
-            safe_click_with_wait(self.page, ".D_pO > .D_lO", must_exist=True,
-                               browser_id=self.browser_id, sku=self.sku, operation="开启面交")
-
-            # 点击面交地点选择框
-            safe_input_with_wait(self.page, "input.D_tA", enriched_info.meetup_location, must_exist=True,
-                               browser_id=self.browser_id, sku=self.sku, operation="输入面交地点")
-            
-            # 选择面交地点
-            safe_click_with_wait(self.page, "div.D_cCl:nth-child(2)", must_exist=True,
-                               browser_id=self.browser_id, sku=self.sku, operation="选择面交地点")
-        else:
-            logger.info("页面中存在已选好的面交地点，跳过面交相关操作")
 
     def _safe_click_subcategory(self, selector: str, category_name: str):
         """安全点击子类目，处理DOM分离问题"""
@@ -555,3 +414,5 @@ class CarousellUploader:
         # 点击确认激活
         safe_click_with_wait(self.page, "button.D_nt", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="点击确认激活按钮")
+
+        self.page.wait_for_timeout(5000)
