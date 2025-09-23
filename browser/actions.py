@@ -107,12 +107,14 @@ def retry_action(action, retries: int = RETRY_TIMES, delay: float = RETRY_DELAY)
     - retries: 最大重试次数
     - delay: 每次重试间隔
     """
+    logger.debug(f"retry_action调用: retries={retries}, delay={delay}")
     for i in range(retries):
         try:
             return action()
         except Exception as e:
             logger.warning(f"第{i + 1}次失败: {e}")
-            time.sleep(delay)
+            if i < retries - 1:  # 不是最后一次重试
+                time.sleep(delay)
     raise RuntimeError("多次重试后仍失败")
 
 def scroll_page(page: Page, y_offset: int = 100):
@@ -139,7 +141,9 @@ def click_with_wait(
     try:
         # 找到元素（外部可套 retry_action）
         element = retry_action(
-            lambda: page.wait_for_selector(selector, state="attached", timeout=timeout)
+            lambda: page.wait_for_selector(selector, state="attached", timeout=timeout),
+            retries=RETRY_TIMES,
+            delay=RETRY_DELAY
         )
 
         # 获取标签和类型
@@ -203,7 +207,9 @@ def input_with_wait(page: Page, selector: str, text: str,
     """
     try:
         element = retry_action(
-            lambda: page.wait_for_selector(selector, state="visible", timeout=timeout)
+            lambda: page.wait_for_selector(selector, state="visible", timeout=timeout),
+            retries=RETRY_TIMES,
+            delay=RETRY_DELAY
         )
         # 确保是可编辑输入框
         page.wait_for_function(

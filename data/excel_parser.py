@@ -31,7 +31,7 @@ class ExcelProductParser:
             # 验证必要的列是否存在
             required_columns = [
                 'URL', 'SKU', 'BrowserID', 'ProductNameCn', 'ProductNameEn',
-                'GenderCn', 'GenderEn', 'HKPrice', 'SGPrice', 'MYPrice',
+                'GenderEn', 'HKPrice', 'SGPrice', 'MYPrice',
                 'Brand', 'Folder'
             ]
             
@@ -57,7 +57,6 @@ class ExcelProductParser:
                         'browser_id': str(row['BrowserID']),
                         'product_name_cn': str(row['ProductNameCn']) if not pd.isna(row['ProductNameCn']) else '',
                         'product_name_en': str(row['ProductNameEn']) if not pd.isna(row['ProductNameEn']) else '',
-                        'gender_cn': str(row['GenderCn']) if not pd.isna(row['GenderCn']) else '',
                         'gender_en': str(row['GenderEn']) if not pd.isna(row['GenderEn']) else '',
                         'price': str(row[price_column]) if not pd.isna(row[price_column]) else '0',
                         'brand': str(row['Brand']) if not pd.isna(row['Brand']) else '',
@@ -124,11 +123,8 @@ class ExcelProductParser:
         # 根据地域选择商品名称
         title = self._get_title_by_region(product_data)
         
-        # 根据地域选择性别
-        if product_data['region'] == 'HK':
-            gender = self._map_gender(product_data['gender_cn'])
-        else:
-            gender = self._map_gender(product_data['gender_en'])
+        # 使用英文性别字段
+        gender = self._map_gender(product_data['gender_en'])
         
         return ProductInfo(
             title=title,

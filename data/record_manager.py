@@ -107,6 +107,26 @@ class SuccessRecordManager:
         
         return successful_skus
     
+    def is_product_successful(self, excel_path: str, region: str, browser_id: str, sku: str) -> bool:
+        """
+        检查指定商品是否已成功上传
+        
+        Args:
+            excel_path: Excel文件路径
+            region: 地域（HK/MY/SG）
+            browser_id: 浏览器ID
+            sku: 商品SKU
+            
+        Returns:
+            bool: 是否已成功
+        """
+        record_key = self._get_record_key(excel_path, region)
+        record_data = self.records["records"].get(record_key, {})
+        browser_records = record_data.get("browser_records", {})
+        successful_skus = set(browser_records.get(browser_id, []))
+        
+        return sku in successful_skus
+    
     def record_success(self, excel_path: str, region: str, browser_id: str, sku: str):
         """
         记录成功执行的商品

@@ -126,7 +126,6 @@ Excel 文件需要包含以下列：
 | BrowserID | 浏览器ID（对应browser_window_map中的seq） | 1 |
 | ProductNameCn | 中文商品名称 | 耐克运动鞋 |
 | ProductNameEn | 英文商品名称 | Nike Sneakers |
-| GenderCn | 中文性别 | 男/女 |
 | GenderEn | 英文性别 | Male/Female |
 | HKPrice | 香港价格 | 500 |
 | SGPrice | 新加坡价格 | 80 |

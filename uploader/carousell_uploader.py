@@ -11,6 +11,30 @@ from browser.actions import (
 from core.logger import logger
 from .utils import enrich_product_info
 
+class CriticalOperationFailed(Exception):
+    """关键操作失败异常，需要立即停止当前流程"""
+    pass
+
+def safe_click_with_wait(page: Page, selector: str, must_exist: bool = False, timeout: int = None):
+    """安全的点击操作，must_exist=True时失败会抛出CriticalOperationFailed"""
+    try:
+        return click_with_wait(page, selector, must_exist, timeout)
+    except RuntimeError as e:
+        if must_exist:
+            logger.error(f"关键点击操作失败: {selector} - {e}")
+            raise CriticalOperationFailed(f"关键点击操作失败: {selector} - {e}")
+        raise
+
+def safe_input_with_wait(page: Page, selector: str, text: str, must_exist: bool = False, timeout: int = None):
+    """安全的输入操作，must_exist=True时失败会抛出CriticalOperationFailed"""
+    try:
+        return input_with_wait(page, selector, text, must_exist, timeout)
+    except RuntimeError as e:
+        if must_exist:
+            logger.error(f"关键输入操作失败: {selector} - {e}")
+            raise CriticalOperationFailed(f"关键输入操作失败: {selector} - {e}")
+        raise
+
 class CarousellUploader:
     """Carousell 上传器主类"""
     
@@ -52,6 +76,10 @@ class CarousellUploader:
             upload_method = self._get_upload_method(category)
             return upload_method(enriched_info, folder_path)
             
+        except CriticalOperationFailed as e:
+            logger.error(f"关键操作失败，立即停止流程: {product_info.title}, 错误: {e}")
+            # 关键操作失败，需要立即关闭浏览器窗口
+            raise e
         except Exception as e:
             logger.error(f"完整流程执行失败: {product_info.title}, 错误: {e}")
             return False
@@ -169,10 +197,10 @@ class CarousellUploader:
     def _start_upload_flow(self, folder_path: str):
         """开始上传流程"""
         # 点击sell按钮
-        click_with_wait(self.page, "a.D___", must_exist=True)
+        safe_click_with_wait(self.page, "a.D_vT", must_exist=True)
 
         # 点击上传图片
-        click_with_wait(self.page, "div.D_JY", must_exist=True)
+        safe_click_with_wait(self.page, "div.D_JG", must_exist=True)
         logger.info("✅ 第二次点击完成，等待文件选择窗口...")
         human_delay(1.5, 2.5)
 
@@ -183,34 +211,34 @@ class CarousellUploader:
             raise ValueError("folder_path参数不能为空")
 
         # 新账号初次上品会出现（可选）
-        click_with_wait(self.page, ".D_ayU > .D_oj > .D_ov", must_exist=False)
+        safe_click_with_wait(self.page, ".D_ayk > .D_oN > .D_oZ", must_exist=False)
 
         # 忽略AI编写文案
-        click_with_wait(self.page, ".D_oa use", must_exist=False)
+        safe_click_with_wait(self.page, ".D_oF use", must_exist=False)
 
     def _select_service_category(self):
         """选择服务类目"""
         # 选择类目
-        click_with_wait(self.page, "div.D_aGp", must_exist=True)
+        safe_click_with_wait(self.page, "div.D_aEc", must_exist=True)
 
         # 输入other，跳服务
-        input_with_wait(self.page, "input.D_Kr", "others", must_exist=True)
+        safe_input_with_wait(self.page, "input.D_Kv", "others", must_exist=True)
         
         # 等待出现搜索结果
         self.page.wait_for_timeout(2000)
         # 点击服务
-        self._safe_click_subcategory(".D_aGw:nth-child(2) > .D_aGE > .D_lz", "服務")
+        self._safe_click_subcategory(".D_aEk:nth-child(2) > .D_aEs > .D_la", "服務")
 
     def _fill_basic_info(self, enriched_info: ProductInfo):
         """填写基本信息"""
         # 输入产品标题
-        input_with_wait(self.page, "input#title", enriched_info.title, must_exist=True)
+        safe_input_with_wait(self.page, "input#title", enriched_info.title, must_exist=True)
 
         # 输入产品价格
-        input_with_wait(self.page, "input#price", enriched_info.price, must_exist=True)
+        safe_input_with_wait(self.page, "input#price", enriched_info.price, must_exist=True)
 
         # 输入产品描述
-        input_with_wait(self.page, "textarea.D_tk", enriched_info.description, must_exist=True)
+        safe_input_with_wait(self.page, "textarea.D_uF", enriched_info.description, must_exist=True)
 
     def _navigate_to_manage_page(self):
         """导航到管理页面"""
@@ -221,73 +249,78 @@ class CarousellUploader:
     def _enter_edit_mode(self):
         """进入编辑模式"""
         # 点击 未活跃
-        click_with_wait(self.page, "button.D_buu:nth-child(2)", must_exist=True)
+        safe_click_with_wait(self.page, "button.D_bvY:nth-child(2)", must_exist=True)
 
         # 点击 未活跃第一个元素
-        click_with_wait(self.page, "div.D_bvN", must_exist=True) 
+        safe_click_with_wait(self.page, "tr:nth-child(1) .D_bxc", must_exist=True) 
 
         # 编辑
-        click_with_wait(self.page, ".D_bon:nth-child(1) > .D_lz", must_exist=True)
+        safe_click_with_wait(self.page, ".D_bqR:nth-child(1) > .D_la", must_exist=True)
 
     def _change_to_sneakers_category(self, enriched_info: ProductInfo):
         """修改为运动鞋类目"""
         # 修改产品类目
-        click_with_wait(self.page, "div.D_aGp", must_exist=True)
+        safe_click_with_wait(self.page, "div.D_aEc", must_exist=True)
 
         # 输入运动鞋搜索关键词
-        input_with_wait(self.page, ".D_aGu > .D_Kr", "sneakers", must_exist=True)
+        safe_input_with_wait(self.page, ".D_aEi > .D_Kv", "sneakers", must_exist=True)
 
+        self.page.wait_for_timeout(2000)
         # 根据性别选择子类目
         if enriched_info.gender.lower() in ["male", "men", "mens"]:
             # 点击 男装波鞋
-            self._safe_click_subcategory(".D_aGw:nth-child(2) > .D_aGE", "男装波鞋")
+            self._safe_click_subcategory(".D_aEk:nth-child(2) > .D_aEs", "男装波鞋")
         else:
             # 点击女装波鞋
-            self._safe_click_subcategory(".D_aGw:nth-child(3) > .D_aGE", "女装波鞋")
+            self._safe_click_subcategory(".D_aEk:nth-child(3) > .D_aEs", "女装波鞋")
 
     def _fill_sneakers_details(self, enriched_info: ProductInfo):
         """填写运动鞋详细信息"""
         # 点击 新旧
-        click_with_wait(self.page, ".D_afX:nth-child(2) .D_pT:nth-child(1)", must_exist=True)
+        safe_click_with_wait(self.page, ".D_agq:nth-child(2) .D_oa:nth-child(1)", must_exist=True)
 
         # 点击 品牌
-        click_with_wait(self.page, "#FieldSetField-Container-field_brand_enum .D_sp", must_exist=True)
+        safe_click_with_wait(self.page, "#FieldSetField-Container-field_brand_enum .D_ss", must_exist=True)
 
         # 点击搜索品牌
-        input_with_wait(self.page, ".D_vs .D_Kr", "other", must_exist=True)
+        safe_input_with_wait(self.page, ".D_vP .D_Kv", "other", must_exist=True)
 
+        self.page.wait_for_timeout(2000)
         # 点击other品牌
-        click_with_wait(self.page, "li.D_acO", must_exist=True)
+        safe_click_with_wait(self.page, "li.D_agQ", must_exist=True)
 
         # 输入品牌
-        input_with_wait(self.page, "input#brand", enriched_info.brand, must_exist=True)
+        safe_input_with_wait(self.page, "input#brand", enriched_info.brand, must_exist=True)
         
         # 点击size
-        click_with_wait(self.page, "#FieldSetField-Container-field_size .D_sp", must_exist=True)
+        safe_click_with_wait(self.page, "#FieldSetField-Container-field_size .D_ss", must_exist=True)
       
         # 输入size
-        input_with_wait(self.page, ".D_vs .D_Kr", str(enriched_info.size), must_exist=True)
+        safe_input_with_wait(self.page, ".D_vP .D_Kv", str(enriched_info.size), must_exist=True)
+
+        self.page.wait_for_timeout(2000)
 
         # 点击查找的size
-        click_with_wait(self.page, ".D_acN:nth-child(1) .D_lz", must_exist=True)
+        safe_click_with_wait(self.page, ".D_agQ:nth-child(1) > .D_agT", must_exist=True)
 
         # 点击 多产品销售复选框
-        click_with_wait(self.page, "#FieldSetField-Container-field_multi_quantities .D_axe", must_exist=False)
+        safe_click_with_wait(self.page, "#FieldSetField-Container-field_multi_quantities .D_awR", must_exist=False)
 
     def _handle_meetup_settings(self, enriched_info: ProductInfo):
         """处理面交设置"""
         # 检查是否存在 input.D_uN 选择器，如果不存在则执行面交相关操作
-        if not self.page.query_selector("input.D_uN"):
+        if not self.page.query_selector("input.D_tk"):
             logger.info("页面中不存在已选好的面交地点，执行面交相关操作")
             
             # 开启面交
-            click_with_wait(self.page, ".D_oz > .D_lz", must_exist=True)
+            safe_click_with_wait(self.page, ".D_pN > .D_la", must_exist=True)
 
             # 点击面交地点选择框
-            input_with_wait(self.page, "input.D_uN", enriched_info.meetup_location, must_exist=True)
+            safe_input_with_wait(self.page, "input.D_tk", enriched_info.meetup_location, must_exist=True)
             
+            self.page.wait_for_timeout(2000)
             # 选择面交地点
-            click_with_wait(self.page, "div.D_cCv:nth-child(2)", must_exist=True)
+            safe_click_with_wait(self.page, "div.D_cEE:nth-child(2)", must_exist=True)
         else:
             logger.info("页面中存在已选好的面交地点，跳过面交相关操作")
 
@@ -296,25 +329,25 @@ class CarousellUploader:
         # 条件判断：关闭送货
         if not self.page.query_selector("button.D_ol"):
             logger.info("关闭送货")
-            click_with_wait(self.page, "#FieldSetField-Container-field_delivery_v2 .D_oy", must_exist=True)
+            safe_click_with_wait(self.page, "#FieldSetField-Container-field_delivery_v2 .D_oy", must_exist=True)
         else:
             logger.info("跳过关闭送货操作")
 
         # 条件判断：关闭买家保障
         if self.page.query_selector("span.D_aNX"):
             logger.info("关闭买家保障")
-            click_with_wait(self.page, "#FieldSetField-Container-field_caroupay .D_oy", must_exist=True)
-            click_with_wait(self.page, "button.D_Jp:nth-child(1)", must_exist=True)
+            safe_click_with_wait(self.page, "#FieldSetField-Container-field_caroupay .D_oy", must_exist=True)
+            safe_click_with_wait(self.page, "button.D_Jp:nth-child(1)", must_exist=True)
         else:
             logger.info("跳过关闭买家保障操作")
 
     def _select_location_by_region(self):
         """根据地域选择Location"""
         # 新加坡 - 点击 选择 Location
-        click_with_wait(self.page, "input.D_uN", must_exist=False)
+        safe_click_with_wait(self.page, "input.D_tk", must_exist=False)
 
         # 新加坡 - 选择 All of Singapore
-        click_with_wait(self.page, "div.D_bKX:nth-child(2)", must_exist=False)
+        safe_click_with_wait(self.page, "div.D_bMM:nth-child(2)", must_exist=False)
 
     def _upload_sneakers_by_direct(self, enriched_info: ProductInfo, folder_path: str):
         """直上传运动鞋"""
@@ -342,10 +375,10 @@ class CarousellUploader:
     def _select_sneakers_category_direct(self, enriched_info: ProductInfo):
         """直接选择运动鞋类目"""
         # 选择类目
-        click_with_wait(self.page, "div.D_aGp", must_exist=True)
+        safe_click_with_wait(self.page, "div.D_aGp", must_exist=True)
 
         # 输入运动鞋搜索关键词
-        input_with_wait(self.page, ".D_aGu > .D_Kr", "sneakers", must_exist=True)
+        safe_input_with_wait(self.page, ".D_aEi > .D_Kv", "sneakers", must_exist=True)
         
         # 根据性别选择子类目
         if enriched_info.gender.lower() in ["male", "men", "mens"]:
@@ -358,34 +391,34 @@ class CarousellUploader:
     def _fill_sneakers_details_direct(self, enriched_info: ProductInfo):
         """直接填写运动鞋详细信息"""
         # 点击 新旧
-        click_with_wait(self.page, "#FieldSetField-Container-field_layered_condition .D_pT:nth-child(1)", must_exist=True)
+        safe_click_with_wait(self.page, "#FieldSetField-Container-field_layered_condition .D_pT:nth-child(1)", must_exist=True)
 
         # 点击 品牌
-        click_with_wait(self.page, "#FieldSetField-Container-field_brand_enum .D_sp", must_exist=True)
+        safe_click_with_wait(self.page, "#FieldSetField-Container-field_brand_enum .D_sp", must_exist=True)
 
         # 点击搜索品牌
-        input_with_wait(self.page, ".D_vs .D_Kr", "Other", must_exist=True)
+        safe_input_with_wait(self.page, ".D_vs .D_Kr", "Other", must_exist=True)
 
         # 点击other
-        click_with_wait(self.page, "li.D_acN", must_exist=True)
+        safe_click_with_wait(self.page, "li.D_acN", must_exist=True)
 
         # 输入品牌
-        input_with_wait(self.page, "input#brand", enriched_info.brand, must_exist=True)
+        safe_input_with_wait(self.page, "input#brand", enriched_info.brand, must_exist=True)
 
         # 点击size
-        click_with_wait(self.page, "#FieldSetField-Container-field_size .D_sp", must_exist=True)
+        safe_click_with_wait(self.page, "#FieldSetField-Container-field_size .D_sp", must_exist=True)
 
         # 输入size
-        input_with_wait(self.page, ".D_vs .D_Kr", str(enriched_info.size), must_exist=True)
+        safe_input_with_wait(self.page, ".D_vs .D_Kr", str(enriched_info.size), must_exist=True)
 
         # 点击查找的size
-        click_with_wait(self.page, ".D_acN:nth-child(1) .D_lz", must_exist=True)
+        safe_click_with_wait(self.page, ".D_acN:nth-child(1) .D_lz", must_exist=True)
 
         # 输入产品描述
-        input_with_wait(self.page, "textarea.D_tk", enriched_info.description, must_exist=True)
+        safe_input_with_wait(self.page, "textarea.D_tk", enriched_info.description, must_exist=True)
 
         # 输入产品价格
-        input_with_wait(self.page, "input#price", enriched_info.price, must_exist=True)
+        safe_input_with_wait(self.page, "input#price", enriched_info.price, must_exist=True)
 
     def _handle_meetup_settings_direct(self, enriched_info: ProductInfo):
         """直接处理面交设置"""
@@ -394,13 +427,13 @@ class CarousellUploader:
             logger.info("页面中不存在已选好的面交地点，执行面交相关操作")
             
             # 开启面交
-            click_with_wait(self.page, ".D_pO > .D_lO", must_exist=True)
+            safe_click_with_wait(self.page, ".D_pO > .D_lO", must_exist=True)
 
             # 点击面交地点选择框
-            input_with_wait(self.page, "input.D_tA", enriched_info.meetup_location, must_exist=True)
+            safe_input_with_wait(self.page, "input.D_tA", enriched_info.meetup_location, must_exist=True)
             
             # 选择面交地点
-            click_with_wait(self.page, "div.D_cCl:nth-child(2)", must_exist=True)
+            safe_click_with_wait(self.page, "div.D_cCl:nth-child(2)", must_exist=True)
         else:
             logger.info("页面中存在已选好的面交地点，跳过面交相关操作")
 
@@ -435,7 +468,7 @@ class CarousellUploader:
                     human_delay(2.0, 3.0)
                     # 重新搜索关键词以刷新选项
                     try:
-                        input_with_wait(self.page, "input.D_Kr", "sneakers", must_exist=True)
+                        safe_input_with_wait(self.page, "input.D_Kr", "sneakers", must_exist=True)
                         human_delay(1.0, 1.5)
                     except:
                         pass
@@ -446,7 +479,7 @@ class CarousellUploader:
     def _publish_product(self):
         """第二部分：发布商品"""
         # 点击发布
-        click_with_wait(self.page, "button.D_vx", must_exist=True)
+        safe_click_with_wait(self.page, "button.D_wX", must_exist=True)
 
     def _activate_product(self):
         """第五部分：激活商品"""
@@ -455,10 +488,10 @@ class CarousellUploader:
         logger.info("🌐 已打开目标页面")
 
         # 点击 未活跃
-        click_with_wait(self.page, "button.D_buu:nth-child(2)", must_exist=True)
+        safe_click_with_wait(self.page, "button.D_bvY:nth-child(2)", must_exist=True)
 
         # 点击 激活
-        click_with_wait(self.page, "tr:nth-child(1) .D_bvZ .D_lz", must_exist=True)
+        safe_click_with_wait(self.page, "tr:nth-child(1) .D_bxp .D_la", must_exist=True)
 
         # 点击确认激活
-        click_with_wait(self.page, "button.D_nb", must_exist=True)
+        safe_click_with_wait(self.page, "button.D_nt", must_exist=True)

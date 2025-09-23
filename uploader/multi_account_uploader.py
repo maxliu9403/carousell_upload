@@ -1,8 +1,8 @@
 from typing import List, Dict, Any
 from pathlib import Path
-from playwright.sync_api import Page
+from playwright.sync_api import Page  # pyright: ignore[reportMissingImports]
 from core.models import ProductInfo, UploadConfig
-from .carousell_uploader import CarousellUploader
+from .carousell_uploader import CarousellUploader, CriticalOperationFailed
 from browser.browser import start_browser, get_profile_id_by_browser_id, fetch_all_browser_windows
 from data.excel_parser import ExcelProductParser
 from core.logger import logger
@@ -44,12 +44,12 @@ class MultiAccountUploader:
                     "account_details": []
                 }
             
-            # 2. 获取已成功的BrowserID，跳过已完成的账号
-            successful_browser_ids = self.record_manager.get_successful_browser_ids(self.excel_path, self.region)
-            logger.info(f"已成功的BrowserID: {sorted(successful_browser_ids)}")
+            # 2. 获取已成功的商品SKU，跳过已完成的商品
+            successful_products = self._get_successful_products(products_data)
+            logger.info(f"已成功的商品SKU: {sorted(successful_products)}")
             
-            # 3. 过滤掉已成功的BrowserID，只保留需要处理的商品
-            filtered_products_data = self._filter_products_by_success(products_data, successful_browser_ids)
+            # 3. 过滤掉已成功的商品，只保留需要处理的商品
+            filtered_products_data = self._filter_products_by_sku(products_data, successful_products)
             if not filtered_products_data:
                 logger.info("所有商品都已成功上传，无需继续处理")
                 # 返回完整的结果结构，避免KeyError
@@ -71,13 +71,10 @@ class MultiAccountUploader:
             # 5. 只获取需要的浏览器窗口数据
             browser_windows = self._fetch_needed_browser_windows(needed_browser_ids)
             
-            # 6. 按浏览器ID分组商品
-            products_by_browser = self._group_products_by_browser(filtered_products_data, browser_windows)
+            # 6. 严格按照Excel顺序执行商品上传
+            results = self._upload_products_sequentially(filtered_products_data, browser_windows)
             
-            # 4. 串行上传每个账号的商品
-            results = self._upload_by_accounts(products_by_browser, browser_windows)
-            
-            # 5. 统计结果
+            # 7. 统计结果
             return self._generate_summary(results)
             
         except Exception as e:
@@ -93,15 +90,30 @@ class MultiAccountUploader:
                 "account_details": []
             }
     
-    def _filter_products_by_success(self, products_data: List[Dict[str, Any]], successful_browser_ids: set) -> List[Dict[str, Any]]:
-        """过滤掉已成功的BrowserID对应的商品"""
+    def _get_successful_products(self, products_data: List[Dict[str, Any]]) -> set:
+        """获取所有已成功的商品SKU"""
+        successful_skus = set()
+        
+        for product in products_data:
+            browser_id = product['browser_id']
+            sku = product['sku']
+            
+            # 检查该商品是否已成功
+            if self.record_manager.is_product_successful(self.excel_path, self.region, browser_id, sku):
+                successful_skus.add(sku)
+        
+        return successful_skus
+    
+    def _filter_products_by_sku(self, products_data: List[Dict[str, Any]], successful_skus: set) -> List[Dict[str, Any]]:
+        """过滤掉已成功的商品SKU，保持Excel顺序"""
         filtered_products = []
         skipped_count = 0
         
         for product in products_data:
-            browser_id = product['browser_id']
-            if browser_id in successful_browser_ids:
+            sku = product['sku']
+            if sku in successful_skus:
                 skipped_count += 1
+                logger.info(f"跳过已成功的商品: {sku}")
                 continue
             filtered_products.append(product)
         
@@ -130,124 +142,174 @@ class MultiAccountUploader:
         logger.info(f"成功获取 {len(needed_browser_windows)} 个BrowserID的窗口数据")
         return needed_browser_windows
     
-    def _group_products_by_browser(self, products_data: List[Dict[str, Any]], browser_windows: Dict[int, Dict[str, str]]) -> Dict[str, List[Dict[str, Any]]]:
-        """按浏览器ID分组商品"""
-        products_by_browser = {}
-        
-        for product in products_data:
-            browser_id = product['browser_id']
-            if browser_id not in products_by_browser:
-                products_by_browser[browser_id] = []
-            products_by_browser[browser_id].append(product)
-        
-        logger.info(f"商品按浏览器分组完成，共 {len(products_by_browser)} 个账号")
-        for browser_id, products in products_by_browser.items():
-            logger.info(f"  浏览器 {browser_id}: {len(products)} 个商品")
-        
-        return products_by_browser
-    
-    def _upload_by_accounts(self, products_by_browser: Dict[str, List[Dict[str, Any]]], browser_windows: Dict[int, Dict[str, str]]) -> List[Dict[str, Any]]:
-        """串行上传每个账号的商品"""
+    def _upload_products_sequentially(self, products_data: List[Dict[str, Any]], browser_windows: Dict[int, Dict[str, str]]) -> List[Dict[str, Any]]:
+        """严格按照Excel顺序执行商品上传"""
         results = []
+        current_browser_id = None
+        current_uploader = None
+        current_browser = None
+        current_playwright = None
         
-        for browser_id, products in products_by_browser.items():
-            logger.info(f"开始上传浏览器 {browser_id} 的商品，共 {len(products)} 个")
+        logger.info(f"开始按Excel顺序执行 {len(products_data)} 个商品的上传")
+        
+        for i, product_data in enumerate(products_data, 1):
+            browser_id = product_data['browser_id']
+            sku = product_data['sku']
             
-            account_result = {
-                'browser_id': browser_id,
-                'total_products': len(products),
-                'success_count': 0,
-                'failed_count': 0,
-                'failed_products': [],
-                'success': True
-            }
+            logger.info(f"[{i}/{len(products_data)}] 处理商品: {sku} (BrowserID: {browser_id})")
             
+            # 启动浏览器（每个产品都需要启动新的浏览器）
             try:
-                # 根据BrowserID获取对应的profile_id
-                try:
-                    profile_id = get_profile_id_by_browser_id(
-                        self.config.api_port, 
-                        self.config.api_key, 
-                        browser_id,
-                        browser_windows  # 传递已获取的browser_windows，避免重复调用
-                    )
-                    logger.info(f"成功获取BrowserID {browser_id} 对应的profile_id: {profile_id}")
-                except Exception as e:
-                    logger.error(f"获取BrowserID {browser_id} 对应的profile_id失败: {e}")
-                    raise
+                profile_id = get_profile_id_by_browser_id(
+                    self.config.api_port, 
+                    self.config.api_key, 
+                    browser_id,
+                    browser_windows
+                )
+                logger.info(f"启动浏览器 {browser_id} (profile_id: {profile_id})")
                 
-                # 为每个账号创建新的浏览器实例，使用动态获取的profile_id
-                playwright, browser, page = start_browser(
+                current_playwright, current_browser, page = start_browser(
                     self.config.api_port,
                     self.config.api_key,
                     profile_id
                 )
                 
-                uploader = CarousellUploader(page, self.config, self.region)
-                
-                # 上传该账号的所有商品
-                for product_data in products:
-                    try:
-                        logger.info(f"上传商品: {product_data['sku']} - {product_data.get('product_name_cn', '')}")
-                        
-                        # 创建 ProductInfo 对象
-                        product_info = self.parser.create_product_info(product_data)
-                        
-                        # 执行上传，传递文件夹路径和类目
-                        folder_path = product_data['folder'] if product_data['folder'] else None
-                        success = uploader.upload_product(product_info, folder_path, self.category)
-                        
-                        if success:
-                            account_result['success_count'] += 1
-                            logger.info(f"商品 {product_data['sku']} 上传成功")
-                            
-                            # 记录成功
-                            self.record_manager.record_success(
-                                self.excel_path,
-                                self.region,
-                                browser_id,
-                                product_data['sku']
-                            )
-                        else:
-                            account_result['failed_count'] += 1
-                            account_result['failed_products'].append(product_data['sku'])
-                            logger.error(f"商品 {product_data['sku']} 上传失败")
-                        
-                    except Exception as e:
-                        account_result['failed_count'] += 1
-                        account_result['failed_products'].append(product_data['sku'])
-                        logger.error(f"上传商品 {product_data['sku']} 时出错: {e}")
-                
-                # 关闭浏览器
-                browser.close()
-                playwright.stop()
-                
-                logger.info(f"浏览器 {browser_id} 上传完成: 成功 {account_result['success_count']}, 失败 {account_result['failed_count']}")
+                current_uploader = CarousellUploader(page, self.config, self.region)
+                current_browser_id = browser_id
                 
             except Exception as e:
-                account_result['success'] = False
-                account_result['failed_count'] = len(products)
-                account_result['failed_products'] = [p['sku'] for p in products]
-                logger.error(f"浏览器 {browser_id} 上传失败: {e}")
+                logger.error(f"启动浏览器 {browser_id} 失败: {e}")
+                # 记录失败结果
+                results.append({
+                    'browser_id': browser_id,
+                    'sku': sku,
+                    'success': False,
+                    'error': str(e)
+                })
+                continue
             
-            results.append(account_result)
+            # 执行商品上传
+            try:
+                logger.info(f"上传商品: {sku} - {product_data.get('product_name_cn', '')}")
+                
+                # 创建 ProductInfo 对象
+                product_info = self.parser.create_product_info(product_data)
+                
+                # 执行上传
+                folder_path = product_data['folder'] if product_data['folder'] else None
+                success = current_uploader.upload_product(product_info, folder_path, self.category)
+                
+                if success:
+                    logger.info(f"✅ 商品 {sku} 上传成功")
+                    
+                    # 立即记录成功
+                    self.record_manager.record_success(
+                        self.excel_path,
+                        self.region,
+                        browser_id,
+                        sku
+                    )
+                    
+                    results.append({
+                        'browser_id': browser_id,
+                        'sku': sku,
+                        'success': True,
+                        'error': None
+                    })
+                else:
+                    logger.error(f"❌ 商品 {sku} 上传失败")
+                    results.append({
+                        'browser_id': browser_id,
+                        'sku': sku,
+                        'success': False,
+                        'error': '上传失败'
+                    })
+                
+            except CriticalOperationFailed as e:
+                logger.error(f"🚨 关键操作失败，立即停止当前商品流程: {sku} - {e}")
+                results.append({
+                    'browser_id': browser_id,
+                    'sku': sku,
+                    'success': False,
+                    'error': f"关键操作失败: {e}"
+                })
+                # 关键操作失败，需要立即关闭浏览器并继续下一个商品
+                
+            except Exception as e:
+                logger.error(f"上传商品 {sku} 时出错: {e}")
+                results.append({
+                    'browser_id': browser_id,
+                    'sku': sku,
+                    'success': False,
+                    'error': str(e)
+                })
+            
+            # 每个产品上架后立即关闭浏览器窗口
+            if current_browser:
+                try:
+                    current_browser.close()
+                    current_playwright.stop()
+                    logger.info(f"✅ 商品 {sku} 处理完成，已关闭浏览器 {browser_id}")
+                    
+                    # 重置浏览器相关变量
+                    current_browser = None
+                    current_playwright = None
+                    current_uploader = None
+                    current_browser_id = None
+                    
+                except Exception as e:
+                    logger.warning(f"关闭浏览器 {browser_id} 时出错: {e}")
+                    # 即使关闭失败也要重置变量
+                    current_browser = None
+                    current_playwright = None
+                    current_uploader = None
+                    current_browser_id = None
         
+        # 注意：每个产品处理完后都已经关闭浏览器，无需额外关闭
+        
+        logger.info(f"顺序上传完成，共处理 {len(results)} 个商品")
         return results
+    
     
     def _generate_summary(self, results: List[Dict[str, Any]]) -> Dict[str, Any]:
         """生成上传结果统计"""
-        total_products = sum(r['total_products'] for r in results)
-        total_success = sum(r['success_count'] for r in results)
-        total_failed = sum(r['failed_count'] for r in results)
+        total_products = len(results)
+        total_success = sum(1 for r in results if r['success'])
+        total_failed = sum(1 for r in results if not r['success'])
+        success_rate = (total_success / total_products * 100) if total_products > 0 else 0
+        
+        # 按BrowserID分组统计
+        account_stats = {}
+        for result in results:
+            browser_id = result['browser_id']
+            if browser_id not in account_stats:
+                account_stats[browser_id] = {
+                    'browser_id': browser_id,
+                    'total_products': 0,
+                    'success_count': 0,
+                    'failed_count': 0,
+                    'failed_products': [],
+                    'success': True
+                }
+            
+            account_stats[browser_id]['total_products'] += 1
+            if result['success']:
+                account_stats[browser_id]['success_count'] += 1
+            else:
+                account_stats[browser_id]['failed_count'] += 1
+                account_stats[browser_id]['failed_products'].append(result['sku'])
+                account_stats[browser_id]['success'] = False
+        
+        account_details = list(account_stats.values())
         
         summary = {
             'success': total_failed == 0,
-            'total_accounts': len(results),
+            'total_accounts': len(account_details),
             'total_products': total_products,
             'success_count': total_success,
             'failed_count': total_failed,
-            'success_rate': (total_success / total_products * 100) if total_products > 0 else 0,
-            'account_details': results
+            'success_rate': success_rate,
+            'account_details': account_details
         }
         
         logger.info("=" * 50)

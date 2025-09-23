@@ -34,7 +34,6 @@ def create_example_excel():
             'Converse Canvas Shoes',
             'Puma Sports Shoes'
         ],
-        'GenderCn': ['男', '女', '男', '女', '男'],
         'GenderEn': ['Male', 'Female', 'Male', 'Female', 'Male'],
         'HKPrice': ['500', '600', '450', '350', '400'],
         'SGPrice': ['80', '95', '70', '55', '65'],
@@ -66,13 +65,12 @@ def create_example_excel():
     print("C列 = BrowserID: 浏览器ID")
     print("D列 = ProductNameCn: 中文商品名称")
     print("E列 = ProductNameEn: 英文商品名称")
-    print("F列 = GenderCn: 中文性别")
-    print("G列 = GenderEn: 英文性别")
-    print("H列 = HKPrice: 香港价格")
-    print("I列 = SGPrice: 新加坡价格")
-    print("J列 = MYPrice: 马来西亚价格")
-    print("K列 = Brand: 品牌")
-    print("L列 = Folder: 图片文件夹路径")
+    print("F列 = GenderEn: 英文性别")
+    print("G列 = HKPrice: 香港价格")
+    print("H列 = SGPrice: 新加坡价格")
+    print("I列 = MYPrice: 马来西亚价格")
+    print("J列 = Brand: 品牌")
+    print("K列 = Folder: 图片文件夹路径")
 
 if __name__ == "__main__":
     create_example_excel()
