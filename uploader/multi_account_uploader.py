@@ -390,4 +390,20 @@ class MultiAccountUploader:
         logger.info(f"  成功率: {summary['success_rate']:.2f}%")
         logger.info("=" * 50)
         
+        # G63跑车风格的爆单日志
+        self._print_big_money_style_log()
+        
         return summary
+    
+    def _print_big_money_style_log(self):
+        """打印爆单日志"""
+        logger.info("🔥🔥🔥🔥 爆单！！！ 爆单！！！ 🔥🔥🔥🔥")
+        logger.info("")
+        logger.info("💥 产品大卖！订单爆满！💥")
+        logger.info("🎯 早日财务自由！🎯")
+        logger.info("💰 收益暴涨！💰")
+        logger.info("")
+        logger.info("🚀🚀🚀 恭喜发财！🚀🚀🚀")
+        logger.info("")
+        logger.info("🚗🚗🚗" + "=" * 50 + "🚗🚗🚗")
+        logger.info("")
