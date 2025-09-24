@@ -223,16 +223,7 @@ create_project_dir() {
     print_success "使用当前目录作为项目目录: $PROJECT_DIR"
 }
 
-# 创建用户
-create_user() {
-    print_info "检查用户权限..."
-    
-    # 使用当前目录时，不需要创建系统用户
-    print_info "使用当前目录部署，无需创建系统用户"
-    print_success "将使用当前用户权限运行"
-}
-
-# 安装依赖
+# 安装系统依赖
 install_dependencies() {
     print_info "安装系统依赖..."
     
@@ -277,8 +268,45 @@ create_virtual_env() {
     # 创建虚拟环境
     if [ ! -d "venv" ]; then
         print_info "创建虚拟环境..."
-        "$PYTHON_CMD" -m venv venv
-        print_success "虚拟环境创建完成: $PROJECT_DIR/venv"
+        
+        # 详细日志：显示创建过程
+        print_info "执行命令: $PYTHON_CMD -m venv venv"
+        
+        # 捕获详细输出
+        VENV_OUTPUT=$("$PYTHON_CMD" -m venv venv 2>&1)
+        VENV_EXIT_CODE=$?
+        
+        if [ $VENV_EXIT_CODE -eq 0 ]; then
+            print_success "虚拟环境创建完成: $PROJECT_DIR/venv"
+        else
+            print_error "虚拟环境创建失败 (退出码: $VENV_EXIT_CODE)"
+            print_error "错误输出: $VENV_OUTPUT"
+            
+            # 提供详细的故障排除信息
+            print_info "故障排除建议:"
+            print_info "1. 检查Python版本: $PYTHON_CMD --version"
+            print_info "2. 检查Python模块: $PYTHON_CMD -m venv --help"
+            print_info "3. 检查磁盘空间: df -h ."
+            print_info "4. 检查权限: ls -la ."
+            print_info "5. 尝试手动创建: $PYTHON_CMD -m venv test_venv"
+            
+            # 检查常见问题
+            if echo "$VENV_OUTPUT" | grep -q "No module named venv"; then
+                print_error "Python venv模块不可用"
+                print_info "解决方案:"
+                print_info "  Ubuntu/Debian: sudo apt install python3-venv"
+                print_info "  CentOS/RHEL: sudo yum install python3-venv"
+                print_info "  macOS: brew install python3"
+            elif echo "$VENV_OUTPUT" | grep -q "Permission denied"; then
+                print_error "权限不足"
+                print_info "解决方案: 检查当前目录权限或使用sudo"
+            elif echo "$VENV_OUTPUT" | grep -q "No space left"; then
+                print_error "磁盘空间不足"
+                print_info "解决方案: 清理磁盘空间或更换目录"
+            fi
+            
+            exit 1
+        fi
     else
         print_warning "虚拟环境已存在: $PROJECT_DIR/venv"
     fi
@@ -287,7 +315,10 @@ create_virtual_env() {
     if [ -f "venv/bin/activate" ]; then
         print_success "虚拟环境验证通过"
     else
-        print_error "虚拟环境创建失败"
+        print_error "虚拟环境创建失败 - 激活脚本不存在"
+        print_info "检查虚拟环境结构:"
+        ls -la venv/ 2>/dev/null || print_info "venv目录不存在"
+        ls -la venv/bin/ 2>/dev/null || print_info "venv/bin目录不存在"
         exit 1
     fi
 }
@@ -360,13 +391,10 @@ except ImportError as e:
     print_success "Python环境配置完成"
 }
 
-# 配置服务
+# 配置运行环境
 configure_service() {
     print_info "配置运行环境..."
-    
-    # 使用当前目录时，不需要系统服务
-    print_info "使用当前目录部署，跳过系统服务配置"
-    print_success "将使用本地运行方式"
+    print_success "使用本地运行方式"
 }
 
 # 创建配置文件
@@ -515,19 +543,31 @@ main() {
     echo "=================================="
     echo ""
     
+    # 环境检查阶段
+    print_info "🔍 环境检查阶段"
     check_system
     check_python
     check_pip
+    
+    # 项目设置阶段
+    print_info "📁 项目设置阶段"
     create_project_dir
-    create_user
     install_dependencies
+    
+    # Python环境阶段
+    print_info "🐍 Python环境阶段"
     create_virtual_env
     install_python_deps
+    
+    # 配置完成阶段
+    print_info "⚙️ 配置完成阶段"
     create_venv_scripts
     configure_service
     create_config
     create_directories
     test_installation
+    
+    # 完成安装
     show_usage
 }
 
