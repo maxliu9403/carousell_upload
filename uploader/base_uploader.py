@@ -106,16 +106,45 @@ class BaseUploader:
         
         # 填写基本信息
         self._fill_basic_info(enriched_info)
-        
-        # 选择地域相关设置
-        self._select_location_by_region()
+
+        if self.region == "HK":
+            self._closewhatsapp()
+            self._closemeetup()
+            self._open_delivery()
+
+        if self.region == "SG":
+            # 选择地域相关设置
+            self._select_location_by_region()
         
         # 发布商品
         self._publish_product()
         
         # 等待页面稳定
         self.page.wait_for_timeout(10000)
-        
+    
+    # HK逻辑
+    def _closewhatsapp(self):
+        """关闭WhatsApp"""
+        if self.page.query_selector("button.D_nz"):
+            logger.info("关闭whatsapp")
+            safe_click_with_wait(self.page, "rect.D_awR", must_exist=True,
+                           browser_id=self.browser_id, sku=self.sku, operation="关闭WhatsApp")
+    # HK逻辑
+    def _closemeetup(self):
+        """关闭meetup"""
+        if self.page.query_selector("input.D_tk"):
+            logger.info("关闭面交")
+            safe_click_with_wait(self.page, ".D_pN > .D_la", must_exist=True,
+                           browser_id=self.browser_id, sku=self.sku, operation="关闭面交" )
+
+    # HK开启送货
+    def _open_delivery(self):
+        """开启送货"""
+        if not self.page.query_selector("#FieldSetField-Container-field_mailing_details .D_uF"):
+            logger.info("开启送货")
+            safe_click_with_wait(self.page, ".D_agF > .D_lo", must_exist=True,
+                           browser_id=self.browser_id, sku=self.sku, operation="开启送货" )
+
     # ========= 公共方法：页面导航 =========
     def _navigate_to_homepage(self):
         """导航到主页"""
@@ -147,7 +176,8 @@ class BaseUploader:
             raise ValueError("folder_path参数不能为空")
         
         # 新账号初次上品会出现（可选）
-        safe_click_with_wait(self.page, ".D_ayk > .D_oN > .D_oZ", must_exist=False)
+        if self.region == "SG":
+            safe_click_with_wait(self.page, ".D_ayk > .D_oN > .D_oZ", must_exist=False)
 
         # 忽略AI编写文案
         safe_click_with_wait(self.page, ".D_oF use", must_exist=False,
@@ -169,7 +199,14 @@ class BaseUploader:
         # 等待出现搜索结果
         self.page.wait_for_timeout(2000)
         # 点击服务
-        self._safe_click_subcategory(".D_aEk:nth-child(2) > .D_aEs > .D_la", "服務")
+        if self.region == "HK":
+            self._safe_click_subcategory(".D_aEk:nth-child(5) > .D_aEs > .D_la", "服務")
+        elif self.region == "SG":
+            self._safe_click_subcategory(".D_aEk:nth-child(2) > .D_aEs > .D_la", "服务")
+        elif self.region == "MY":
+            self._safe_click_subcategory(".D_aEk:nth-child(2) > .D_aEs > .D_la", "服务")
+        else:
+            self._safe_click_subcategory(".D_aEk:nth-child(2) > .D_aEs > .D_la", "服务")
         
     def _get_service_search_keyword(self) -> str:
         """
@@ -180,7 +217,7 @@ class BaseUploader:
         """
         service_keywords = {
             "SG": "others",    # 新加坡使用 "others"
-            "HK": "其它",      # 香港使用 "其它"
+            "HK": "其他",      # 香港使用 "其他"
             "MY": "others"     # 马来西亚使用 "others"
         }
         
@@ -194,6 +231,10 @@ class BaseUploader:
         safe_input_with_wait(self.page, "input#title", enriched_info.title, must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="输入产品标题")
 
+        if self.region == "HK":
+            safe_click_with_wait(self.page, "button.D_oa:nth-child(1)", must_exist=True,
+                               browser_id=self.browser_id, sku=self.sku, operation="点击新旧")
+      
         # 输入产品价格
         safe_input_with_wait(self.page, "input#price", enriched_info.price, must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="输入产品价格")
@@ -201,6 +242,8 @@ class BaseUploader:
         # 输入产品描述
         safe_input_with_wait(self.page, "textarea.D_uF", enriched_info.description, must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="输入产品描述")
+
+        
         
     def _select_location_by_region(self):
         """根据地域选择Location"""
