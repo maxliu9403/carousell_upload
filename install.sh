@@ -141,6 +141,114 @@ check_pip() {
 }
 
 # 下载项目文件
+# 更新项目代码到最新版本
+update_project_code() {
+    print_info "🔄 更新项目代码到最新版本..."
+    
+    # 检查是否已存在项目目录
+    if [ -d ".git" ]; then
+        print_info "检测到Git仓库，尝试拉取最新代码..."
+        if git pull origin main; then
+            print_success "✅ 代码更新成功"
+            return 0
+        else
+            print_warning "⚠️ Git拉取失败，尝试重新下载..."
+        fi
+    fi
+    
+    # 如果Git更新失败或不存在，使用curl下载最新文件
+    print_info "📥 下载最新项目文件..."
+    
+    # 检查curl是否可用
+    if ! command -v curl &> /dev/null; then
+        print_error "curl不可用，无法下载项目文件"
+        return 1
+    fi
+    
+    # 创建必要的目录结构
+    mkdir -p config uploader browser cli scripts core data
+    
+    # 下载核心配置文件
+    print_info "📋 下载配置文件..."
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/config/settings.yaml -o config/settings.yaml
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/config/settings.example.yaml -o config/settings.example.yaml
+    
+    # 下载核心Python模块
+    print_info "🐍 下载核心Python模块..."
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/core/__init__.py -o core/__init__.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/core/config.py -o core/config.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/core/logger.py -o core/logger.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/core/models.py -o core/models.py
+    
+    # 下载浏览器模块
+    print_info "🌐 下载浏览器模块..."
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/browser/__init__.py -o browser/__init__.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/browser/browser.py -o browser/browser.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/browser/browser_interface.py -o browser/browser_interface.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/browser/browser_factory.py -o browser/browser_factory.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/browser/browser_selector.py -o browser/browser_selector.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/browser/actions.py -o browser/actions.py
+    
+    # 下载上传器模块
+    print_info "📤 下载上传器模块..."
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/__init__.py -o uploader/__init__.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/base_uploader.py -o uploader/base_uploader.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/carousell_uploader_new.py -o uploader/carousell_uploader_new.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/multi_account_uploader.py -o uploader/multi_account_uploader.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/uploader_factory.py -o uploader/uploader_factory.py
+    
+    # 下载地域上传器
+    print_info "🌍 下载地域上传器..."
+    mkdir -p uploader/regions/hk/sneakers uploader/regions/sg/sneakers uploader/regions/my/sneakers
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/__init__.py -o uploader/regions/__init__.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/hk/sneakers/__init__.py -o uploader/regions/hk/sneakers/__init__.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/hk/sneakers/sneakers_uploader.py -o uploader/regions/hk/sneakers/sneakers_uploader.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/sg/sneakers/__init__.py -o uploader/regions/sg/sneakers/__init__.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/sg/sneakers/sneakers_uploader.py -o uploader/regions/sg/sneakers/sneakers_uploader.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/my/sneakers/__init__.py -o uploader/regions/my/sneakers/__init__.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/my/sneakers/sneakers_uploader.py -o uploader/regions/my/sneakers/sneakers_uploader.py
+    
+    # 下载CLI模块
+    print_info "💻 下载CLI模块..."
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/cli/__init__.py -o cli/__init__.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/cli/main.py -o cli/main.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/cli/cli.py -o cli/cli.py
+    
+    # 下载数据模块
+    print_info "📊 下载数据模块..."
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/data/__init__.py -o data/__init__.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/data/excel_parser.py -o data/excel_parser.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/data/record_manager.py -o data/record_manager.py
+    
+    # 下载工具模块
+    print_info "🛠️ 下载工具模块..."
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/utils/__init__.py -o utils/__init__.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/utils/utils.py -o utils/utils.py
+    
+    # 下载主要文件
+    print_info "📄 下载主要文件..."
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/requirements.txt -o requirements.txt
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/README.md -o README.md
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/setup.py -o setup.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/pyproject.toml -o pyproject.toml
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/.gitignore -o .gitignore
+    
+    # 下载启动脚本
+    print_info "🚀 下载启动脚本..."
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/activate_env.sh -o activate_env.sh
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/run.sh -o run.sh
+    chmod +x activate_env.sh run.sh
+    
+    # 下载Windows脚本
+    print_info "🪟 下载Windows脚本..."
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/scripts/windows-install.bat -o scripts/windows-install.bat
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/scripts/windows-install.ps1 -o scripts/windows-install.ps1
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/scripts/windows-simple-install.bat -o scripts/windows-simple-install.bat
+    
+    print_success "✅ 项目代码更新完成"
+    return 0
+}
+
 download_project_files() {
     print_info "尝试下载项目文件..."
     
@@ -192,31 +300,17 @@ create_project_dir() {
         print_warning "当前目录不包含项目文件"
         print_info "正在自动下载项目文件..."
         
-        # 检查git是否可用
-        if command -v git &> /dev/null; then
-            print_info "使用git克隆项目..."
-            git clone https://github.com/maxliu9403/carousell_upload.git temp_project
-            if [ $? -eq 0 ]; then
-                # 移动文件到当前目录
-                cp -r temp_project/* .
-                cp -r temp_project/.* . 2>/dev/null || true
-                rm -rf temp_project
-                print_success "项目文件下载完成"
-            else
-                print_error "git克隆失败，尝试其他方式..."
-                if ! download_project_files; then
-                    print_error "无法下载项目文件"
-                    print_info "请手动克隆项目: git clone https://github.com/maxliu9403/carousell_upload.git"
-                    exit 1
-                fi
-            fi
-        else
-            print_warning "git不可用，尝试其他方式..."
-            if ! download_project_files; then
-                print_error "无法下载项目文件"
-                print_info "请手动克隆项目: git clone https://github.com/maxliu9403/carousell_upload.git"
-                exit 1
-            fi
+        # 使用新的更新函数
+        if ! update_project_code; then
+            print_error "无法下载项目文件"
+            print_info "请手动克隆项目: git clone https://github.com/maxliu9403/carousell_upload.git"
+            exit 1
+        fi
+    else
+        print_success "检测到项目文件，正在更新到最新版本..."
+        # 即使存在项目文件，也尝试更新到最新版本
+        if ! update_project_code; then
+            print_warning "代码更新失败，使用现有文件继续安装"
         fi
     fi
     
