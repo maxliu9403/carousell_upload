@@ -42,14 +42,30 @@
 - **内存**: 至少 4GB RAM
 - **存储**: 至少 1GB 可用空间
 
-### 📦 安装方式
+### 🎯 一键部署 (推荐)
+
+```bash
+# 克隆项目
+git clone https://github.com/maxliu9403/carousell_upload.git
+cd carousell_upload
+
+# 运行统一部署脚本 (自动检测最佳方式)
+./deploy.sh
+
+# 或指定部署模式
+./deploy.sh --mode=local     # 本地开发部署
+./deploy.sh --mode=system    # 系统级部署
+./deploy.sh --mode=docker    # Docker部署
+```
+
+### 📦 其他安装方式
 
 #### 方式一：使用 pip 安装 (推荐)
 
 ```bash
 # 克隆项目
-git clone https://github.com/your-org/carousell-uploader.git
-cd carousell-uploader
+git clone https://github.com/maxliu9403/carousell_upload.git
+cd carousell_upload
 
 # 创建虚拟环境 (推荐)
 python -m venv venv
@@ -159,8 +175,8 @@ sudo apt update
 sudo apt install python3 python3-pip python3-venv git
 
 # 克隆项目
-git clone https://github.com/your-org/carousell-uploader.git
-cd carousell-uploader
+git clone https://github.com/maxliu9403/carousell_upload.git
+cd carousell_upload
 
 # 创建虚拟环境
 python3 -m venv venv
@@ -613,9 +629,9 @@ git commit -m "test: 添加测试"
 ## 📞 支持
 
 - 📧 邮箱: support@carousell-uploader.com
-- 🐛 问题反馈: [GitHub Issues](https://github.com/your-org/carousell-uploader/issues)
+- 🐛 问题反馈: [GitHub Issues](https://github.com/maxliu9403/carousell_upload/issues)
 - 📖 文档: [项目文档](https://carousell-uploader.readthedocs.io/)
-- 💬 讨论: [GitHub Discussions](https://github.com/your-org/carousell-uploader/discussions)
+- 💬 讨论: [GitHub Discussions](https://github.com/maxliu9403/carousell_upload/discussions)
 
 ---
 

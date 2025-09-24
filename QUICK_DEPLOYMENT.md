@@ -15,7 +15,7 @@
 
 ```bash
 # 下载并运行快速部署脚本
-curl -fsSL https://raw.githubusercontent.com/your-org/carousell-uploader/main/scripts/quick-deploy.sh | bash
+curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/scripts/quick-deploy.sh | bash
 
 # 或手动运行
 chmod +x scripts/quick-deploy.sh
@@ -26,8 +26,8 @@ chmod +x scripts/quick-deploy.sh
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/your-org/carousell-uploader.git
-cd carousell-uploader
+git clone https://github.com/maxliu9403/carousell_upload.git
+cd carousell_upload
 
 # 2. 创建虚拟环境
 python3 -m venv venv
@@ -101,8 +101,8 @@ sudo apt update && sudo apt upgrade -y
 sudo apt install -y python3 python3-pip python3-venv git curl wget
 
 # 3. 克隆项目
-git clone https://github.com/your-org/carousell-uploader.git
-cd carousell-uploader
+git clone https://github.com/maxliu9403/carousell_upload.git
+cd carousell_upload
 
 # 4. 运行部署脚本
 chmod +x scripts/quick-deploy.sh
@@ -124,8 +124,8 @@ sudo yum update -y
 sudo yum install -y python3 python3-pip git curl wget
 
 # 3. 克隆项目
-git clone https://github.com/your-org/carousell-uploader.git
-cd carousell-uploader
+git clone https://github.com/maxliu9403/carousell_upload.git
+cd carousell_upload
 
 # 4. 运行部署脚本
 chmod +x scripts/quick-deploy.sh

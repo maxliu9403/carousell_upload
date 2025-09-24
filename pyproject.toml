@@ -77,10 +77,10 @@ types = [
 carousell-uploader = "cli.main:run"
 
 [project.urls]
-Homepage = "https://github.com/your-org/carousell-uploader"
+Homepage = "https://github.com/maxliu9403/carousell_upload"
 Documentation = "https://carousell-uploader.readthedocs.io/"
-Repository = "https://github.com/your-org/carousell-uploader"
-"Bug Tracker" = "https://github.com/your-org/carousell-uploader/issues"
+Repository = "https://github.com/maxliu9403/carousell_upload"
+"Bug Tracker" = "https://github.com/maxliu9403/carousell_upload/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]

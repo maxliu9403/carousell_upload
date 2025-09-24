@@ -91,10 +91,10 @@ check_pip() {
 create_project_dir() {
     print_info "创建项目目录..."
     
-    PROJECT_DIR="/opt/carousell-uploader"
+    PROJECT_DIR="/opt/carousell_upload"
     
     if [ "$OS" = "windows" ]; then
-        PROJECT_DIR="C:\\carousell-uploader"
+        PROJECT_DIR="C:\\carousell_upload"
     fi
     
     if [ ! -d "$PROJECT_DIR" ]; then

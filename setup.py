@@ -28,7 +28,7 @@ setup(
     description="Carousell 平台自动化商品上传工具",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/your-org/carousell-uploader",
+    url="https://github.com/maxliu9403/carousell_upload",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -83,8 +83,8 @@ setup(
         "selenium",
     ],
     project_urls={
-        "Bug Reports": "https://github.com/your-org/carousell-uploader/issues",
-        "Source": "https://github.com/your-org/carousell-uploader",
+        "Bug Reports": "https://github.com/maxliu9403/carousell_upload/issues",
+        "Source": "https://github.com/maxliu9403/carousell_upload",
         "Documentation": "https://carousell-uploader.readthedocs.io/",
     },
 )
