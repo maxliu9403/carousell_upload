@@ -312,13 +312,23 @@ create_virtual_env() {
     fi
     
     # 验证虚拟环境
-    if [ -f "venv/bin/activate" ]; then
+    if [ -f "venv/bin/activate" ] || [ -f "venv/Scripts/activate" ]; then
         print_success "虚拟环境验证通过"
     else
         print_error "虚拟环境创建失败 - 激活脚本不存在"
         print_info "检查虚拟环境结构:"
         ls -la venv/ 2>/dev/null || print_info "venv目录不存在"
-        ls -la venv/bin/ 2>/dev/null || print_info "venv/bin目录不存在"
+        
+        # 检查不同操作系统的激活脚本位置
+        if [ -d "venv/bin" ]; then
+            print_info "Linux/macOS结构: venv/bin/"
+            ls -la venv/bin/ 2>/dev/null || print_info "venv/bin目录不存在"
+        elif [ -d "venv/Scripts" ]; then
+            print_info "Windows结构: venv/Scripts/"
+            ls -la venv/Scripts/ 2>/dev/null || print_info "venv/Scripts目录不存在"
+        else
+            print_info "未找到标准的虚拟环境结构"
+        fi
         exit 1
     fi
 }
@@ -331,13 +341,31 @@ install_python_deps() {
     
     # 激活虚拟环境
     print_info "激活虚拟环境..."
-    source venv/bin/activate
+    
+    # 根据操作系统选择激活脚本
+    if [ -f "venv/bin/activate" ]; then
+        # Linux/macOS
+        source venv/bin/activate
+        print_info "使用Linux/macOS激活脚本: venv/bin/activate"
+    elif [ -f "venv/Scripts/activate" ]; then
+        # Windows
+        source venv/Scripts/activate
+        print_info "使用Windows激活脚本: venv/Scripts/activate"
+    else
+        print_error "未找到虚拟环境激活脚本"
+        print_info "检查激活脚本位置:"
+        ls -la venv/bin/activate 2>/dev/null || print_info "venv/bin/activate不存在"
+        ls -la venv/Scripts/activate 2>/dev/null || print_info "venv/Scripts/activate不存在"
+        exit 1
+    fi
     
     # 验证虚拟环境激活
     if [ "$VIRTUAL_ENV" = "$PROJECT_DIR/venv" ]; then
         print_success "虚拟环境已激活: $VIRTUAL_ENV"
     else
         print_error "虚拟环境激活失败"
+        print_info "当前VIRTUAL_ENV: $VIRTUAL_ENV"
+        print_info "期望VIRTUAL_ENV: $PROJECT_DIR/venv"
         exit 1
     fi
     
@@ -434,7 +462,16 @@ test_installation() {
     print_info "测试安装..."
     
     cd "$PROJECT_DIR"
-    source venv/bin/activate
+    
+    # 根据操作系统选择激活脚本
+    if [ -f "venv/bin/activate" ]; then
+        source venv/bin/activate
+    elif [ -f "venv/Scripts/activate" ]; then
+        source venv/Scripts/activate
+    else
+        print_error "未找到虚拟环境激活脚本"
+        exit 1
+    fi
     
     # 测试Python导入
     "$PYTHON_CMD" -c "
@@ -468,21 +505,26 @@ create_venv_scripts() {
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_DIR="$PROJECT_DIR/venv"
 
+# 根据操作系统选择激活脚本
 if [ -f "$VENV_DIR/bin/activate" ]; then
-    echo "🚀 激活虚拟环境..."
+    echo "🚀 激活虚拟环境 (Linux/macOS)..."
     source "$VENV_DIR/bin/activate"
-    echo "✅ 虚拟环境已激活: $VIRTUAL_ENV"
-    echo "📁 项目目录: $PROJECT_DIR"
-    echo ""
-    echo "💡 使用说明:"
-    echo "  - 运行程序: python -m cli.main"
-    echo "  - 退出环境: deactivate"
-    echo "  - 查看帮助: python -m cli.main --help"
+elif [ -f "$VENV_DIR/Scripts/activate" ]; then
+    echo "🚀 激活虚拟环境 (Windows)..."
+    source "$VENV_DIR/Scripts/activate"
 else
     echo "❌ 虚拟环境未找到: $VENV_DIR"
-    echo "请先运行安装脚本: sudo ./install.sh"
+    echo "请先运行安装脚本: ./install.sh"
     exit 1
 fi
+
+echo "✅ 虚拟环境已激活: $VIRTUAL_ENV"
+echo "📁 项目目录: $PROJECT_DIR"
+echo ""
+echo "💡 使用说明:"
+echo "  - 运行程序: python -m cli.main"
+echo "  - 退出环境: deactivate"
+echo "  - 查看帮助: python -m cli.main --help"
 EOF
     
     chmod +x activate_env.sh
@@ -496,14 +538,19 @@ EOF
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_DIR="$PROJECT_DIR/venv"
 
+# 根据操作系统选择激活脚本
 if [ -f "$VENV_DIR/bin/activate" ]; then
     source "$VENV_DIR/bin/activate"
-    echo "🚀 启动 Carousell Uploader..."
-    python -m cli.main "$@"
+    echo "🚀 启动 Carousell Uploader (Linux/macOS)..."
+elif [ -f "$VENV_DIR/Scripts/activate" ]; then
+    source "$VENV_DIR/Scripts/activate"
+    echo "🚀 启动 Carousell Uploader (Windows)..."
 else
     echo "❌ 虚拟环境未找到，请先运行安装脚本"
     exit 1
 fi
+
+python -m cli.main "$@"
 EOF
     
     chmod +x run.sh
