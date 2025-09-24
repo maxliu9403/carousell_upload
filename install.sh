@@ -370,7 +370,20 @@ install_python_deps() {
         print_error "虚拟环境激活失败"
         print_info "当前VIRTUAL_ENV: $VIRTUAL_ENV"
         print_info "期望VIRTUAL_ENV: $PROJECT_DIR/venv"
+        print_info "请检查虚拟环境是否正确创建"
         exit 1
+    fi
+    
+    # 验证Python路径
+    print_info "验证Python路径..."
+    PYTHON_PATH=$(which python)
+    print_info "当前Python路径: $PYTHON_PATH"
+    
+    if [[ "$PYTHON_PATH" == *"$PROJECT_DIR/venv"* ]]; then
+        print_success "Python路径正确，使用虚拟环境中的Python"
+    else
+        print_warning "Python路径可能不正确，但继续执行"
+        print_info "期望路径包含: $PROJECT_DIR/venv"
     fi
     
     # 升级pip
@@ -402,12 +415,12 @@ install_python_deps() {
     
     # 安装Playwright浏览器
     print_info "安装Playwright浏览器..."
-    playwright install chromium
+    python -m playwright install chromium
     print_success "Playwright浏览器安装完成"
     
     # 验证安装
     print_info "验证Python包安装..."
-    "$PYTHON_CMD" -c "
+    python -c "
 import sys
 try:
     import playwright
@@ -478,7 +491,7 @@ test_installation() {
     fi
     
     # 测试Python导入
-    "$PYTHON_CMD" -c "
+    python -c "
 import sys
 try:
     import playwright
