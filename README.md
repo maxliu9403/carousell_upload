@@ -60,7 +60,14 @@ cd carousell_upload
 
 ### 📦 其他安装方式
 
-#### 方式一：使用 pip 安装 (推荐)
+#### 方式一：一键安装脚本 (推荐)
+
+```bash
+# 一键安装 (自动检测系统并安装)
+curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/install.sh | bash
+```
+
+#### 方式二：使用 pip 安装
 
 ```bash
 # 克隆项目
@@ -80,7 +87,7 @@ pip install -r requirements.txt
 playwright install chromium
 ```
 
-#### 方式二：使用 setup.py 安装
+#### 方式三：使用 setup.py 安装
 
 ```bash
 # 开发模式安装
@@ -134,21 +141,21 @@ pytest
 
 ```bash
 # 构建镜像
-docker build -t carousell-uploader .
+docker build -t carousell_upload .
 
 # 运行容器
 docker run -it --rm \
   -v $(pwd)/config:/app/config \
   -v $(pwd)/data:/app/data \
-  carousell-uploader
+  carousell_upload
 ```
 
 ### 🖥️ 本地快速部署
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/your-org/carousell-uploader.git
-cd carousell-uploader
+git clone https://github.com/maxliu9403/carousell_upload.git
+cd carousell_upload
 
 # 2. 创建虚拟环境
 python -m venv venv
@@ -440,11 +447,12 @@ carousell_upload/
 
 ### 系统级部署
 ```bash
-# 一键安装 (生产环境)
-curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/install.sh | bash
+# 1. 克隆项目
+git clone https://github.com/maxliu9403/carousell_upload.git
+cd carousell_upload
 
-# 手动安装
-./install.sh
+# 2. 运行系统级安装脚本
+sudo ./install.sh
 ```
 
 ### 本地开发部署
@@ -630,11 +638,32 @@ git commit -m "test: 添加测试"
 - [Requests](https://requests.readthedocs.io/) - HTTP库
 - [PyYAML](https://pyyaml.org/) - YAML解析库
 
+## 📝 更新日志
+
+### 🔧 最新修正 (v1.0.0)
+
+#### 系统级部署指令优化
+- **修正前**: 使用curl直接下载install.sh脚本
+- **修正后**: 先克隆项目，再运行install.sh脚本
+- **原因**: install.sh脚本假设项目文件已经存在，没有包含git clone命令
+
+#### GitHub链接和路径修正
+- ✅ 统一项目名称为 `carousell_upload`
+- ✅ 修正所有GitHub链接指向正确仓库
+- ✅ 更新Docker镜像名称为 `carousell_upload`
+- ✅ 修正系统服务文件中的路径
+- ✅ 更新联系信息和文档链接
+
+#### 部署方式整合
+- ✅ 创建统一部署脚本 `deploy.sh`
+- ✅ 支持自动检测最佳部署方式
+- ✅ 整合所有部署脚本到统一入口
+
 ## 📞 支持
 
-- 📧 邮箱: support@carousell-uploader.com
+- 📧 邮箱: support@carousell-upload.com
 - 🐛 问题反馈: [GitHub Issues](https://github.com/maxliu9403/carousell_upload/issues)
-- 📖 文档: [项目文档](https://carousell-uploader.readthedocs.io/)
+- 📖 文档: [项目文档](https://carousell-upload.readthedocs.io/)
 - 💬 讨论: [GitHub Discussions](https://github.com/maxliu9403/carousell_upload/discussions)
 
 ---

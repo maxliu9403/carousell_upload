@@ -143,28 +143,71 @@ install_dependencies() {
     print_success "系统依赖安装完成"
 }
 
+# 创建Python虚拟环境
+create_virtual_env() {
+    print_info "创建Python虚拟环境..."
+    
+    cd "$PROJECT_DIR"
+    
+    # 检查Python版本
+    PYTHON_VERSION=$(python3 --version 2>&1 | cut -d' ' -f2)
+    print_info "Python版本: $PYTHON_VERSION"
+    
+    # 检查版本是否>=3.8
+    if python3 -c "import sys; exit(0 if sys.version_info >= (3, 8) else 1)"; then
+        print_success "Python版本符合要求 (>=3.8)"
+    else
+        print_error "Python版本不符合要求，需要>=3.8"
+        exit 1
+    fi
+    
+    # 创建虚拟环境
+    if [ ! -d "venv" ]; then
+        print_info "创建虚拟环境..."
+        python3 -m venv venv
+        print_success "虚拟环境创建完成: $PROJECT_DIR/venv"
+    else
+        print_warning "虚拟环境已存在: $PROJECT_DIR/venv"
+    fi
+    
+    # 验证虚拟环境
+    if [ -f "venv/bin/activate" ]; then
+        print_success "虚拟环境验证通过"
+    else
+        print_error "虚拟环境创建失败"
+        exit 1
+    fi
+}
+
 # 安装Python依赖
 install_python_deps() {
     print_info "安装Python依赖..."
     
     cd "$PROJECT_DIR"
     
-    # 创建虚拟环境
-    if [ ! -d "venv" ]; then
-        python3 -m venv venv
-        print_success "虚拟环境创建完成"
-    else
-        print_warning "虚拟环境已存在"
-    fi
-    
     # 激活虚拟环境
+    print_info "激活虚拟环境..."
     source venv/bin/activate
     
+    # 验证虚拟环境激活
+    if [ "$VIRTUAL_ENV" = "$PROJECT_DIR/venv" ]; then
+        print_success "虚拟环境已激活: $VIRTUAL_ENV"
+    else
+        print_error "虚拟环境激活失败"
+        exit 1
+    fi
+    
     # 升级pip
+    print_info "升级pip..."
     pip install --upgrade pip
+    
+    # 安装wheel和setuptools
+    print_info "安装基础包..."
+    pip install wheel setuptools
     
     # 安装依赖
     if [ -f "requirements.txt" ]; then
+        print_info "安装项目依赖..."
         pip install -r requirements.txt
         print_success "Python依赖安装完成"
     else
@@ -172,10 +215,36 @@ install_python_deps() {
         exit 1
     fi
     
+    # 安装开发依赖（可选）
+    if [ -f "requirements-dev.txt" ]; then
+        print_info "安装开发依赖..."
+        pip install -r requirements-dev.txt
+        print_success "开发依赖安装完成"
+    else
+        print_warning "未找到requirements-dev.txt文件，跳过开发依赖安装"
+    fi
+    
     # 安装Playwright浏览器
     print_info "安装Playwright浏览器..."
     playwright install chromium
     print_success "Playwright浏览器安装完成"
+    
+    # 验证安装
+    print_info "验证Python包安装..."
+    python3 -c "
+import sys
+try:
+    import playwright
+    import requests
+    import yaml
+    import pandas
+    print('✅ 核心依赖验证通过')
+except ImportError as e:
+    print(f'❌ 依赖验证失败: {e}')
+    sys.exit(1)
+"
+    
+    print_success "Python环境配置完成"
 }
 
 # 配置服务
@@ -260,22 +329,88 @@ except ImportError as e:
     print_success "安装测试通过"
 }
 
+# 创建虚拟环境管理脚本
+create_venv_scripts() {
+    print_info "创建虚拟环境管理脚本..."
+    
+    cd "$PROJECT_DIR"
+    
+    # 创建激活脚本
+    cat > activate_env.sh << 'EOF'
+#!/bin/bash
+# Carousell Uploader 虚拟环境激活脚本
+
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VENV_DIR="$PROJECT_DIR/venv"
+
+if [ -f "$VENV_DIR/bin/activate" ]; then
+    echo "🚀 激活虚拟环境..."
+    source "$VENV_DIR/bin/activate"
+    echo "✅ 虚拟环境已激活: $VIRTUAL_ENV"
+    echo "📁 项目目录: $PROJECT_DIR"
+    echo ""
+    echo "💡 使用说明:"
+    echo "  - 运行程序: python -m cli.main"
+    echo "  - 退出环境: deactivate"
+    echo "  - 查看帮助: python -m cli.main --help"
+else
+    echo "❌ 虚拟环境未找到: $VENV_DIR"
+    echo "请先运行安装脚本: sudo ./install.sh"
+    exit 1
+fi
+EOF
+    
+    chmod +x activate_env.sh
+    print_success "虚拟环境激活脚本创建完成: activate_env.sh"
+    
+    # 创建快速启动脚本
+    cat > run.sh << 'EOF'
+#!/bin/bash
+# Carousell Uploader 快速启动脚本
+
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VENV_DIR="$PROJECT_DIR/venv"
+
+if [ -f "$VENV_DIR/bin/activate" ]; then
+    source "$VENV_DIR/bin/activate"
+    echo "🚀 启动 Carousell Uploader..."
+    python -m cli.main "$@"
+else
+    echo "❌ 虚拟环境未找到，请先运行安装脚本"
+    exit 1
+fi
+EOF
+    
+    chmod +x run.sh
+    print_success "快速启动脚本创建完成: run.sh"
+}
+
 # 显示使用说明
 show_usage() {
-    print_success "安装完成！"
+    print_success "🎉 安装完成！"
     echo ""
-    print_info "使用说明:"
-    echo "1. 编辑配置: sudo nano $PROJECT_DIR/config/settings.yaml"
-    echo "2. 启动服务: sudo systemctl start carousell-uploader"
-    echo "3. 查看状态: sudo systemctl status carousell-uploader"
-    echo "4. 查看日志: sudo journalctl -u carousell-uploader -f"
+    print_info "📁 项目目录: $PROJECT_DIR"
+    print_info "🐍 虚拟环境: $PROJECT_DIR/venv"
     echo ""
-    print_info "手动运行:"
-    echo "cd $PROJECT_DIR"
-    echo "source venv/bin/activate"
-    echo "python -m cli.main"
+    print_info "🚀 快速使用:"
+    echo "1. 激活虚拟环境: cd $PROJECT_DIR && source venv/bin/activate"
+    echo "2. 或使用激活脚本: cd $PROJECT_DIR && ./activate_env.sh"
+    echo "3. 或直接运行: cd $PROJECT_DIR && ./run.sh"
     echo ""
-    print_info "更多信息请查看 README.md 和 QUICK_DEPLOYMENT.md"
+    print_info "⚙️ 配置设置:"
+    echo "1. 编辑配置文件: nano $PROJECT_DIR/config/settings.yaml"
+    echo "2. 设置API密钥和其他配置"
+    echo ""
+    print_info "🔧 系统服务 (Linux):"
+    echo "1. 启动服务: sudo systemctl start carousell-uploader"
+    echo "2. 查看状态: sudo systemctl status carousell-uploader"
+    echo "3. 查看日志: sudo journalctl -u carousell-uploader -f"
+    echo "4. 停止服务: sudo systemctl stop carousell-uploader"
+    echo ""
+    print_info "📚 更多信息:"
+    echo "- 项目文档: README.md"
+    echo "- 配置说明: config/settings.example.yaml"
+    echo "- 问题反馈: https://github.com/maxliu9403/carousell_upload/issues"
 }
 
 # 主函数
@@ -290,7 +425,9 @@ main() {
     create_project_dir
     create_user
     install_dependencies
+    create_virtual_env
     install_python_deps
+    create_venv_scripts
     configure_service
     create_config
     create_directories
