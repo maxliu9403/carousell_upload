@@ -51,13 +51,60 @@ check_system() {
 check_python() {
     print_info "检查Python环境..."
     
-    if command -v python3 &> /dev/null; then
-        PYTHON_VERSION=$(python3 --version 2>&1 | cut -d' ' -f2)
-        print_info "检测到Python版本: $PYTHON_VERSION"
+    # Windows系统特殊处理
+    if [ "$OS" = "windows" ]; then
+        print_info "检测到Windows系统，尝试多种Python路径..."
         
-        # 详细版本检查
-        print_info "详细版本信息:"
-        python3 -c "
+        # 尝试不同的Python命令
+        PYTHON_CMD=""
+        for cmd in python python3 py; do
+            if command -v "$cmd" &> /dev/null; then
+                # 检查是否指向Microsoft Store
+                if "$cmd" --version 2>&1 | grep -q "Microsoft Store"; then
+                    print_warning "检测到Microsoft Store Python，跳过: $cmd"
+                    continue
+                fi
+                
+                # 检查版本
+                if "$cmd" -c "import sys; exit(0 if sys.version_info >= (3, 8) else 1)" 2>/dev/null; then
+                    PYTHON_CMD="$cmd"
+                    print_success "找到可用的Python: $cmd"
+                    break
+                fi
+            fi
+        done
+        
+        if [ -n "$PYTHON_CMD" ]; then
+            PYTHON_VERSION=$("$PYTHON_CMD" --version 2>&1 | cut -d' ' -f2)
+            print_success "使用Python: $PYTHON_CMD (版本: $PYTHON_VERSION)"
+        else
+            print_error "未找到合适的Python安装"
+            print_info "Windows系统Python安装指南:"
+            print_info "1. 从 https://python.org 下载Python 3.8+"
+            print_info "2. 安装时勾选 'Add Python to PATH'"
+            print_info "3. 或者使用 py launcher: py -3"
+            print_info "4. 避免使用Microsoft Store版本"
+            exit 1
+        fi
+    else
+        # 非Windows系统
+        if command -v python3 &> /dev/null; then
+            PYTHON_CMD="python3"
+            PYTHON_VERSION=$(python3 --version 2>&1 | cut -d' ' -f2)
+            print_success "检测到Python版本: $PYTHON_VERSION"
+        else
+            print_error "未找到Python3，请先安装Python 3.8+"
+            print_info "安装指南:"
+            print_info "  Ubuntu/Debian: sudo apt install python3 python3-pip python3-venv"
+            print_info "  CentOS/RHEL: sudo yum install python3 python3-pip"
+            print_info "  macOS: brew install python3"
+            exit 1
+        fi
+    fi
+    
+    # 详细版本检查
+    print_info "详细版本信息:"
+    "$PYTHON_CMD" -c "
 import sys
 print(f'  Python版本: {sys.version}')
 print(f'  主版本号: {sys.version_info.major}')
@@ -65,24 +112,16 @@ print(f'  次版本号: {sys.version_info.minor}')
 print(f'  微版本号: {sys.version_info.micro}')
 print(f'  版本元组: {sys.version_info[:3]}')
 "
-        
-        # 检查版本是否>=3.8
-        if python3 -c "import sys; exit(0 if sys.version_info >= (3, 8) else 1)" 2>/dev/null; then
-            print_success "Python版本符合要求 (>=3.8)"
-        else
-            print_error "Python版本不符合要求，需要>=3.8"
-            print_info "当前版本: $PYTHON_VERSION"
-            print_info "请升级Python版本到3.8或更高版本"
-            print_info "如果版本检查有误，请检查Python安装是否正确"
-            exit 1
-        fi
+    
+    # 检查版本是否>=3.8
+    if "$PYTHON_CMD" -c "import sys; exit(0 if sys.version_info >= (3, 8) else 1)" 2>/dev/null; then
+        print_success "Python版本符合要求 (>=3.8)"
+        # 设置全局Python命令
+        export PYTHON_CMD
     else
-        print_error "未找到Python3，请先安装Python 3.8+"
-        print_info "安装指南:"
-        print_info "  Ubuntu/Debian: sudo apt install python3 python3-pip python3-venv"
-        print_info "  CentOS/RHEL: sudo yum install python3 python3-pip"
-        print_info "  macOS: brew install python3"
-        print_info "  Windows: 从 https://python.org 下载安装"
+        print_error "Python版本不符合要求，需要>=3.8"
+        print_info "当前版本: $PYTHON_VERSION"
+        print_info "请升级Python版本到3.8或更高版本"
         exit 1
     fi
 }
@@ -93,8 +132,8 @@ check_pip() {
     
     if command -v pip3 &> /dev/null; then
         print_success "pip已安装"
-    elif python3 -m pip --version &> /dev/null; then
-        print_success "pip已安装 (通过python3 -m pip)"
+    elif "$PYTHON_CMD" -m pip --version &> /dev/null; then
+        print_success "pip已安装 (通过$PYTHON_CMD -m pip)"
     else
         print_error "未找到pip，请先安装pip"
         exit 1
@@ -164,11 +203,11 @@ create_virtual_env() {
     cd "$PROJECT_DIR"
     
     # 检查Python版本
-    PYTHON_VERSION=$(python3 --version 2>&1 | cut -d' ' -f2)
+    PYTHON_VERSION=$("$PYTHON_CMD" --version 2>&1 | cut -d' ' -f2)
     print_info "Python版本: $PYTHON_VERSION"
     
     # 检查版本是否>=3.8
-    if python3 -c "import sys; exit(0 if sys.version_info >= (3, 8) else 1)"; then
+    if "$PYTHON_CMD" -c "import sys; exit(0 if sys.version_info >= (3, 8) else 1)"; then
         print_success "Python版本符合要求 (>=3.8)"
     else
         print_error "Python版本不符合要求，需要>=3.8"
@@ -178,7 +217,7 @@ create_virtual_env() {
     # 创建虚拟环境
     if [ ! -d "venv" ]; then
         print_info "创建虚拟环境..."
-        python3 -m venv venv
+        "$PYTHON_CMD" -m venv venv
         print_success "虚拟环境创建完成: $PROJECT_DIR/venv"
     else
         print_warning "虚拟环境已存在: $PROJECT_DIR/venv"
@@ -245,7 +284,7 @@ install_python_deps() {
     
     # 验证安装
     print_info "验证Python包安装..."
-    python3 -c "
+    "$PYTHON_CMD" -c "
 import sys
 try:
     import playwright
@@ -326,7 +365,7 @@ test_installation() {
     source venv/bin/activate
     
     # 测试Python导入
-    python3 -c "
+    "$PYTHON_CMD" -c "
 import sys
 try:
     import playwright
