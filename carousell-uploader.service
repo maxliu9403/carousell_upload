@@ -1,0 +1,25 @@
+[Unit]
+Description=Carousell Uploader Service
+After=network.target
+
+[Service]
+Type=simple
+User=carousell
+Group=carousell
+WorkingDirectory=/opt/carousell-uploader
+Environment=PATH=/opt/carousell-uploader/venv/bin
+ExecStart=/opt/carousell-uploader/venv/bin/python -m cli.main
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# 安全设置
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/carousell-uploader/logs /opt/carousell-uploader/data
+
+[Install]
+WantedBy=multi-user.target

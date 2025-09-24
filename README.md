@@ -1,37 +1,201 @@
 # Carousell 自动上传工具
 
+[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://python.org)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 这是一个用于 Carousell 平台的自动化商品上传工具，支持批量上传商品图片和自动填写商品信息。
 
-## 🚀 功能特性
+## ✨ 核心特性
 
-- 🚀 自动启动指纹浏览器
-- 📁 批量上传图片文件
-- 📝 自动填写商品信息
-- 🔄 商品状态管理
-- ⚙️ 灵活的配置系统
-- 📊 完整的日志记录
-- 🎯 命令行接口支持
-- 🛡️ 错误处理和重试机制
-- 🌐 浏览器窗口管理接口
-- 📊 Excel 批量商品管理
-- 🌍 多地域支持 (HK/MY/SG)
-- 👥 多账号串行上传
-- 🔗 动态BrowserID到profile_id映射
-- 🏗️ 模块化架构设计
-- 🔧 延迟导入机制
-- 📦 清晰的依赖管理
+### 🚀 自动化功能
+- 🚀 **自动启动指纹浏览器** - 支持多账号管理
+- 📁 **批量上传图片文件** - 支持多种图片格式
+- 📝 **自动填写商品信息** - 智能表单填写
+- 🔄 **商品状态管理** - 自动激活和发布
+- 🎯 **命令行接口支持** - 简单易用的CLI
 
-## 📦 安装依赖
+### 🌍 多地域支持
+- 🇭🇰 **香港 (HK)** - 支持香港Carousell平台
+- 🇸🇬 **新加坡 (SG)** - 支持新加坡Carousell平台  
+- 🇲🇾 **马来西亚 (MY)** - 支持马来西亚Carousell平台
+
+### 🏗️ 架构设计
+- 🏗️ **模块化架构** - 按地域和类目组织代码
+- 🔧 **工厂模式** - 动态创建上传器实例
+- 📦 **清晰依赖管理** - 完整的依赖体系
+- 🛡️ **错误处理** - 完善的异常处理机制
+- 📊 **日志系统** - 详细的运行日志
+
+### 📊 数据处理
+- 📊 **Excel批量管理** - 支持Excel文件批量上传
+- 👥 **多账号串行上传** - 支持多账号顺序上传
+- 🔗 **动态BrowserID映射** - 自动映射浏览器ID
+- 📈 **上传结果统计** - 详细的成功/失败统计
+
+## 🚀 快速开始
+
+### 📋 系统要求
+
+- **Python**: 3.8+ (推荐 3.10+)
+- **操作系统**: Windows, macOS, Linux
+- **内存**: 至少 4GB RAM
+- **存储**: 至少 1GB 可用空间
+
+### 📦 安装方式
+
+#### 方式一：使用 pip 安装 (推荐)
 
 ```bash
-# 安装 Python 依赖
+# 克隆项目
+git clone https://github.com/your-org/carousell-uploader.git
+cd carousell-uploader
+
+# 创建虚拟环境 (推荐)
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+# 或
+venv\Scripts\activate     # Windows
+
+# 安装依赖
 pip install -r requirements.txt
 
 # 安装 Playwright 浏览器
 playwright install chromium
 ```
 
+#### 方式二：使用 setup.py 安装
+
+```bash
+# 开发模式安装
+pip install -e .
+
+# 或直接安装
+python setup.py install
+```
+
+#### 方式三：使用 pyproject.toml 安装
+
+```bash
+# 安装基础版本
+pip install -e .
+
+# 安装开发版本 (包含测试工具)
+pip install -e ".[dev]"
+
+# 安装完整版本 (包含文档工具)
+pip install -e ".[dev,docs,types]"
+```
+
+### 🔧 开发环境设置
+
+```bash
+# 安装开发依赖
+pip install -r requirements-dev.txt
+
+# 或使用 pyproject.toml
+pip install -e ".[dev]"
+
+# 安装 pre-commit 钩子
+pre-commit install
+
+# 运行代码格式化
+black .
+
+# 运行代码检查
+flake8 .
+
+# 运行类型检查
+mypy .
+
+# 运行测试
+pytest
+```
+
+## 🚀 快速部署指南
+
+### 🐳 Docker 部署 (推荐)
+
+```bash
+# 构建镜像
+docker build -t carousell-uploader .
+
+# 运行容器
+docker run -it --rm \
+  -v $(pwd)/config:/app/config \
+  -v $(pwd)/data:/app/data \
+  carousell-uploader
+```
+
+### 🖥️ 本地快速部署
+
+```bash
+# 1. 克隆项目
+git clone https://github.com/your-org/carousell-uploader.git
+cd carousell-uploader
+
+# 2. 创建虚拟环境
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+# 或 venv\Scripts\activate  # Windows
+
+# 3. 安装依赖
+pip install -r requirements.txt
+playwright install chromium
+
+# 4. 配置设置
+cp config/settings.example.yaml config/settings.yaml
+# 编辑 config/settings.yaml 文件
+
+# 5. 运行程序
+python -m cli.main
+```
+
+### ☁️ 云服务器部署
+
+```bash
+# Ubuntu/Debian 系统
+sudo apt update
+sudo apt install python3 python3-pip python3-venv git
+
+# 克隆项目
+git clone https://github.com/your-org/carousell-uploader.git
+cd carousell-uploader
+
+# 创建虚拟环境
+python3 -m venv venv
+source venv/bin/activate
+
+# 安装依赖
+pip install -r requirements.txt
+playwright install chromium
+
+# 配置系统服务 (可选)
+sudo cp carousell-uploader.service /etc/systemd/system/
+sudo systemctl enable carousell-uploader
+sudo systemctl start carousell-uploader
+```
+
+### 🐍 虚拟环境管理
+
+```bash
+# 使用 conda
+conda create -n carousell python=3.10
+conda activate carousell
+pip install -r requirements.txt
+
+# 使用 poetry
+poetry install
+poetry shell
+
+# 使用 pipenv
+pipenv install
+pipenv shell
+```
+
 ## ⚙️ 配置说明
+
+### 📝 基础配置
 
 1. 复制示例配置文件：
 ```bash
@@ -223,6 +387,245 @@ from cli import run, cli_main
 ```
 
 ## 🔧 高级配置
+
+### 🎯 环境变量配置
+
+```bash
+# 设置环境变量
+export CAROUSELL_API_KEY="your_api_key"
+export CAROUSELL_API_PORT="54345"
+export CAROUSELL_REGION="SG"
+export CAROUSELL_CATEGORY="sneakers"
+
+# 或在 .env 文件中设置
+echo "CAROUSELL_API_KEY=your_api_key" > .env
+echo "CAROUSELL_API_PORT=54345" >> .env
+```
+
+### 🐳 Docker 配置
+
+创建 `Dockerfile`:
+
+```dockerfile
+FROM python:3.10-slim
+
+# 安装系统依赖
+RUN apt-get update && apt-get install -y \
+    wget \
+    gnupg \
+    && rm -rf /var/lib/apt/lists/*
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制依赖文件
+COPY requirements.txt .
+
+# 安装Python依赖
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 安装Playwright浏览器
+RUN playwright install chromium
+
+# 复制项目文件
+COPY . .
+
+# 设置入口点
+ENTRYPOINT ["python", "-m", "cli.main"]
+```
+
+创建 `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+services:
+  carousell-uploader:
+    build: .
+    volumes:
+      - ./config:/app/config
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - CAROUSELL_API_KEY=${CAROUSELL_API_KEY}
+      - CAROUSELL_API_PORT=${CAROUSELL_API_PORT}
+    restart: unless-stopped
+```
+
+## 🛠️ 故障排除
+
+### ❌ 常见问题
+
+#### 1. 依赖安装失败
+```bash
+# 问题：pip install 失败
+# 解决方案：
+pip install --upgrade pip
+pip install --no-cache-dir -r requirements.txt
+
+# 或使用国内镜像
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
+```
+
+#### 2. Playwright 浏览器安装失败
+```bash
+# 问题：playwright install 失败
+# 解决方案：
+playwright install --with-deps chromium
+# 或
+PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium
+```
+
+#### 3. 权限问题
+```bash
+# 问题：权限不足
+# 解决方案：
+sudo chown -R $USER:$USER /path/to/project
+chmod +x scripts/*.sh
+```
+
+#### 4. 端口占用
+```bash
+# 问题：端口被占用
+# 解决方案：
+# 检查端口占用
+lsof -i :54345
+# 或
+netstat -tulpn | grep 54345
+
+# 杀死占用进程
+kill -9 <PID>
+```
+
+### 🔍 调试模式
+
+```bash
+# 启用详细日志
+export CAROUSELL_DEBUG=1
+python -m cli.main
+
+# 或使用环境变量
+DEBUG=1 python -m cli.main
+```
+
+### 📊 性能优化
+
+#### 1. 内存优化
+```bash
+# 设置Python内存限制
+export PYTHONMALLOC=malloc
+export MALLOC_TRIM_THRESHOLD_=131072
+```
+
+#### 2. 并发优化
+```yaml
+# config/settings.yaml
+actions:
+  default_timeout: 5000    # 减少超时时间
+  retry_times: 2          # 减少重试次数
+  retry_delay: 0.5        # 减少重试间隔
+```
+
+#### 3. 浏览器优化
+```yaml
+browser:
+  headless: true          # 使用无头模式
+  slow_mo: 0             # 禁用慢动作
+  devtools: false         # 禁用开发者工具
+```
+
+## 📚 开发指南
+
+### 🧪 测试
+
+```bash
+# 运行所有测试
+pytest
+
+# 运行特定测试
+pytest tests/test_uploader.py
+
+# 运行测试并生成覆盖率报告
+pytest --cov=. --cov-report=html
+
+# 运行测试并生成报告
+pytest --html=report.html --self-contained-html
+```
+
+### 🔧 代码质量
+
+```bash
+# 代码格式化
+black .
+
+# 代码检查
+flake8 .
+
+# 类型检查
+mypy .
+
+# 导入排序
+isort .
+```
+
+### 📖 文档生成
+
+```bash
+# 生成API文档
+sphinx-build -b html docs docs/_build/html
+
+# 或使用make
+make docs
+```
+
+## 🤝 贡献指南
+
+### 📝 提交规范
+
+```bash
+# 提交信息格式
+git commit -m "feat: 添加新功能"
+git commit -m "fix: 修复bug"
+git commit -m "docs: 更新文档"
+git commit -m "style: 代码格式化"
+git commit -m "refactor: 代码重构"
+git commit -m "test: 添加测试"
+```
+
+### 🔄 工作流程
+
+1. Fork 项目
+2. 创建功能分支: `git checkout -b feature/amazing-feature`
+3. 提交更改: `git commit -m 'Add amazing feature'`
+4. 推送分支: `git push origin feature/amazing-feature`
+5. 创建 Pull Request
+
+## 📄 许可证
+
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+## 🙏 致谢
+
+- [Playwright](https://playwright.dev/) - 浏览器自动化框架
+- [Pandas](https://pandas.pydata.org/) - 数据处理库
+- [Requests](https://requests.readthedocs.io/) - HTTP库
+- [PyYAML](https://pyyaml.org/) - YAML解析库
+
+## 📞 支持
+
+- 📧 邮箱: support@carousell-uploader.com
+- 🐛 问题反馈: [GitHub Issues](https://github.com/your-org/carousell-uploader/issues)
+- 📖 文档: [项目文档](https://carousell-uploader.readthedocs.io/)
+- 💬 讨论: [GitHub Discussions](https://github.com/your-org/carousell-uploader/discussions)
+
+---
+
+<div align="center">
+
+**⭐ 如果这个项目对您有帮助，请给我们一个星标！⭐**
+
+Made with ❤️ by Carousell Uploader Team
+
+</div>
 
 ### 商品信息配置
 

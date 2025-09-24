@@ -1,8 +1,31 @@
+# Core dependencies
 playwright>=1.40.0
-pyautogui>=0.9.54
-pyperclip>=1.8.2
 requests>=2.31.0
 PyYAML>=6.0.1
+
+# Data processing
 pandas>=2.0.0
 openpyxl>=3.1.0
+
+# GUI automation
+pyautogui>=0.9.54
+pyperclip>=1.8.2
+
+# Development and testing (optional)
+pytest>=7.0.0
+pytest-cov>=4.0.0
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.0.0
+
+# System dependencies (usually pre-installed)
+# pathlib - built-in Python 3.4+
+# typing - built-in Python 3.5+
+# logging - built-in Python 3.0+
+# json - built-in Python 3.0+
+# os - built-in Python 3.0+
+# sys - built-in Python 3.0+
+# time - built-in Python 3.0+
+# random - built-in Python 3.0+
+# datetime - built-in Python 3.0+
 
