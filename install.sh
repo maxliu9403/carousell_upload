@@ -53,13 +53,27 @@ check_python() {
     
     if command -v python3 &> /dev/null; then
         PYTHON_VERSION=$(python3 --version 2>&1 | cut -d' ' -f2)
-        print_success "Python版本: $PYTHON_VERSION"
+        print_info "检测到Python版本: $PYTHON_VERSION"
+        
+        # 详细版本检查
+        print_info "详细版本信息:"
+        python3 -c "
+import sys
+print(f'  Python版本: {sys.version}')
+print(f'  主版本号: {sys.version_info.major}')
+print(f'  次版本号: {sys.version_info.minor}')
+print(f'  微版本号: {sys.version_info.micro}')
+print(f'  版本元组: {sys.version_info[:3]}')
+"
         
         # 检查版本是否>=3.8
         if python3 -c "import sys; exit(0 if sys.version_info >= (3, 8) else 1)" 2>/dev/null; then
             print_success "Python版本符合要求 (>=3.8)"
         else
             print_error "Python版本不符合要求，需要>=3.8"
+            print_info "当前版本: $PYTHON_VERSION"
+            print_info "请升级Python版本到3.8或更高版本"
+            print_info "如果版本检查有误，请检查Python安装是否正确"
             exit 1
         fi
     else

@@ -65,6 +65,11 @@ cd carousell_upload
 ```bash
 # 一键安装 (自动检测系统并安装)
 curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/install.sh | bash
+
+# 或者分步执行
+curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/install.sh -o install.sh
+chmod +x install.sh
+sudo ./install.sh
 ```
 
 #### 方式二：使用 pip 安装
