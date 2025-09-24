@@ -1,5 +1,6 @@
 from core.config import create_upload_config
-from browser.browser import start_browser, check_browser_api_health
+from browser.browser import start_browser, check_browser_api_health, initialize_browser_interface
+from browser.browser_selector import select_browser_type, get_browser_display_name
 from uploader.carousell_uploader_new import CarousellUploader
 from core.models import ProductInfo
 from core.logger import logger
@@ -13,12 +14,10 @@ def run():
         config = create_upload_config()
         logger.info("开始执行 Carousell 多账号上传任务")
         
-        # 输出配置信息到日志 - 优化版本
+        # 输出基础配置信息到日志 - 优化版本
         logger.info("🔧" + "=" * 48 + "🔧")
         logger.info(" " * 18 + "⚙️ 系统配置信息 ⚙️")
         logger.info("🔧" + "=" * 48 + "🔧")
-        logger.info(f"🌐 浏览器API地址: http://127.0.0.1:{config.api_port}")
-        logger.info(f"🔑 浏览器API_KEY: {config.api_key}")
         logger.info(f"🖼️ 支持图片格式: {', '.join(config.image_extensions)}")
         logger.info(f"📝 商品描述数量: {len(config.descriptions)}")
         logger.info(f"👨 男性尺码: {', '.join(config.male_sizes)}")
@@ -26,16 +25,68 @@ def run():
         # 显示各地域面交地点数量
         for region, locations in config.meetup_locations.items():
             logger.info(f"📍 {region}地域面交地点数量: {len(locations)}")
-        logger.info("🔧" + "=" * 48 + "🔧")
+        logger.info("🔧" + "=" * 30 + "🔧")
         
-        # 检查浏览器API健康状态
+        # 指纹浏览器选择 - 第一个用户输入参数
+        print("\n" + "🔧" + "=" * 30 + "🔧")
+        print(" " * 12 + "🌐 指纹浏览器选择 🌐")
+        print("🔧" + "=" * 30 + "🔧")
+        print(" " * 12 + "请选择您使用的指纹浏览器类型:")
+        print()
+        print(" " * 8 + "1. 🔵 BitBrowser")
+        print(" " * 8 + "2. 🟢 IxBrowser")
+        print()
+        
+        while True:
+            try:
+                choice = input(" " * 12 + "🎯 请输入选择 (1/2): ").strip()
+                if choice == "1":
+                    browser_type = "bitBrowser"
+                    browser_name = "BitBrowser"
+                    break
+                elif choice == "2":
+                    browser_type = "ixBrowser"
+                    browser_name = "IxBrowser"
+                    break
+                else:
+                    print(" " * 12 + "❌ 无效选择，请输入 1 或 2")
+            except KeyboardInterrupt:
+                print("\n❌ 用户取消选择")
+                return
+        
+        logger.info(f"✅ 已选择指纹浏览器: {browser_name} ({browser_type})")
+        
+        # 获取选择的浏览器配置
+        selected_browser_config = config.all_browser_configs[browser_type]
+        
+        # 初始化浏览器接口
+        browser_config = {
+            "type": browser_type,
+            "api_port": selected_browser_config["api_port"],
+            "api_key": selected_browser_config["api_key"]
+        }
+        
+        # 初始化浏览器接口
+        browser_interface = initialize_browser_interface(browser_config)
+        logger.info(f"✅ 浏览器接口已初始化: {browser_name}")
+        
+        # 显示浏览器API配置信息
+        logger.info("🌐 浏览器API配置 🌐")
+        logger.info(f"🌐 浏览器类型: {browser_name} ({browser_type})")
+        logger.info(f"🌐 浏览器API地址: http://127.0.0.1:{selected_browser_config['api_port']}")
+        logger.info(f"🔑 浏览器API_KEY: {selected_browser_config['api_key']}")
+        logger.info("🔧" + "=" * 30 + "🔧")
+        
+        # 检查浏览器API健康状态 - 立即检查
         logger.info("🔍 正在检查浏览器API健康状态...")
-        if not check_browser_api_health(config.api_port, config.api_key):
+        if not check_browser_api_health(selected_browser_config["api_port"], selected_browser_config["api_key"]):
             logger.error("❌ 浏览器API健康检查失败，程序退出")
             logger.error("请检查以下项目:")
             logger.error("1. 浏览器服务是否已启动")
             logger.error("2. API端口是否正确")
             logger.error("3. API密钥是否正确")
+            logger.error("4. 浏览器类型配置是否正确")
+            logger.error("请修改配置文件后重新运行程序")
             return
         
         logger.info("✅ 浏览器API健康检查通过，继续执行...")

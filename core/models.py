@@ -20,6 +20,9 @@ class UploadConfig:
     image_extensions: List[str]
     api_key: str
     api_port: int
+    browser_type: str  # 当前选择的浏览器类型
+    browser_config: dict  # 当前浏览器的配置
+    all_browser_configs: dict  # 所有浏览器配置
     descriptions: List[str]
     male_sizes: List[str]
     female_sizes: List[str]

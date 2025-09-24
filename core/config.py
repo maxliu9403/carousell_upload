@@ -24,10 +24,17 @@ def create_upload_config() -> UploadConfig:
     """创建上传配置对象"""
     config = load_config()
     
+    # 获取当前选择的浏览器配置
+    current_browser_type = config["browser"]["current_type"]
+    current_browser_config = config["browser"]["browsers"][current_browser_type]
+    
     return UploadConfig(
         image_extensions=config["upload"]["image_extensions"],
-        api_key=config["browser"]["api_key"],
-        api_port=config["browser"]["api_port"],
+        api_key=current_browser_config["api_key"],
+        api_port=current_browser_config["api_port"],
+        browser_type=current_browser_type,
+        browser_config=current_browser_config,
+        all_browser_configs=config["browser"]["browsers"],
         descriptions=config["product"]["descriptions"],
         male_sizes=config["product"]["male_sizes"],
         female_sizes=config["product"]["female_sizes"],

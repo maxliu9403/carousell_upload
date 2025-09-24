@@ -5,7 +5,12 @@ from playwright.sync_api import Page  # pyright: ignore[reportMissingImports]
 from core.models import ProductInfo, UploadConfig
 from .carousell_uploader_new import CarousellUploader
 from .base_uploader import CriticalOperationFailed
-from browser.browser import start_browser, get_profile_id_by_browser_id, fetch_all_browser_windows, close_browser_by_profile_id
+from browser.browser import (
+    start_browser_unified, 
+    get_profile_id_by_browser_id_unified, 
+    get_browser_windows_unified, 
+    close_browser_unified
+)
 from data.excel_parser import ExcelProductParser
 from core.logger import logger
 from data.record_manager import SuccessRecordManager
@@ -134,7 +139,12 @@ class MultiAccountUploader:
         logger.info(f"正在获取 {len(needed_browser_ids)} 个BrowserID的窗口数据...")
         
         # 获取所有浏览器窗口
-        all_browser_windows = fetch_all_browser_windows(self.config.api_port, self.config.api_key)
+        all_browser_windows = get_browser_windows_unified()
+        
+        # 检查是否返回None（IxBrowser的情况）
+        if all_browser_windows is None:
+            logger.info("当前浏览器类型不需要窗口映射（如IxBrowser），直接返回空字典")
+            return {}
         
         # 只保留需要的BrowserID
         needed_browser_windows = {}
@@ -167,17 +177,13 @@ class MultiAccountUploader:
             
             # 启动浏览器（每个产品都需要启动新的浏览器）
             try:
-                profile_id = get_profile_id_by_browser_id(
-                    self.config.api_port, 
-                    self.config.api_key, 
+                profile_id = get_profile_id_by_browser_id_unified(
                     browser_id,
                     browser_windows
                 )
                 logger.info(f"启动浏览器 {browser_id} (profile_id: {profile_id})")
                 
-                current_playwright, current_browser, page = start_browser(
-                    self.config.api_port,
-                    self.config.api_key,
+                current_playwright, current_browser, page = start_browser_unified(
                     profile_id
                 )
                 
@@ -300,9 +306,7 @@ class MultiAccountUploader:
             if current_browser and current_profile_id:
                 try:
                     # 使用API接口关闭浏览器
-                    close_success = close_browser_by_profile_id(
-                        self.config.api_port,
-                        self.config.api_key,
+                    close_success = close_browser_unified(
                         current_profile_id
                     )
                     

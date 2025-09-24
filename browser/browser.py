@@ -2,6 +2,123 @@ import requests  # pyright: ignore[reportMissingModuleSource]
 from playwright.sync_api import sync_playwright  # pyright: ignore[reportMissingImports]
 from typing import Dict, Any
 from core.logger import logger
+from .browser_factory import get_browser_interface
+from .browser_interface import BrowserInterface
+
+# 全局浏览器接口实例
+_browser_interface: BrowserInterface = None
+
+
+def initialize_browser_interface(config: Dict[str, Any]) -> BrowserInterface:
+    """
+    初始化浏览器接口
+    
+    Args:
+        config (Dict[str, Any]): 浏览器配置
+        
+    Returns:
+        BrowserInterface: 浏览器接口实例
+    """
+    global _browser_interface
+    _browser_interface = get_browser_interface(config)
+    browser_type = config.get("type", "bitBrowser")
+    logger.info(f"浏览器接口已初始化: {browser_type}")
+    return _browser_interface
+
+
+def get_browser_interface_instance() -> BrowserInterface:
+    """
+    获取浏览器接口实例
+    
+    Returns:
+        BrowserInterface: 浏览器接口实例
+        
+    Raises:
+        RuntimeError: 当浏览器接口未初始化时
+    """
+    if _browser_interface is None:
+        raise RuntimeError("浏览器接口未初始化，请先调用initialize_browser_interface")
+    return _browser_interface
+
+
+# 新的统一接口函数
+def check_browser_health() -> bool:
+    """
+    检查浏览器API健康状态（统一接口）
+    
+    Returns:
+        bool: True表示API正常，False表示API异常
+    """
+    browser_interface = get_browser_interface_instance()
+    return browser_interface.check_health()
+
+
+def start_browser_unified(profile_id: str):
+    """
+    启动浏览器（统一接口）
+    
+    Args:
+        profile_id (str): 浏览器配置文件ID
+        
+    Returns:
+        Tuple[Any, Any, Any]: (playwright, browser, page)
+    """
+    browser_interface = get_browser_interface_instance()
+    return browser_interface.start_browser(profile_id)
+
+
+def close_browser_unified(profile_id: str) -> bool:
+    """
+    关闭浏览器（统一接口）
+    
+    Args:
+        profile_id (str): 浏览器配置文件ID
+        
+    Returns:
+        bool: True表示关闭成功，False表示关闭失败
+    """
+    browser_interface = get_browser_interface_instance()
+    return browser_interface.close_browser(profile_id)
+
+
+def get_browser_windows_unified() -> Dict[int, Dict[str, str]]:
+    """
+    获取浏览器窗口列表（统一接口）
+    
+    Returns:
+        Dict[int, Dict[str, str]]: 浏览器窗口映射表
+    """
+    browser_interface = get_browser_interface_instance()
+    return browser_interface.get_browser_windows()
+
+
+def get_profile_id_by_browser_id_unified(browser_id: str, browser_windows: Dict[int, Dict[str, str]] = None) -> str:
+    """
+    根据BrowserID获取对应的profile_id（统一接口）
+    
+    Args:
+        browser_id (str): Excel中的BrowserID
+        browser_windows (Dict[int, Dict[str, str]]): 浏览器窗口映射表
+        
+    Returns:
+        str: 对应的profile_id
+    """
+    browser_interface = get_browser_interface_instance()
+    return browser_interface.get_profile_id_by_browser_id(browser_id, browser_windows)
+
+
+# 浏览器管理函数
+def get_current_browser_type(config: Dict[str, Any]) -> str:
+    """
+    获取当前使用的浏览器类型
+    
+    Args:
+        config (Dict[str, Any]): 浏览器配置
+        
+    Returns:
+        str: 当前浏览器类型
+    """
+    return config.get("type", "bitBrowser")
 
 def check_browser_api_health(api_port: int, api_key: str) -> bool:
     """

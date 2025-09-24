@@ -36,12 +36,26 @@ def get_action_functions():
 # 为了向后兼容，提供直接导入（如果依赖包可用）
 try:
     from .browser import (
+        # 原有接口（保持向后兼容）
         start_browser,
         fetch_all_browser_windows,
         get_profile_id_by_browser_id,
         check_browser_api_health,
-        close_browser_by_profile_id
+        close_browser_by_profile_id,
+        # 新的统一接口
+        initialize_browser_interface,
+        check_browser_health,
+        start_browser_unified,
+        close_browser_unified,
+        get_browser_windows_unified,
+        get_profile_id_by_browser_id_unified
     )
+    from .browser_selector import (
+        select_browser_type,
+        interactive_browser_setup,
+        validate_browser_config
+    )
+    from .browser_factory import BrowserFactory
     from .actions import (
         retry_action,
         click_with_wait,
@@ -79,11 +93,28 @@ except ImportError:
 __all__ = [
     'get_browser_functions',
     'get_action_functions',
+    # 原有接口（保持向后兼容）
     'start_browser',
     'fetch_all_browser_windows',
     'get_profile_id_by_browser_id',
     'check_browser_api_health',
     'close_browser_by_profile_id',
+        # 新的统一接口
+        'initialize_browser_interface',
+        'check_browser_health',
+        'start_browser_unified',
+        'close_browser_unified',
+        'get_browser_windows_unified',
+        'get_profile_id_by_browser_id_unified',
+        # 浏览器管理
+        'get_current_browser_type',
+    # 浏览器选择器
+    'select_browser_type',
+    'interactive_browser_setup',
+    'validate_browser_config',
+    # 浏览器工厂
+    'BrowserFactory',
+    # 动作函数
     'retry_action',
     'click_with_wait',
     'input_with_wait',
