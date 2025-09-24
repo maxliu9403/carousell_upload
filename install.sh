@@ -312,6 +312,10 @@ create_virtual_env() {
     fi
     
     # 验证虚拟环境
+    print_info "检查虚拟环境激活脚本..."
+    print_info "检查 venv/bin/activate: $([ -f "venv/bin/activate" ] && echo "存在" || echo "不存在")"
+    print_info "检查 venv/Scripts/activate: $([ -f "venv/Scripts/activate" ] && echo "存在" || echo "不存在")"
+    
     if [ -f "venv/bin/activate" ] || [ -f "venv/Scripts/activate" ]; then
         print_success "虚拟环境验证通过"
     else
