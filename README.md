@@ -60,7 +60,21 @@ cd carousell_upload
 
 ### 📦 其他安装方式
 
-#### 方式一：一键安装脚本 (推荐)
+#### 方式一：Windows系统专用安装
+
+```cmd
+# 方法1: 使用批处理脚本一键安装 (推荐)
+curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/scripts/windows-install.bat -o windows-install.bat
+windows-install.bat
+
+# 方法2: 使用PowerShell脚本一键安装
+powershell -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/scripts/windows-install.ps1' -OutFile 'windows-install.ps1'; .\windows-install.ps1"
+
+# 方法3: 直接运行PowerShell脚本
+powershell -ExecutionPolicy Bypass -Command "& {Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/scripts/windows-install.ps1' | Invoke-Expression}"
+```
+
+#### 方式二：一键安装脚本 (推荐)
 
 ```bash
 # 一键安装 (自动检测系统并安装)
