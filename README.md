@@ -336,10 +336,8 @@ python create_example_excel.py
 
 ## 📁 项目结构
 
-项目采用模块化设计，按功能将代码分离到不同的模块中：
-
 ```
-carousell/
+carousell_upload/
 ├── core/                     # 核心功能模块
 │   ├── __init__.py
 │   ├── config.py             # 配置管理
@@ -351,13 +349,28 @@ carousell/
 │   └── actions.py            # 页面操作
 ├── data/                     # 数据处理模块
 │   ├── __init__.py
-│   ├── excel_parser.py       # Excel 解析器
+│   ├── excel_parser.py       # Excel解析器
 │   └── record_manager.py     # 记录管理
 ├── uploader/                 # 上传功能模块
 │   ├── __init__.py
-│   ├── carousell_uploader_new.py # 核心上传逻辑（模块化）
+│   ├── carousell_uploader_new.py # 核心上传逻辑
 │   ├── multi_account_uploader.py # 多账号上传器
-│   └── utils.py              # 工具函数
+│   ├── base_uploader.py      # 基础上传器
+│   ├── uploader_factory.py   # 上传器工厂
+│   ├── utils.py              # 工具函数
+│   └── regions/              # 地域特定上传器
+│       ├── sg/               # 新加坡
+│       │   ├── sneakers/     # 运动鞋
+│       │   ├── bags/         # 包包
+│       │   └── clothes/      # 服装
+│       ├── hk/               # 香港
+│       │   ├── sneakers/     # 运动鞋
+│       │   ├── bags/         # 包包
+│       │   └── clothes/      # 服装
+│       └── my/               # 马来西亚
+│           ├── sneakers/     # 运动鞋
+│           ├── bags/         # 包包
+│           └── clothes/      # 服装
 ├── cli/                      # 命令行接口
 │   ├── __init__.py
 │   ├── main.py               # 主程序入口
@@ -365,8 +378,16 @@ carousell/
 ├── config/                   # 配置文件
 │   ├── settings.yaml         # 主配置文件
 │   └── settings.example.yaml # 配置示例文件
+├── scripts/                  # 部署脚本
+│   ├── quick-deploy.sh       # 快速部署脚本
+│   └── docker-deploy.sh      # Docker部署脚本
 ├── logs/                     # 日志文件目录
-├── requirements.txt          # 依赖列表
+├── requirements.txt          # 生产依赖
+├── requirements-dev.txt      # 开发依赖
+├── setup.py                  # 安装配置
+├── pyproject.toml           # 现代Python项目配置
+├── install.sh               # 系统级安装脚本
+├── deploy.sh                # 统一部署脚本
 └── README.md                # 项目说明
 ```
 
@@ -376,30 +397,143 @@ carousell/
 - **browser/**: 浏览器操作模块，负责浏览器控制和页面操作
 - **data/**: 数据处理模块，处理Excel解析和记录管理
 - **uploader/**: 上传功能模块，包含Carousell上传器和多账号上传器
+  - **regions/**: 地域特定上传器，按地域和类目组织
 - **cli/**: 命令行接口模块，提供主程序入口和CLI接口
 - **config/**: 配置文件目录，存放YAML配置文件
+- **scripts/**: 部署脚本目录，包含各种部署方式
 - **logs/**: 日志文件目录，存放运行日志
 
-### 📦 模块导入示例
+## 🛠️ 技术栈
 
-```python
-# 导入核心功能
-from core import ProductInfo, UploadConfig, logger
-from core.config import create_upload_config
+### 核心依赖
+- **playwright>=1.40.0** - 浏览器自动化框架
+- **requests>=2.31.0** - HTTP请求库
+- **PyYAML>=6.0.1** - YAML配置文件解析
+- **pandas>=2.0.0** - 数据处理和分析
+- **openpyxl>=3.1.0** - Excel文件读写
+- **pyautogui>=0.9.54** - 图形用户界面自动化
+- **pyperclip>=1.8.2** - 剪贴板操作
 
-# 导入浏览器功能
-from browser import start_browser, check_browser_api_health
-from browser.actions import click_with_wait, smart_goto
+### 开发工具
+- **pytest>=7.0.0** - 测试框架
+- **black>=23.0.0** - 代码格式化
+- **flake8>=6.0.0** - 代码检查
+- **mypy>=1.0.0** - 类型检查
+- **pre-commit>=3.0.0** - Git钩子
 
-# 导入数据处理
-from data import ExcelProductParser, SuccessRecordManager
+### 文档工具
+- **sphinx>=6.0.0** - 文档生成
+- **sphinx-rtd-theme>=1.2.0** - 主题
 
-# 导入上传功能
-from uploader import CarousellUploader, MultiAccountUploader
-from uploader.utils import enrich_product_info
+## 🚀 部署方式
 
-# 导入CLI接口
-from cli import run, cli_main
+### 统一部署脚本 (推荐)
+```bash
+# 自动检测最佳部署方式
+./deploy.sh
+
+# 指定部署模式
+./deploy.sh --mode=local     # 本地开发部署
+./deploy.sh --mode=system    # 系统级部署
+./deploy.sh --mode=docker    # Docker部署
+```
+
+### 系统级部署
+```bash
+# 一键安装 (生产环境)
+curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/install.sh | bash
+
+# 手动安装
+./install.sh
+```
+
+### 本地开发部署
+```bash
+# 快速部署
+./scripts/quick-deploy.sh
+```
+
+### Docker部署
+```bash
+# Docker部署
+./scripts/docker-deploy.sh
+```
+
+## 🛠️ 故障排除
+
+### 常见问题
+
+#### 1. 依赖安装失败
+```bash
+# 升级pip
+pip install --upgrade pip
+
+# 使用国内镜像
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
+
+# 清理缓存
+pip cache purge
+```
+
+#### 2. Playwright安装失败
+```bash
+# 安装系统依赖
+playwright install --with-deps chromium
+
+# 或设置环境变量
+PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium
+```
+
+#### 3. 权限问题
+```bash
+# 修复权限
+sudo chown -R $USER:$USER /path/to/project
+chmod +x scripts/*.sh
+```
+
+#### 4. 端口占用
+```bash
+# 检查端口占用
+lsof -i :54345
+netstat -tulpn | grep 54345
+
+# 杀死占用进程
+kill -9 <PID>
+```
+
+### 调试模式
+```bash
+# 启用调试模式
+export DEBUG=1
+export LOG_LEVEL=DEBUG
+python -m cli.main
+```
+
+## 📊 性能优化
+
+### 系统优化
+```bash
+# 增加文件描述符限制
+echo "* soft nofile 65536" >> /etc/security/limits.conf
+echo "* hard nofile 65536" >> /etc/security/limits.conf
+
+# 优化内核参数
+echo "vm.max_map_count=262144" >> /etc/sysctl.conf
+sysctl -p
+```
+
+### 应用优化
+```yaml
+# config/settings.yaml
+actions:
+  default_timeout: 5000    # 减少超时时间
+  retry_times: 2          # 减少重试次数
+  retry_delay: 0.5        # 减少重试间隔
+
+browser:
+  headless: true          # 使用无头模式
+  slow_mo: 0             # 禁用慢动作
+  devtools: false         # 禁用开发者工具
 ```
 
 ## 🔧 高级配置
@@ -418,136 +552,6 @@ echo "CAROUSELL_API_KEY=your_api_key" > .env
 echo "CAROUSELL_API_PORT=54345" >> .env
 ```
 
-### 🐳 Docker 配置
-
-创建 `Dockerfile`:
-
-```dockerfile
-FROM python:3.10-slim
-
-# 安装系统依赖
-RUN apt-get update && apt-get install -y \
-    wget \
-    gnupg \
-    && rm -rf /var/lib/apt/lists/*
-
-# 设置工作目录
-WORKDIR /app
-
-# 复制依赖文件
-COPY requirements.txt .
-
-# 安装Python依赖
-RUN pip install --no-cache-dir -r requirements.txt
-
-# 安装Playwright浏览器
-RUN playwright install chromium
-
-# 复制项目文件
-COPY . .
-
-# 设置入口点
-ENTRYPOINT ["python", "-m", "cli.main"]
-```
-
-创建 `docker-compose.yml`:
-
-```yaml
-version: '3.8'
-services:
-  carousell-uploader:
-    build: .
-    volumes:
-      - ./config:/app/config
-      - ./data:/app/data
-      - ./logs:/app/logs
-    environment:
-      - CAROUSELL_API_KEY=${CAROUSELL_API_KEY}
-      - CAROUSELL_API_PORT=${CAROUSELL_API_PORT}
-    restart: unless-stopped
-```
-
-## 🛠️ 故障排除
-
-### ❌ 常见问题
-
-#### 1. 依赖安装失败
-```bash
-# 问题：pip install 失败
-# 解决方案：
-pip install --upgrade pip
-pip install --no-cache-dir -r requirements.txt
-
-# 或使用国内镜像
-pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
-```
-
-#### 2. Playwright 浏览器安装失败
-```bash
-# 问题：playwright install 失败
-# 解决方案：
-playwright install --with-deps chromium
-# 或
-PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium
-```
-
-#### 3. 权限问题
-```bash
-# 问题：权限不足
-# 解决方案：
-sudo chown -R $USER:$USER /path/to/project
-chmod +x scripts/*.sh
-```
-
-#### 4. 端口占用
-```bash
-# 问题：端口被占用
-# 解决方案：
-# 检查端口占用
-lsof -i :54345
-# 或
-netstat -tulpn | grep 54345
-
-# 杀死占用进程
-kill -9 <PID>
-```
-
-### 🔍 调试模式
-
-```bash
-# 启用详细日志
-export CAROUSELL_DEBUG=1
-python -m cli.main
-
-# 或使用环境变量
-DEBUG=1 python -m cli.main
-```
-
-### 📊 性能优化
-
-#### 1. 内存优化
-```bash
-# 设置Python内存限制
-export PYTHONMALLOC=malloc
-export MALLOC_TRIM_THRESHOLD_=131072
-```
-
-#### 2. 并发优化
-```yaml
-# config/settings.yaml
-actions:
-  default_timeout: 5000    # 减少超时时间
-  retry_times: 2          # 减少重试次数
-  retry_delay: 0.5        # 减少重试间隔
-```
-
-#### 3. 浏览器优化
-```yaml
-browser:
-  headless: true          # 使用无头模式
-  slow_mo: 0             # 禁用慢动作
-  devtools: false         # 禁用开发者工具
-```
 
 ## 📚 开发指南
 
