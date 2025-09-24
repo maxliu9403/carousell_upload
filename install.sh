@@ -144,32 +144,34 @@ check_pip() {
 create_project_dir() {
     print_info "创建项目目录..."
     
-    PROJECT_DIR="/opt/carousell_upload"
+    # 使用当前目录作为项目目录
+    PROJECT_DIR="$(pwd)"
     
-    if [ "$OS" = "windows" ]; then
-        PROJECT_DIR="C:\\carousell_upload"
+    print_info "项目目录: $PROJECT_DIR"
+    
+    # 检查当前目录是否为空或只包含项目文件
+    if [ ! -f "requirements.txt" ] && [ ! -f "README.md" ]; then
+        print_warning "当前目录不包含项目文件"
+        print_info "请确保在项目根目录下运行安装脚本"
+        print_info "或者先克隆项目: git clone https://github.com/maxliu9403/carousell_upload.git"
+        read -p "是否继续? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            print_info "请先克隆项目到当前目录"
+            exit 0
+        fi
     fi
     
-    if [ ! -d "$PROJECT_DIR" ]; then
-        sudo mkdir -p "$PROJECT_DIR"
-        print_success "项目目录创建完成: $PROJECT_DIR"
-    else
-        print_warning "项目目录已存在: $PROJECT_DIR"
-    fi
+    print_success "使用当前目录作为项目目录: $PROJECT_DIR"
 }
 
 # 创建用户
 create_user() {
-    print_info "创建系统用户..."
+    print_info "检查用户权限..."
     
-    if [ "$OS" = "linux" ]; then
-        if ! id "carousell" &>/dev/null; then
-            sudo useradd -r -s /bin/false carousell
-            print_success "用户创建完成: carousell"
-        else
-            print_warning "用户已存在: carousell"
-        fi
-    fi
+    # 使用当前目录时，不需要创建系统用户
+    print_info "使用当前目录部署，无需创建系统用户"
+    print_success "将使用当前用户权限运行"
 }
 
 # 安装依赖
@@ -302,24 +304,11 @@ except ImportError as e:
 
 # 配置服务
 configure_service() {
-    print_info "配置系统服务..."
+    print_info "配置运行环境..."
     
-    if [ "$OS" = "linux" ]; then
-        # 复制服务文件
-        sudo cp carousell-uploader.service /etc/systemd/system/
-        
-        # 设置权限
-        sudo chown -R carousell:carousell "$PROJECT_DIR"
-        sudo chmod +x "$PROJECT_DIR/scripts"/*.sh
-        
-        # 启用服务
-        sudo systemctl daemon-reload
-        sudo systemctl enable carousell-uploader
-        
-        print_success "系统服务配置完成"
-    else
-        print_warning "非Linux系统，跳过系统服务配置"
-    fi
+    # 使用当前目录时，不需要系统服务
+    print_info "使用当前目录部署，跳过系统服务配置"
+    print_success "将使用本地运行方式"
 }
 
 # 创建配置文件
@@ -350,10 +339,7 @@ create_directories() {
     
     mkdir -p logs data screenshots temp
     
-    if [ "$OS" = "linux" ]; then
-        sudo chown -R carousell:carousell logs data screenshots temp
-    fi
-    
+    # 使用当前目录时，不需要设置特殊权限
     print_success "目录创建完成"
 }
 
@@ -454,11 +440,10 @@ show_usage() {
     echo "1. 编辑配置文件: nano $PROJECT_DIR/config/settings.yaml"
     echo "2. 设置API密钥和其他配置"
     echo ""
-    print_info "🔧 系统服务 (Linux):"
-    echo "1. 启动服务: sudo systemctl start carousell-uploader"
-    echo "2. 查看状态: sudo systemctl status carousell-uploader"
-    echo "3. 查看日志: sudo journalctl -u carousell-uploader -f"
-    echo "4. 停止服务: sudo systemctl stop carousell-uploader"
+    print_info "🔧 运行方式:"
+    echo "1. 直接运行: python -m cli.main"
+    echo "2. 使用启动脚本: ./run.sh"
+    echo "3. 激活环境后运行: source venv/bin/activate && python -m cli.main"
     echo ""
     print_info "📚 更多信息:"
     echo "- 项目文档: README.md"

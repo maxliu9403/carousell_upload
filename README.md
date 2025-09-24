@@ -446,18 +446,18 @@ carousell_upload/
 
 # 指定部署模式
 ./deploy.sh --mode=local     # 本地开发部署
-./deploy.sh --mode=system    # 系统级部署
+./deploy.sh --mode=system    # 本地部署 (推荐)
 ./deploy.sh --mode=docker    # Docker部署
 ```
 
-### 系统级部署
+### 本地部署 (推荐)
 ```bash
 # 1. 克隆项目
 git clone https://github.com/maxliu9403/carousell_upload.git
 cd carousell_upload
 
-# 2. 运行系统级安装脚本
-sudo ./install.sh
+# 2. 运行本地安装脚本
+./install.sh
 ```
 
 ### 本地开发部署
