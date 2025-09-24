@@ -140,6 +140,44 @@ check_pip() {
     fi
 }
 
+# 下载项目文件
+download_project_files() {
+    print_info "尝试下载项目文件..."
+    
+    # 检查curl是否可用
+    if command -v curl &> /dev/null; then
+        print_info "使用curl下载项目文件..."
+        
+        # 下载主要文件
+        curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/requirements.txt -o requirements.txt
+        curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/README.md -o README.md
+        curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/setup.py -o setup.py
+        curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/pyproject.toml -o pyproject.toml
+        
+        # 创建基本目录结构
+        mkdir -p config uploader browser cli scripts
+        
+        # 下载配置文件
+        curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/config/settings.yaml -o config/settings.yaml
+        
+        # 下载主要Python文件
+        curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/cli/main.py -o cli/main.py
+        curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/cli/cli.py -o cli/cli.py
+        
+        # 下载启动脚本
+        curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/activate_env.sh -o activate_env.sh
+        curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/run.sh -o run.sh
+        chmod +x activate_env.sh run.sh
+        
+        print_success "项目文件下载完成"
+        return 0
+    else
+        print_error "curl不可用，无法下载项目文件"
+        print_info "请手动克隆项目: git clone https://github.com/maxliu9403/carousell_upload.git"
+        return 1
+    fi
+}
+
 # 创建项目目录
 create_project_dir() {
     print_info "创建项目目录..."
@@ -149,16 +187,36 @@ create_project_dir() {
     
     print_info "项目目录: $PROJECT_DIR"
     
-    # 检查当前目录是否为空或只包含项目文件
+    # 检查当前目录是否包含项目文件
     if [ ! -f "requirements.txt" ] && [ ! -f "README.md" ]; then
         print_warning "当前目录不包含项目文件"
-        print_info "请确保在项目根目录下运行安装脚本"
-        print_info "或者先克隆项目: git clone https://github.com/maxliu9403/carousell_upload.git"
-        read -p "是否继续? (y/N): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            print_info "请先克隆项目到当前目录"
-            exit 0
+        print_info "正在自动下载项目文件..."
+        
+        # 检查git是否可用
+        if command -v git &> /dev/null; then
+            print_info "使用git克隆项目..."
+            git clone https://github.com/maxliu9403/carousell_upload.git temp_project
+            if [ $? -eq 0 ]; then
+                # 移动文件到当前目录
+                cp -r temp_project/* .
+                cp -r temp_project/.* . 2>/dev/null || true
+                rm -rf temp_project
+                print_success "项目文件下载完成"
+            else
+                print_error "git克隆失败，尝试其他方式..."
+                if ! download_project_files; then
+                    print_error "无法下载项目文件"
+                    print_info "请手动克隆项目: git clone https://github.com/maxliu9403/carousell_upload.git"
+                    exit 1
+                fi
+            fi
+        else
+            print_warning "git不可用，尝试其他方式..."
+            if ! download_project_files; then
+                print_error "无法下载项目文件"
+                print_info "请手动克隆项目: git clone https://github.com/maxliu9403/carousell_upload.git"
+                exit 1
+            fi
         fi
     fi
     
