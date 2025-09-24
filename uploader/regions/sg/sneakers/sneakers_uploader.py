@@ -33,7 +33,6 @@ class SGSneakersUploader(BaseUploader):
             # ========= 第二部分：激活商品 =========
             self._activate_product()
             
-            logger.info("新加坡运动鞋上传流程执行成功")
             return True
             
         except Exception as e:

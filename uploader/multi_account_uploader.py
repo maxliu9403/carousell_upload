@@ -380,29 +380,4 @@ class MultiAccountUploader:
             'account_details': account_details
         }
         
-        logger.info("=" * 50)
-        logger.info("上传结果统计:")
-        logger.info(f"  总账号数: {summary['total_accounts']}")
-        logger.info(f"  总商品数: {summary['total_products']}")
-        logger.info(f"  成功数量: {summary['success_count']}")
-        logger.info(f"  失败数量: {summary['failed_count']}")
-        logger.info(f"  成功率: {summary['success_rate']:.2f}%")
-        logger.info("=" * 50)
-        
-        # G63跑车风格的爆单日志
-        self._print_big_money_style_log()
-        
         return summary
-    
-    def _print_big_money_style_log(self):
-        """打印爆单日志"""
-        logger.info("🔥🔥🔥🔥 爆单！！！ 🔥🔥🔥🔥")
-        logger.info("")
-        logger.info("💥 产品大卖！订单爆满！💥")
-        logger.info("🎯 早日财务自由！🎯")
-        logger.info("💰 收益暴涨！💰")
-        logger.info("")
-        logger.info("🚀🚀🚀 恭喜发财！🚀🚀🚀")
-        logger.info("")
-        logger.info("🚗🚗🚗" + "=" * 46 + "🚗🚗🚗")
-        logger.info("")
