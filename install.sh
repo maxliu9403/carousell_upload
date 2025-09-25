@@ -226,12 +226,19 @@ update_project_code() {
     # 检查是否已存在项目目录
     if [ -d ".git" ]; then
         print_info "检测到Git仓库，尝试拉取最新代码..."
+        print_info "当前Git状态:"
+        git status --porcelain
+        print_info "尝试拉取最新代码..."
         if git pull origin main; then
             print_success "✅ 代码更新成功"
             return 0
         else
             print_warning "⚠️ Git拉取失败，尝试重新下载..."
+            print_info "Git错误信息:"
+            git pull origin main 2>&1 || true
         fi
+    else
+        print_info "未检测到Git仓库，使用curl下载..."
     fi
     
     # 如果Git更新失败或不存在，使用curl下载最新文件
@@ -438,6 +445,8 @@ create_project_dir() {
         # 即使存在项目文件，也尝试更新到最新版本
         if ! update_project_code; then
             print_warning "代码更新失败，使用现有文件继续安装"
+        else
+            print_success "✅ 项目代码更新成功"
         fi
     fi
     
