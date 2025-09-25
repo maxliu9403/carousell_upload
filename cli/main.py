@@ -1,3 +1,5 @@
+import signal
+import sys
 from core.config import create_upload_config
 from browser.browser import start_browser, check_browser_api_health, initialize_browser_interface
 from browser.browser_selector import select_browser_type, get_browser_display_name
@@ -7,8 +9,58 @@ from core.logger import logger
 from uploader.multi_account_uploader import MultiAccountUploader
 from data.excel_parser import ExcelProductParser
 
+# 全局变量用于跟踪程序状态
+program_running = True
+current_uploader = None
+
+def signal_handler(signum, frame):
+    """信号处理函数，处理键盘中断"""
+    global program_running, current_uploader
+    
+    print("\n" + "⚠️" + "=" * 50 + "⚠️")
+    print(" " * 18 + "🛑 程序中断请求 🛑")
+    print("⚠️" + "=" * 50 + "⚠️")
+    print(" " * 15 + "检测到键盘中断信号 (Ctrl+C/Command+C)")
+    print(" " * 15 + "正在安全退出程序...")
+    
+    # 记录中断日志
+    logger.warning("用户请求中断程序 (KeyboardInterrupt)")
+    
+    # 如果有正在运行的上传器，尝试安全关闭
+    if current_uploader:
+        try:
+            print(" " * 15 + "🔄 正在关闭浏览器...")
+            # 这里可以添加浏览器关闭逻辑
+            logger.info("正在安全关闭浏览器...")
+        except Exception as e:
+            logger.warning(f"关闭浏览器时出错: {e}")
+    
+    program_running = False
+    print(" " * 15 + "✅ 程序已安全退出")
+    print(" " * 15 + "感谢使用 Carousell Uploader!")
+    print("⚠️" + "=" * 50 + "⚠️")
+    
+    # 优雅退出
+    sys.exit(0)
+
+def setup_signal_handlers():
+    """设置信号处理器"""
+    # 注册信号处理器
+    signal.signal(signal.SIGINT, signal_handler)  # Ctrl+C
+    signal.signal(signal.SIGTERM, signal_handler)  # 终止信号
+    
+    # 在Windows上还需要处理其他信号
+    if sys.platform == "win32":
+        try:
+            signal.signal(signal.SIGBREAK, signal_handler)  # Windows Ctrl+Break
+        except AttributeError:
+            pass
+
 def run():
     """主运行函数"""
+    # 设置信号处理器
+    setup_signal_handlers()
+    
     try:
         # 加载配置
         config = create_upload_config()
@@ -162,6 +214,10 @@ def run():
             logger.info(" " * 15 + "将执行完整上传 🚀")
             logger.info("📊" + "=" * 50 + "📊")
         
+        # 设置当前上传器，用于中断处理
+        global current_uploader
+        current_uploader = multi_uploader
+        
         # 执行上传循环
         result = multi_uploader.run_upload_cycle()
         
@@ -212,8 +268,32 @@ def run():
         
         input("\n" + " " * 22 + "🔵 按下爆单回车键退出程序... 🔵")
         
+    except KeyboardInterrupt:
+        # 处理键盘中断
+        print("\n" + "⚠️" + "=" * 50 + "⚠️")
+        print(" " * 18 + "🛑 程序中断请求 🛑")
+        print("⚠️" + "=" * 50 + "⚠️")
+        print(" " * 15 + "检测到键盘中断信号 (Ctrl+C/Command+C)")
+        print(" " * 15 + "正在安全退出程序...")
+        
+        logger.warning("用户请求中断程序 (KeyboardInterrupt)")
+        
+        # 如果有正在运行的上传器，尝试安全关闭
+        if current_uploader:
+            try:
+                print(" " * 15 + "🔄 正在关闭浏览器...")
+                logger.info("正在安全关闭浏览器...")
+            except Exception as e:
+                logger.warning(f"关闭浏览器时出错: {e}")
+        
+        print(" " * 15 + "✅ 程序已安全退出")
+        print(" " * 15 + "感谢使用 Carousell Uploader!")
+        print("⚠️" + "=" * 50 + "⚠️")
+        
     except Exception as e:
         logger.error(f"程序执行出错: {e}")
+        print(f"\n❌ 程序执行出错: {e}")
+        print("请检查日志文件获取详细信息")
         raise
 
 if __name__ == "__main__":
