@@ -4,7 +4,7 @@
 """
 from core.models import ProductInfo
 from core.logger import logger
-from uploader.base_uploader import BaseUploader, safe_click_with_wait, safe_input_with_wait
+from uploader.base_uploader import BaseUploader, safe_click_with_wait, safe_input_with_fallback, safe_input_with_wait
 
 class HKSneakersUploader(BaseUploader):
     """香港运动鞋上传器"""
@@ -82,7 +82,7 @@ class HKSneakersUploader(BaseUploader):
                            browser_id=self.browser_id, sku=self.sku, operation="修改产品类目")
 
         # 输入运动鞋搜索关键词
-        safe_input_with_wait(self.page, ".D_aEi > .D_Kv", "波鞋", must_exist=True,
+        safe_input_with_fallback(self.page, "label.D_aFn", ".D_aFn > .D_Kr", "波鞋", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="输入运动鞋搜索关键词")
 
         self.page.wait_for_timeout(2000)
