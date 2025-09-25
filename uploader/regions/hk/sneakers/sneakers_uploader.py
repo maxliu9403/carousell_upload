@@ -78,7 +78,7 @@ class HKSneakersUploader(BaseUploader):
     def _change_to_sneakers_category(self, enriched_info: ProductInfo):
         """修改为运动鞋类目"""
         # 修改产品类目
-        safe_click_with_wait(self.page, "div.D_aEc", must_exist=True,
+        safe_click_with_wait(self.page, "div.D_aFi", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="修改产品类目")
 
         # 输入运动鞋搜索关键词
@@ -89,10 +89,10 @@ class HKSneakersUploader(BaseUploader):
         # 根据性别选择子类目
         if enriched_info.gender.lower() in ["male", "men", "mens"]:
             # 点击 男装波鞋
-            self._safe_click_subcategory(".D_aEk:nth-child(2) > .D_aEs > .D_la", "男装波鞋")
+            self._safe_click_subcategory(".D_aFp:nth-child(2) > .D_aFx > .D_mx", "男装波鞋")
         else:
             # 点击女装波鞋
-            self._safe_click_subcategory(".D_aEk:nth-child(1) > .D_aEs > .D_la", "女装波鞋")
+            self._safe_click_subcategory(".D_aFp:nth-child(1) > .D_aFx > .D_mx", "女装波鞋")
     
     def _fill_sneakers_details(self, enriched_info: ProductInfo):
         """
@@ -100,20 +100,20 @@ class HKSneakersUploader(BaseUploader):
         保持原有的点击操作顺序和CSS选择器不变
         """
         # 点击 新旧
-        safe_click_with_wait(self.page, ".D_agq:nth-child(2) .D_oa:nth-child(1)", must_exist=True,
+        safe_click_with_wait(self.page, ".D_agi:nth-child(2) .D_oo:nth-child(1)", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="点击新旧条件")
 
         # 点击 品牌
-        safe_click_with_wait(self.page, "#FieldSetField-Container-field_brand_enum .D_ss", must_exist=True,
+        safe_click_with_wait(self.page, "#FieldSetField-Container-field_brand_enum .D_sp", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="点击品牌选择")
 
         # 点击搜索品牌
-        safe_input_with_wait(self.page, ".D_vP .D_Kv", "其他", must_exist=True,
+        safe_input_with_wait(self.page, ".D_vy .D_Kr", "其他", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="输入品牌搜索")
 
         self.page.wait_for_timeout(2000)
         # 点击other品牌
-        safe_click_with_wait(self.page, "li.D_agQ", must_exist=True,
+        safe_click_with_wait(self.page, "li.D_aeG", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="点击Other品牌")
 
         # 输入品牌
@@ -121,41 +121,41 @@ class HKSneakersUploader(BaseUploader):
                            browser_id=self.browser_id, sku=self.sku, operation="输入品牌名称")
         
         # 点击size
-        safe_click_with_wait(self.page, "#FieldSetField-Container-field_size .D_ss", must_exist=True,
+        safe_click_with_wait(self.page, "#FieldSetField-Container-field_size .D_sp", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="点击尺寸选择")
       
         # 输入size
-        safe_input_with_wait(self.page, ".D_vP .D_Kv", str(enriched_info.size), must_exist=True,
+        safe_input_with_wait(self.page, ".D_vy .D_Kr", str(enriched_info.size), must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="输入尺寸搜索")
 
         self.page.wait_for_timeout(2000)
 
         # 点击查找的size
-        safe_click_with_wait(self.page, ".D_agQ:nth-child(1) > .D_agT", must_exist=True,
+        safe_click_with_wait(self.page, ".D_aeK > .D_aeQ > .D_mx", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="点击选择尺寸")
 
         # 点击 多产品销售复选框
-        safe_click_with_wait(self.page, "#FieldSetField-Container-field_multi_quantities .D_awR", must_exist=False,
+        safe_click_with_wait(self.page, "#FieldSetField-Container-field_multi_quantities .D_axg", must_exist=False,
                            browser_id=self.browser_id, sku=self.sku, operation="点击多产品销售复选框")
     
     
     def _handle_meetup_settings(self, enriched_info: ProductInfo):
         """处理面交设置"""
         # 检查是否存在 input.D_uN 选择器，如果不存在则执行面交相关操作
-        if not self.page.query_selector("input.D_tk"):
+        if not self.page.query_selector("input.D_vI"):
             logger.info("页面中不存在已选好的面交地点，执行面交相关操作")
             
             # 开启面交
-            safe_click_with_wait(self.page, ".D_pN > .D_la", must_exist=True,
+            safe_click_with_wait(self.page, ".D_pZ > .D_mx", must_exist=True,
                                browser_id=self.browser_id, sku=self.sku, operation="开启面交")
 
             # 点击面交地点选择框
-            safe_input_with_wait(self.page, "input.D_tk", enriched_info.meetup_location, must_exist=True,
+            safe_input_with_wait(self.page, "input.D_vI", enriched_info.meetup_location, must_exist=True,
                                browser_id=self.browser_id, sku=self.sku, operation="输入面交地点")
             
             self.page.wait_for_timeout(2000)
             # 选择面交地点
-            safe_click_with_wait(self.page, "div.D_cEE:nth-child(2)", must_exist=True,
+            safe_click_with_wait(self.page, ".D_cCh:nth-child(2) .D_mK", must_exist=True,
                                browser_id=self.browser_id, sku=self.sku, operation="选择面交地点")
         else:
             logger.info("页面中存在已选好的面交地点，跳过面交相关操作")
@@ -167,21 +167,21 @@ class HKSneakersUploader(BaseUploader):
     def _handle_other_settings(self):
         """处理其他设置 - 仅用于直上传方式"""
          # 关闭送货
-        if not self.page.query_selector(".D_GH > .D_oB"):
+        if not self.page.query_selector(".D_Iu .D_pf"):
             logger.info("关闭送货")
-            safe_click_with_wait(self.page, ".D_agF > .D_lo", must_exist=True,
+            safe_click_with_wait(self.page, ".D_agx > .D_mK", must_exist=True,
                                browser_id=self.browser_id, sku=self.sku, operation="关闭送货")
         else:
             logger.info("跳过关闭送货操作")
 
         # 关闭平台收款
-        if self.page.query_selector(".D_afz > .D_la"):
+        if self.page.query_selector("p.D_agB"):
             logger.info("关闭平台收款")
-            safe_click_with_wait(self.page, ".D_agP:nth-child(2) .D_la", must_exist=True,
+            safe_click_with_wait(self.page, ".D_aeF:nth-child(2) .D_mx", must_exist=True,
                                browser_id=self.browser_id, sku=self.sku, operation="关闭平台收款")
 
             # 确认关闭平台收款
-            safe_click_with_wait(self.page, "button.D_oP", must_exist=True,
+            safe_click_with_wait(self.page, "button.D_oU", must_exist=True,
                                browser_id=self.browser_id, sku=self.sku, operation="确认关闭平台收款")
         else:
             logger.info("跳过关闭平台收款操作")

@@ -125,24 +125,24 @@ class BaseUploader:
     # HK逻辑
     def _closewhatsapp(self):
         """关闭WhatsApp"""
-        if self.page.query_selector("button.D_nz"):
+        if self.page.query_selector("button.D_mk"):
             logger.info("关闭whatsapp")
-            safe_click_with_wait(self.page, "rect.D_awR", must_exist=True,
+            safe_click_with_wait(self.page, "rect.D_axg", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="关闭WhatsApp")
     # HK逻辑
     def _closemeetup(self):
         """关闭meetup"""
-        if self.page.query_selector("input.D_tk"):
+        if self.page.query_selector("input.D_vI"):
             logger.info("关闭面交")
-            safe_click_with_wait(self.page, ".D_pN > .D_la", must_exist=True,
+            safe_click_with_wait(self.page, ".D_pZ > .D_mx", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="关闭面交" )
 
     # HK开启送货
     def _open_delivery(self):
         """开启送货"""
-        if not self.page.query_selector("#FieldSetField-Container-field_mailing_details .D_uF"):
+        if not self.page.query_selector("#FieldSetField-Container-field_mailing_details .D_tk"):
             logger.info("开启送货")
-            safe_click_with_wait(self.page, ".D_agF > .D_lo", must_exist=True,
+            safe_click_with_wait(self.page, ".D_agx > .D_mK", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="开启送货" )
 
     # ========= 公共方法：页面导航 =========
@@ -162,11 +162,11 @@ class BaseUploader:
     def _start_upload_flow(self, folder_path: str):
         """开始上传流程"""
         # 点击sell按钮
-        safe_click_with_wait(self.page, "a.D_vT", must_exist=True, 
+        safe_click_with_wait(self.page, "a.D__s", must_exist=True, 
                            browser_id=self.browser_id, sku=self.sku, operation="点击sell按钮")
         
         # 点击上传图片
-        safe_click_with_wait(self.page, "div.D_JG", must_exist=True,
+        safe_click_with_wait(self.page, "div.D_JY", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="点击上传图片")
         # 上传图片
         if folder_path:
@@ -180,27 +180,27 @@ class BaseUploader:
             safe_click_with_wait(self.page, ".D_ayk > .D_oN > .D_oZ", must_exist=False)
 
         # 忽略AI编写文案
-        safe_click_with_wait(self.page, ".D_oF use", must_exist=False,
+        safe_click_with_wait(self.page, ".D_oK > .D_oe", must_exist=False,
                            browser_id=self.browser_id, sku=self.sku, operation="取消AI编写文案")
 
     def _select_service_category(self):
         """选择服务类目"""
         # 选择类目
-        safe_click_with_wait(self.page, "div.D_aEc", must_exist=True,
+        safe_click_with_wait(self.page, "div.D_aFi", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="选择服务类目")
         
         # 根据地域选择搜索关键词
         search_keyword = self._get_service_search_keyword()
         
         # 输入搜索关键词
-        safe_input_with_wait(self.page, "input.D_Kv", search_keyword, must_exist=True,
+        safe_input_with_wait(self.page, "input.D_Kr", search_keyword, must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation=f"输入{search_keyword}搜索服务")
         
         # 等待出现搜索结果
         self.page.wait_for_timeout(2000)
         # 点击服务
         if self.region == "HK":
-            self._safe_click_subcategory(".D_aEk:nth-child(5) > .D_aEs > .D_la", "服務")
+            self._safe_click_subcategory(".D_aFp:nth-child(5) > .D_aFx > .D_mx", "服務")
         elif self.region == "SG":
             self._safe_click_subcategory(".D_aEk:nth-child(2) > .D_aEs > .D_la", "服务")
         elif self.region == "MY":
@@ -232,7 +232,7 @@ class BaseUploader:
                            browser_id=self.browser_id, sku=self.sku, operation="输入产品标题")
 
         if self.region == "HK":
-            safe_click_with_wait(self.page, "button.D_oa:nth-child(1)", must_exist=True,
+            safe_click_with_wait(self.page, "button.D_oo:nth-child(1)", must_exist=True,
                                browser_id=self.browser_id, sku=self.sku, operation="点击新旧")
       
         # 输入产品价格
@@ -240,7 +240,7 @@ class BaseUploader:
                            browser_id=self.browser_id, sku=self.sku, operation="输入产品价格")
 
         # 输入产品描述
-        safe_input_with_wait(self.page, "textarea.D_uF", enriched_info.description, must_exist=True,
+        safe_input_with_wait(self.page, ".D_aAb .D_tk", enriched_info.description, must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="输入产品描述")
 
         
@@ -257,22 +257,22 @@ class BaseUploader:
     def _publish_product(self):
         """发布商品"""
         # 点击发布
-        safe_click_with_wait(self.page, "button.D_wX", must_exist=True,
+        safe_click_with_wait(self.page, "button.D_uG", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="点击发布按钮")
         
     # ========= 公共方法：编辑模式 =========
     def _enter_edit_mode(self):
         """进入编辑模式"""
         # 点击 未活跃
-        safe_click_with_wait(self.page, "button.D_bvY:nth-child(2)", must_exist=True,
+        safe_click_with_wait(self.page, "button.D_bwN:nth-child(2)", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="点击未活跃按钮")
 
         # 点击 未活跃第一个元素
-        safe_click_with_wait(self.page, "tr:nth-child(1) .D_bxc", must_exist=True,
+        safe_click_with_wait(self.page, "div.D_bvK", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="点击未活跃第一个元素") 
         self.page.wait_for_timeout(2000)
         # 编辑
-        safe_click_with_wait(self.page, ".D_bqR:nth-child(1) > .D_la", must_exist=True,
+        safe_click_with_wait(self.page, ".D_boX:nth-child(1) > .D_mx", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="点击编辑按钮")
         
     def _activate_product(self):
@@ -281,15 +281,15 @@ class BaseUploader:
         self._navigate_to_manage_page()
         
         # 点击 未活跃
-        safe_click_with_wait(self.page, "button.D_bvY:nth-child(2)", must_exist=True,
+        safe_click_with_wait(self.page, "button.D_bwN:nth-child(2)", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="点击未活跃按钮")
         
         # 点击 激活
-        safe_click_with_wait(self.page, "tr:nth-child(1) .D_bxp .D_la", must_exist=True,
+        safe_click_with_wait(self.page, "button.D_mo", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="点击激活按钮")
         
         # 点击确认激活
-        safe_click_with_wait(self.page, "button.D_nt", must_exist=True,
+        safe_click_with_wait(self.page, "button.D_me", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="点击确认激活按钮")
         
         self.page.wait_for_timeout(5000)
