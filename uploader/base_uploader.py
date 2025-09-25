@@ -42,6 +42,52 @@ def safe_click_with_wait(page: Page, selector: str, must_exist: bool = False, ti
             logger.warning(f"{log_prefix}{operation}失败: {selector}, 原因: {e}")
         raise
 
+def safe_click_with_fallback(page: Page, primary_selector: str, fallback_selector: str, 
+                            must_exist: bool = False, timeout: int = None,
+                            browser_id: str = None, sku: str = None, operation: str = "点击操作"):
+    """
+    支持备用选择器的安全点击操作
+    先尝试主选择器，失败后尝试备用选择器
+    
+    Args:
+        page: Playwright页面对象
+        primary_selector: 主选择器
+        fallback_selector: 备用选择器
+        must_exist: 是否必须存在
+        timeout: 超时时间
+        browser_id: 浏览器ID
+        sku: 商品SKU
+        operation: 操作描述
+    """
+    log_prefix = f"BrowserID: {browser_id}, SKU: {sku}, " if browser_id and sku else ""
+    
+    # 先尝试主选择器
+    try:
+        logger.info(f"{log_prefix}正在{operation}: {primary_selector}")
+        result = click_with_wait(page, primary_selector, must_exist, timeout)
+        logger.info(f"{log_prefix}{operation}成功: {primary_selector}")
+        return result
+    except RuntimeError as e:
+        logger.warning(f"{log_prefix}主选择器失败: {primary_selector}, 原因: {e}")
+        
+        # 尝试备用选择器
+        try:
+            logger.info(f"{log_prefix}尝试备用选择器: {fallback_selector}")
+            result = click_with_wait(page, fallback_selector, must_exist, timeout)
+            logger.info(f"{log_prefix}{operation}成功: {fallback_selector} (备用选择器)")
+            return result
+        except RuntimeError as fallback_e:
+            if must_exist:
+                error_msg = f"关键{operation}失败"
+                if browser_id and sku:
+                    error_msg = f"BrowserID: {browser_id}, SKU: {sku}, {error_msg}"
+                error_msg += f", 主选择器: {primary_selector}, 备用选择器: {fallback_selector}, 失败原因: {e}, 备用失败原因: {fallback_e}"
+                logger.error(error_msg)
+                raise CriticalOperationFailed(error_msg)
+            else:
+                logger.warning(f"{log_prefix}主选择器和备用选择器都失败: {primary_selector}, {fallback_selector}, 原因: {e}, 备用失败原因: {fallback_e}")
+            raise
+
 def safe_input_with_wait(page: Page, selector: str, text: str, must_exist: bool = False, timeout: int = None,
                         browser_id: str = None, sku: str = None, operation: str = "输入操作"):
     """安全的输入操作，must_exist=True时失败会抛出CriticalOperationFailed"""
@@ -189,9 +235,9 @@ class BaseUploader:
         """开启送货"""
         if not self.page.query_selector("#FieldSetField-Container-field_mailing_details .D_tk"):
             logger.info("开启送货")
-            safe_input_with_fallback(self.page, ".D_agx > .D_mK", "#FieldSetField-Container-field_mailing .D_mx",must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="开启送货" )
-
+            safe_click_with_fallback(self.page, ".D_agx > .D_mK", "#FieldSetField-Container-field_mailing .D_mx", must_exist=True,
+                           browser_id=self.browser_id, sku=self.sku, operation="开启送货")
+            
     # ========= 公共方法：页面导航 =========
     def _navigate_to_homepage(self):
         """导航到主页"""
