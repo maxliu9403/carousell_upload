@@ -227,8 +227,8 @@ class BaseUploader:
         """关闭meetup"""
         if self.page.query_selector("input.D_vI"):
             logger.info("关闭面交")
-            safe_click_with_wait(self.page, ".D_pZ > .D_mx", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="关闭面交" )
+            safe_click_with_fallback(self.page, "#FieldSetField-Container-field_meetup > .D_IL", ".D_pZ > .D_mx", must_exist=True,
+                               browser_id=self.browser_id, sku=self.sku, operation="输入产品描述")
 
     # HK开启送货
     def _open_delivery(self):
@@ -332,8 +332,11 @@ class BaseUploader:
         safe_input_with_wait(self.page, "input#price", enriched_info.price, must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="输入产品价格")
 
-        # 输入产品描述 - 支持备用选择器
-        safe_input_with_fallback(self.page, ".D_aAb .D_tk", "textarea.D_tk", enriched_info.description, must_exist=True,
+        if self.region == "HK":
+            safe_input_with_fallback(self.page, "textarea.D_tk", "textarea.D_tk", enriched_info.description, must_exist=True,
+                               browser_id=self.browser_id, sku=self.sku, operation="输入产品描述")
+        else:
+            safe_input_with_fallback(self.page, ".D_aAb .D_tk", "textarea.D_tk", enriched_info.description, must_exist=True,
                                browser_id=self.browser_id, sku=self.sku, operation="输入产品描述")
 
         
@@ -408,3 +411,27 @@ class BaseUploader:
                 else:
                     logger.error(f"多次重试后仍失败，放弃点击{category_name}")
                     raise
+    
+    def _wait_for_element_to_disappear(self, selector: str, timeout: int = 60000):
+        """
+        等待元素消失
+        
+        Args:
+            selector: CSS选择器
+            timeout: 超时时间（毫秒），默认60秒
+        """
+        log_prefix = f"BrowserID: {self.browser_id}, SKU: {self.sku}, " if self.browser_id and self.sku else ""
+        logger.info(f"{log_prefix}等待元素消失: {selector}, 超时时间: {timeout}ms")
+        
+        try:
+            # 等待元素消失
+            self.page.wait_for_selector(selector, state="detached", timeout=timeout)
+            logger.info(f"{log_prefix}元素已消失: {selector}")
+            return True
+        except Exception as e:
+            error_msg = f"等待元素消失超时: {selector}, 超时时间: {timeout}ms"
+            if self.browser_id and self.sku:
+                error_msg = f"BrowserID: {self.browser_id}, SKU: {self.sku}, {error_msg}"
+            error_msg += f", 失败原因: {e}"
+            logger.error(error_msg)
+            raise CriticalOperationFailed(error_msg)

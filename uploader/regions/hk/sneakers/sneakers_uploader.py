@@ -47,6 +47,9 @@ class HKSneakersUploader(BaseUploader):
         # 第一步：上传服务商品
         self._upload_service_product(enriched_info, folder_path)
         
+        # 通过判断这个 css = div.D_abL是否消失，最多等待1min，消失则继续执行，超时就退出
+        self._wait_for_element_to_disappear("div.D_abL", timeout=60000)
+
         # 第二步：编辑为运动鞋
         self._edit_to_sneakers(enriched_info)
         
