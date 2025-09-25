@@ -333,7 +333,7 @@ class BaseUploader:
                            browser_id=self.browser_id, sku=self.sku, operation="输入产品价格")
 
         # 输入产品描述 - 支持备用选择器
-        safe_input_with_fallback(self.page, "textarea.D_tk", ".D_aAb .D_tk", enriched_info.description, must_exist=True,
+        safe_input_with_fallback(self.page, ".D_aAb .D_tk", "textarea.D_tk", enriched_info.description, must_exist=True,
                                browser_id=self.browser_id, sku=self.sku, operation="输入产品描述")
 
         

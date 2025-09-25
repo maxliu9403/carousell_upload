@@ -82,7 +82,7 @@ class HKSneakersUploader(BaseUploader):
                            browser_id=self.browser_id, sku=self.sku, operation="修改产品类目")
 
         # 输入运动鞋搜索关键词
-        safe_input_with_fallback(self.page, "label.D_aFn", ".D_aFn > .D_Kr", "波鞋", must_exist=True,
+        safe_input_with_fallback(self.page, ".D_aFn > .D_Kr", "label.D_aFn", "波鞋", must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="输入运动鞋搜索关键词")
 
         self.page.wait_for_timeout(2000)
