@@ -27,6 +27,29 @@ print_error() {
     echo -e "${RED}❌ $1${NC}"
 }
 
+# 下载文件函数（带错误处理）
+download_file() {
+    local url="$1"
+    local output="$2"
+    local retries=3
+    local count=0
+    
+    while [ $count -lt $retries ]; do
+        if curl -fsSL "$url" -o "$output" 2>/dev/null; then
+            return 0
+        else
+            count=$((count + 1))
+            if [ $count -lt $retries ]; then
+                print_warning "下载失败，重试中... ($count/$retries)"
+                sleep 2
+            fi
+        fi
+    done
+    
+    print_error "下载失败: $url"
+    return 1
+}
+
 # 检查系统
 check_system() {
     print_info "检查系统环境..."
@@ -141,6 +164,61 @@ check_pip() {
 }
 
 # 下载项目文件
+# 获取项目文件列表（动态适配）
+get_project_files() {
+    print_info "🔍 获取项目文件列表..."
+    
+    # 尝试从GitHub API获取文件列表
+    local api_url="https://api.github.com/repos/maxliu9403/carousell_upload/contents"
+    local temp_file="/tmp/project_files.json"
+    
+    if curl -fsSL "$api_url" -o "$temp_file" 2>/dev/null; then
+        # 使用Python解析GitHub API响应
+        python3 -c "
+import json
+import sys
+import subprocess
+
+def get_files_from_api(data, prefix=''):
+    files = []
+    for item in data:
+        if item['type'] == 'file':
+            files.append(prefix + item['name'])
+        elif item['type'] == 'dir' and item['name'] not in ['.git', '__pycache__', '.venv']:
+            # 递归获取子目录文件
+            try:
+                result = subprocess.run(['curl', '-fsSL', item['url']], 
+                                      capture_output=True, text=True, timeout=10)
+                if result.returncode == 0:
+                    subdata = json.loads(result.stdout)
+                    files.extend(get_files_from_api(subdata, prefix + item['name'] + '/'))
+            except:
+                pass
+    return files
+
+try:
+    with open('$temp_file', 'r') as f:
+        data = json.load(f)
+    
+    files = get_files_from_api(data)
+    for file in sorted(files):
+        print(file)
+except Exception as e:
+    print(f'Error: {e}', file=sys.stderr)
+    sys.exit(1)
+" > /tmp/project_files_list.txt 2>/dev/null
+        
+        if [ -s /tmp/project_files_list.txt ]; then
+            print_success "✅ 成功获取项目文件列表"
+            return 0
+        fi
+    fi
+    
+    # 如果API失败，使用预定义的文件列表作为备用
+    print_warning "⚠️ API获取失败，使用预定义文件列表"
+    return 1
+}
+
 # 更新项目代码到最新版本
 update_project_code() {
     print_info "🔄 更新项目代码到最新版本..."
@@ -165,8 +243,72 @@ update_project_code() {
         return 1
     fi
     
+    # 尝试获取动态文件列表
+    if get_project_files; then
+        print_info "📋 使用动态文件列表..."
+        update_with_dynamic_list
+    else
+        print_info "📋 使用预定义文件列表..."
+        update_with_static_list
+    fi
+}
+
+# 使用动态文件列表更新
+update_with_dynamic_list() {
     # 创建必要的目录结构
-    mkdir -p config uploader browser cli scripts core data
+    print_info "📁 创建目录结构..."
+    while IFS= read -r file; do
+        if [[ "$file" == *"/"* ]]; then
+            dir=$(dirname "$file")
+            mkdir -p "$dir"
+        fi
+    done < /tmp/project_files_list.txt
+    
+    # 下载所有文件
+    print_info "📥 下载项目文件..."
+    local success_count=0
+    local total_count=0
+    
+    while IFS= read -r file; do
+        total_count=$((total_count + 1))
+        print_info "下载: $file"
+        
+        if download_file "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/$file" "$file"; then
+            success_count=$((success_count + 1))
+        else
+            print_warning "跳过: $file"
+        fi
+    done < /tmp/project_files_list.txt
+    
+    # 设置执行权限
+    print_info "🔧 设置执行权限..."
+    chmod +x deploy.sh 2>/dev/null || true
+    chmod +x scripts/docker-deploy.sh 2>/dev/null || true
+    chmod +x scripts/quick-deploy.sh 2>/dev/null || true
+    
+    # 清理临时文件
+    rm -f /tmp/project_files.json /tmp/project_files_list.txt
+    
+    print_success "✅ 项目代码更新完成 ($success_count/$total_count 文件)"
+    return 0
+}
+
+# 使用预定义文件列表更新
+update_with_static_list() {
+    # 创建必要的目录结构
+    mkdir -p config uploader browser cli scripts core data uploader/regions/hk/sneakers uploader/regions/hk/bags uploader/regions/hk/clothes uploader/regions/sg/sneakers uploader/regions/sg/bags uploader/regions/sg/clothes uploader/regions/my/sneakers uploader/regions/my/bags uploader/regions/my/clothes
+    
+    # 下载根目录文件
+    print_info "📄 下载根目录文件..."
+    download_file "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/__init__.py" "__init__.py"
+    download_file "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/requirements.txt" "requirements.txt"
+    download_file "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/README.md" "README.md"
+    download_file "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/setup.py" "setup.py"
+    download_file "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/pyproject.toml" "pyproject.toml"
+    download_file "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/.gitignore" ".gitignore"
+    download_file "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/create_example_excel.py" "create_example_excel.py"
+    download_file "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/deploy.sh" "deploy.sh"
+    chmod +x deploy.sh
     
     # 下载核心配置文件
     print_info "📋 下载配置文件..."
@@ -196,17 +338,39 @@ update_project_code() {
     curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/carousell_uploader_new.py -o uploader/carousell_uploader_new.py
     curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/multi_account_uploader.py -o uploader/multi_account_uploader.py
     curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/uploader_factory.py -o uploader/uploader_factory.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/utils.py -o uploader/utils.py
     
-    # 下载地域上传器
+    # 下载地域上传器 - 完整支持所有地域和类目
     print_info "🌍 下载地域上传器..."
-    mkdir -p uploader/regions/hk/sneakers uploader/regions/sg/sneakers uploader/regions/my/sneakers
+    # 地域模块初始化文件
     curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/__init__.py -o uploader/regions/__init__.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/hk/__init__.py -o uploader/regions/hk/__init__.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/sg/__init__.py -o uploader/regions/sg/__init__.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/my/__init__.py -o uploader/regions/my/__init__.py
+    
+    # HK地域上传器
     curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/hk/sneakers/__init__.py -o uploader/regions/hk/sneakers/__init__.py
     curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/hk/sneakers/sneakers_uploader.py -o uploader/regions/hk/sneakers/sneakers_uploader.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/hk/bags/__init__.py -o uploader/regions/hk/bags/__init__.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/hk/bags/bags_uploader.py -o uploader/regions/hk/bags/bags_uploader.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/hk/clothes/__init__.py -o uploader/regions/hk/clothes/__init__.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/hk/clothes/clothes_uploader.py -o uploader/regions/hk/clothes/clothes_uploader.py
+    
+    # SG地域上传器
     curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/sg/sneakers/__init__.py -o uploader/regions/sg/sneakers/__init__.py
     curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/sg/sneakers/sneakers_uploader.py -o uploader/regions/sg/sneakers/sneakers_uploader.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/sg/bags/__init__.py -o uploader/regions/sg/bags/__init__.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/sg/bags/bags_uploader.py -o uploader/regions/sg/bags/bags_uploader.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/sg/clothes/__init__.py -o uploader/regions/sg/clothes/__init__.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/sg/clothes/clothes_uploader.py -o uploader/regions/sg/clothes/clothes_uploader.py
+    
+    # MY地域上传器
     curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/my/sneakers/__init__.py -o uploader/regions/my/sneakers/__init__.py
     curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/my/sneakers/sneakers_uploader.py -o uploader/regions/my/sneakers/sneakers_uploader.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/my/bags/__init__.py -o uploader/regions/my/bags/__init__.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/my/bags/bags_uploader.py -o uploader/regions/my/bags/bags_uploader.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/my/clothes/__init__.py -o uploader/regions/my/clothes/__init__.py
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/my/clothes/clothes_uploader.py -o uploader/regions/my/clothes/clothes_uploader.py
     
     # 下载CLI模块
     print_info "💻 下载CLI模块..."
@@ -220,30 +384,11 @@ update_project_code() {
     curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/data/excel_parser.py -o data/excel_parser.py
     curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/data/record_manager.py -o data/record_manager.py
     
-    # 下载工具模块
-    print_info "🛠️ 下载工具模块..."
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/utils/__init__.py -o utils/__init__.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/utils/utils.py -o utils/utils.py
-    
-    # 下载主要文件
-    print_info "📄 下载主要文件..."
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/requirements.txt -o requirements.txt
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/README.md -o README.md
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/setup.py -o setup.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/pyproject.toml -o pyproject.toml
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/.gitignore -o .gitignore
-    
-    # 下载启动脚本
-    print_info "🚀 下载启动脚本..."
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/activate_env.sh -o activate_env.sh
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/run.sh -o run.sh
-    chmod +x activate_env.sh run.sh
-    
-    # 下载Windows脚本
-    print_info "🪟 下载Windows脚本..."
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/scripts/windows-install.bat -o scripts/windows-install.bat
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/scripts/windows-install.ps1 -o scripts/windows-install.ps1
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/scripts/windows-simple-install.bat -o scripts/windows-simple-install.bat
+    # 下载脚本文件
+    print_info "🚀 下载脚本文件..."
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/scripts/docker-deploy.sh -o scripts/docker-deploy.sh
+    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/scripts/quick-deploy.sh -o scripts/quick-deploy.sh
+    chmod +x scripts/docker-deploy.sh scripts/quick-deploy.sh
     
     print_success "✅ 项目代码更新完成"
     return 0
@@ -256,26 +401,8 @@ download_project_files() {
     if command -v curl &> /dev/null; then
         print_info "使用curl下载项目文件..."
         
-        # 下载主要文件
-        curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/requirements.txt -o requirements.txt
-        curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/README.md -o README.md
-        curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/setup.py -o setup.py
-        curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/pyproject.toml -o pyproject.toml
-        
-        # 创建基本目录结构
-        mkdir -p config uploader browser cli scripts
-        
-        # 下载配置文件
-        curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/config/settings.yaml -o config/settings.yaml
-        
-        # 下载主要Python文件
-        curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/cli/main.py -o cli/main.py
-        curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/cli/cli.py -o cli/cli.py
-        
-        # 下载启动脚本
-        curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/activate_env.sh -o activate_env.sh
-        curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/run.sh -o run.sh
-        chmod +x activate_env.sh run.sh
+        # 调用完整的update_project_code函数
+        update_project_code
         
         print_success "项目文件下载完成"
         return 0
