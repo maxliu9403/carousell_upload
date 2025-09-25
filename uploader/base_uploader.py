@@ -240,7 +240,7 @@ class BaseUploader:
                            browser_id=self.browser_id, sku=self.sku, operation="输入产品价格")
 
         # 输入产品描述
-        safe_input_with_wait(self.page, ".D_aAb .D_tk", enriched_info.description, must_exist=True,
+        safe_input_with_wait(self.page, ".D_aAb .D_tg", enriched_info.description, must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="输入产品描述")
 
         
