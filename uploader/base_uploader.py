@@ -189,7 +189,7 @@ class BaseUploader:
         """开启送货"""
         if not self.page.query_selector("#FieldSetField-Container-field_mailing_details .D_tk"):
             logger.info("开启送货")
-            safe_click_with_wait(self.page, ".D_agx > .D_mK", must_exist=True,
+            safe_input_with_fallback(self.page, ".D_agx > .D_mK", "#FieldSetField-Container-field_mailing .D_mx",must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="开启送货" )
 
     # ========= 公共方法：页面导航 =========
