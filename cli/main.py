@@ -105,15 +105,20 @@ def run():
         print(" " * 8 + "2. 🇲🇾 MY (马来西亚)")
         print(" " * 8 + "3. 🇸🇬 SG (新加坡)")
         
-        region_choice = input("\n" + " " * 8 + "🎯 请输入选择 (1/2/3): ").strip()
-        region_mapping = {"1": "HK", "2": "MY", "3": "SG"}
-        
-        if region_choice not in region_mapping:
-            logger.error("❌ 无效的地域选择")
-            return
-        
-        region = region_mapping[region_choice]
-        logger.info(f"✅ 选择的地域: {region}")
+        while True:
+            try:
+                region_choice = input("\n" + " " * 8 + "🎯 请输入选择 (1/2/3): ").strip()
+                region_mapping = {"1": "HK", "2": "MY", "3": "SG"}
+                
+                if region_choice in region_mapping:
+                    region = region_mapping[region_choice]
+                    logger.info(f"✅ 选择的地域: {region}")
+                    break
+                else:
+                    print(" " * 8 + "❌ 无效选择，请输入 1、2 或 3")
+            except KeyboardInterrupt:
+                print("\n❌ 用户取消选择")
+                return
         
         # 选择商品类目 - 优化版本
         print("\n" + "📦" + "=" * 30 + "📦")
@@ -123,15 +128,20 @@ def run():
         print(" " * 8 + "2. 👜 bags (包包)")
         print(" " * 8 + "3. 👕 clothes (服装)")
         
-        category_choice = input("\n" + " " * 8 + "🎯 请输入选择 (1/2/3): ").strip()
-        category_mapping = {"1": "sneakers", "2": "bags", "3": "clothes"}
-        
-        if category_choice not in category_mapping:
-            logger.error("❌ 无效的类目选择")
-            return
-        
-        category = category_mapping[category_choice]
-        logger.info(f"✅ 选择的类目: {category}")
+        while True:
+            try:
+                category_choice = input("\n" + " " * 8 + "🎯 请输入选择 (1/2/3): ").strip()
+                category_mapping = {"1": "sneakers", "2": "bags", "3": "clothes"}
+                
+                if category_choice in category_mapping:
+                    category = category_mapping[category_choice]
+                    logger.info(f"✅ 选择的类目: {category}")
+                    break
+                else:
+                    print(" " * 8 + "❌ 无效选择，请输入 1、2 或 3")
+            except KeyboardInterrupt:
+                print("\n❌ 用户取消选择")
+                return
         
         # 创建多账号上传器
         multi_uploader = MultiAccountUploader(config, excel_path, region, category)
