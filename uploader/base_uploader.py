@@ -65,6 +65,53 @@ def safe_input_with_wait(page: Page, selector: str, text: str, must_exist: bool 
             logger.warning(f"{log_prefix}{operation}失败: {selector}, 输入内容: '{text}', 原因: {e}")
         raise
 
+def safe_input_with_fallback(page: Page, primary_selector: str, fallback_selector: str, text: str, 
+                            must_exist: bool = False, timeout: int = None,
+                            browser_id: str = None, sku: str = None, operation: str = "输入操作"):
+    """
+    支持备用选择器的安全输入操作
+    先尝试主选择器，失败后尝试备用选择器
+    
+    Args:
+        page: Playwright页面对象
+        primary_selector: 主选择器
+        fallback_selector: 备用选择器
+        text: 要输入的文本
+        must_exist: 是否必须存在
+        timeout: 超时时间
+        browser_id: 浏览器ID
+        sku: 商品SKU
+        operation: 操作描述
+    """
+    log_prefix = f"BrowserID: {browser_id}, SKU: {sku}, " if browser_id and sku else ""
+    
+    # 先尝试主选择器
+    try:
+        logger.info(f"{log_prefix}正在{operation}: {primary_selector}, 输入内容: '{text}'")
+        result = input_with_wait(page, primary_selector, text, must_exist, timeout)
+        logger.info(f"{log_prefix}{operation}成功: {primary_selector}")
+        return result
+    except RuntimeError as e:
+        logger.warning(f"{log_prefix}主选择器失败: {primary_selector}, 原因: {e}")
+        
+        # 尝试备用选择器
+        try:
+            logger.info(f"{log_prefix}尝试备用选择器: {fallback_selector}")
+            result = input_with_wait(page, fallback_selector, text, must_exist, timeout)
+            logger.info(f"{log_prefix}{operation}成功: {fallback_selector} (备用选择器)")
+            return result
+        except RuntimeError as fallback_e:
+            if must_exist:
+                error_msg = f"关键{operation}失败"
+                if browser_id and sku:
+                    error_msg = f"BrowserID: {browser_id}, SKU: {sku}, {error_msg}"
+                error_msg += f", 主选择器: {primary_selector}, 备用选择器: {fallback_selector}, 输入内容: '{text}', 失败原因: {e}, 备用失败原因: {fallback_e}"
+                logger.error(error_msg)
+                raise CriticalOperationFailed(error_msg)
+            else:
+                logger.warning(f"{log_prefix}主选择器和备用选择器都失败: {primary_selector}, {fallback_selector}, 原因: {e}, 备用失败原因: {fallback_e}")
+            raise
+
 class BaseUploader:
     """基础上传器类 - 包含所有地域和类目的公共功能"""
     
@@ -239,11 +286,10 @@ class BaseUploader:
         safe_input_with_wait(self.page, "input#price", enriched_info.price, must_exist=True,
                            browser_id=self.browser_id, sku=self.sku, operation="输入产品价格")
 
-        # 输入产品描述
-        safe_input_with_wait(self.page, ".D_aAb .D_tg", enriched_info.description, must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="输入产品描述")
+        # 输入产品描述 - 支持备用选择器
+        safe_input_with_fallback(self.page, "textarea.D_tk", ".D_aAb .D_tk", enriched_info.description, must_exist=True,
+                               browser_id=self.browser_id, sku=self.sku, operation="输入产品描述")
 
-        
         
     def _select_location_by_region(self):
         """根据地域选择Location"""
