@@ -10,18 +10,20 @@ from browser.actions import (
     upload_folder_with_keyboard, 
     human_delay, 
     input_with_wait, 
-    smart_goto
+    smart_goto,
+    DEFAULT_TIMEOUT
 )
 from core.logger import logger
 from .utils import enrich_product_info
-
-class CriticalOperationFailed(Exception):
-    """关键操作失败异常，需要立即停止当前流程"""
-    pass
+from .enhanced_safe_actions import EnhancedSafeActions, CriticalOperationFailed
 
 def safe_click_with_wait(page: Page, selector: str, must_exist: bool = False, timeout: int = None, 
                         browser_id: str = None, sku: str = None, operation: str = "点击操作"):
     """安全的点击操作，must_exist=True时失败会抛出CriticalOperationFailed"""
+    # 设置默认超时时间
+    if timeout is None:
+        timeout = DEFAULT_TIMEOUT
+    
     # 先提示正在执行的操作
     log_prefix = f"BrowserID: {browser_id}, SKU: {sku}, " if browser_id and sku else ""
     logger.info(f"{log_prefix}正在{operation}: {selector}")
@@ -59,6 +61,10 @@ def safe_click_with_fallback(page: Page, primary_selector: str, fallback_selecto
         sku: 商品SKU
         operation: 操作描述
     """
+    # 设置默认超时时间
+    if timeout is None:
+        timeout = DEFAULT_TIMEOUT
+    
     log_prefix = f"BrowserID: {browser_id}, SKU: {sku}, " if browser_id and sku else ""
     
     # 先尝试主选择器
@@ -91,6 +97,10 @@ def safe_click_with_fallback(page: Page, primary_selector: str, fallback_selecto
 def safe_input_with_wait(page: Page, selector: str, text: str, must_exist: bool = False, timeout: int = None,
                         browser_id: str = None, sku: str = None, operation: str = "输入操作"):
     """安全的输入操作，must_exist=True时失败会抛出CriticalOperationFailed"""
+    # 设置默认超时时间
+    if timeout is None:
+        timeout = DEFAULT_TIMEOUT
+    
     # 先提示正在执行的操作
     log_prefix = f"BrowserID: {browser_id}, SKU: {sku}, " if browser_id and sku else ""
     logger.info(f"{log_prefix}正在{operation}: {selector}, 输入内容: '{text}'")
@@ -129,6 +139,10 @@ def safe_input_with_fallback(page: Page, primary_selector: str, fallback_selecto
         sku: 商品SKU
         operation: 操作描述
     """
+    # 设置默认超时时间
+    if timeout is None:
+        timeout = DEFAULT_TIMEOUT
+    
     log_prefix = f"BrowserID: {browser_id}, SKU: {sku}, " if browser_id and sku else ""
     
     # 先尝试主选择器
@@ -167,6 +181,8 @@ class BaseUploader:
         self.region = region
         self.browser_id = browser_id
         self.sku = sku
+        # 初始化增强安全操作
+        self.safe_actions = EnhancedSafeActions(page, browser_id, sku)
         
     def _get_domain_by_region(self) -> str:
         """根据地域获取对应的域名"""
@@ -220,23 +236,30 @@ class BaseUploader:
         """关闭WhatsApp"""
         if self.page.query_selector("button.D_mk"):
             logger.info("关闭whatsapp")
-            safe_click_with_wait(self.page, "rect.D_axg", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="关闭WhatsApp")
+            self.safe_actions.safe_click_with_config(
+                "popups_and_settings.whatsapp_close", self.region, must_exist=True,
+                operation="关闭WhatsApp"
+            )
+    
     # HK逻辑
     def _closemeetup(self):
         """关闭meetup"""
         if self.page.query_selector("input.D_vI"):
             logger.info("关闭面交")
-            safe_click_with_fallback(self.page, "#FieldSetField-Container-field_meetup > .D_IL", ".D_pZ > .D_mx", must_exist=True,
-                               browser_id=self.browser_id, sku=self.sku, operation="输入产品描述")
+            self.safe_actions.safe_click_with_config(
+                "popups_and_settings.meetup_toggle", self.region, must_exist=True,
+                operation="关闭面交"
+            )
 
     # HK开启送货
     def _open_delivery(self):
         """开启送货"""
         if not self.page.query_selector("#FieldSetField-Container-field_mailing_details .D_tk"):
             logger.info("开启送货")
-            safe_click_with_fallback(self.page, ".D_agx > .D_mK", "#FieldSetField-Container-field_mailing .D_mx", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="开启送货")
+            self.safe_actions.safe_click_with_config(
+                "popups_and_settings.delivery_toggle", self.region, must_exist=True,
+                operation="开启送货"
+            )
             
     # ========= 公共方法：页面导航 =========
     def _navigate_to_homepage(self):
@@ -255,12 +278,17 @@ class BaseUploader:
     def _start_upload_flow(self, folder_path: str):
         """开始上传流程"""
         # 点击sell按钮
-        safe_click_with_wait(self.page, "a.D__s", must_exist=True, 
-                           browser_id=self.browser_id, sku=self.sku, operation="点击sell按钮")
+        self.safe_actions.safe_click_with_config(
+            "basic_elements.sell_button", self.region, must_exist=True,
+            operation="点击Sell按钮"
+        )
         
         # 点击上传图片
-        safe_click_with_wait(self.page, "div.D_JY", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击上传图片")
+        self.safe_actions.safe_click_with_config(
+            "basic_elements.upload_images_button", self.region, must_exist=True,
+            operation="点击上传图片按钮"
+        )
+        
         # 上传图片
         if folder_path:
             upload_folder_with_keyboard(folder_path, self.config.image_extensions)
@@ -270,36 +298,48 @@ class BaseUploader:
         
         # 新账号初次上品会出现（可选）
         if self.region == "SG":
-            safe_click_with_wait(self.page, ".D_ayk > .D_oN > .D_oZ", must_exist=False)
-
+            self.safe_actions.safe_click_with_config(
+                "basic_elements.new_account_popup_close", self.region, must_exist=False,
+                operation="关闭新账号弹窗"
+            )
+        
         # 忽略AI编写文案
-        safe_click_with_wait(self.page, ".D_oK > .D_oe", must_exist=False,
-                           browser_id=self.browser_id, sku=self.sku, operation="取消AI编写文案")
+        self.safe_actions.safe_click_with_config(
+            "basic_elements.ai_writing_cancel", self.region, must_exist=False,
+            operation="取消AI编写文案"
+        )
+        
+        # 尝试点击改为手动填写按钮（如果AI编写文案没有被取消）
+        self.safe_actions.safe_click_with_config(
+            "basic_elements.manual_writing_button", self.region, must_exist=False,
+            operation="改为手动填写"
+        )
 
     def _select_service_category(self):
         """选择服务类目"""
         # 选择类目
-        safe_click_with_wait(self.page, "div.D_aFi", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="选择服务类目")
+        self.safe_actions.safe_click_with_config(
+            "category_selection.service_category_selector", self.region, must_exist=True,
+            operation="选择服务类目"
+        )
         
         # 根据地域选择搜索关键词
         search_keyword = self._get_service_search_keyword()
         
         # 输入搜索关键词
-        safe_input_with_wait(self.page, "input.D_Kr", search_keyword, must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation=f"输入{search_keyword}搜索服务")
+        self.safe_actions.safe_input_with_config(
+            "category_selection.category_search_input", search_keyword, self.region, must_exist=True,
+            operation=f"输入{search_keyword}搜索服务"
+        )
         
         # 等待出现搜索结果
         self.page.wait_for_timeout(2000)
+        
         # 点击服务
-        if self.region == "HK":
-            self._safe_click_subcategory(".D_aFp:nth-child(5) > .D_aFx > .D_mx", "服務")
-        elif self.region == "SG":
-            self._safe_click_subcategory(".D_aEk:nth-child(2) > .D_aEs > .D_la", "服务")
-        elif self.region == "MY":
-            self._safe_click_subcategory(".D_aEk:nth-child(2) > .D_aEs > .D_la", "服务")
-        else:
-            self._safe_click_subcategory(".D_aEk:nth-child(2) > .D_aEs > .D_la", "服务")
+        self.safe_actions.safe_click_with_config(
+            "category_selection.service_category_option", self.region, must_exist=True,
+            operation="选择服务类目选项"
+        )
         
     def _get_service_search_keyword(self) -> str:
         """
@@ -321,54 +361,135 @@ class BaseUploader:
     def _fill_basic_info(self, enriched_info: ProductInfo):
         """填写基本信息"""
         # 输入产品标题
-        safe_input_with_wait(self.page, "input#title", enriched_info.title, must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="输入产品标题")
+        self.safe_actions.safe_input_with_config(
+            "product_info.title_input", enriched_info.title, self.region, must_exist=True,
+            operation="输入产品标题"
+        )
 
         if self.region == "HK":
-            safe_click_with_wait(self.page, "button.D_oo:nth-child(1)", must_exist=True,
-                               browser_id=self.browser_id, sku=self.sku, operation="点击新旧")
+            self.safe_actions.safe_click_with_config(
+                "region_specific.hk.condition_new_used", self.region, must_exist=True,
+                operation="点击新旧程度选择"
+            )
       
         # 输入产品价格
-        safe_input_with_wait(self.page, "input#price", enriched_info.price, must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="输入产品价格")
+        self.safe_actions.safe_input_with_config(
+            "product_info.price_input", enriched_info.price, self.region, must_exist=True,
+            operation="输入产品价格"
+        )
 
+        # 处理AI文案相关操作
+        self._handle_ai_writing_operations()
+        
+        # 输入产品描述
         if self.region == "HK":
-            safe_input_with_fallback(self.page, "textarea.D_tk", "textarea.D_tk", enriched_info.description, must_exist=True,
-                               browser_id=self.browser_id, sku=self.sku, operation="输入产品描述")
+            self.safe_actions.safe_input_with_config(
+                "product_info.description_input", enriched_info.description, self.region, must_exist=True,
+                operation="输入产品描述"
+            )
         else:
-            safe_input_with_fallback(self.page, ".D_aAb .D_tk", "textarea.D_tk", enriched_info.description, must_exist=True,
-                               browser_id=self.browser_id, sku=self.sku, operation="输入产品描述")
+            self.safe_actions.safe_input_with_config(
+                "product_info.description_input_fallback", enriched_info.description, self.region, must_exist=True,
+                operation="输入产品描述"
+            )
 
+    def _handle_ai_writing_operations(self):
+        """处理AI文案相关操作 - 深度优化版本"""
+        logger.info(f"{self.log_prefix}开始处理AI文案相关操作")
+        
+        # 策略1: 尝试基于class的CSS选择器
+        strategies = [
+            ("basic_elements.ai_writing_cancel", "取消AI编写文案 (CSS)"),
+            ("basic_elements.manual_writing_button", "改为手动填写 (CSS)"),
+            ("basic_elements.manual_writing_button_xpath", "改为手动填写 (XPath)"),
+            ("basic_elements.manual_writing_button_locator", "改为手动填写 (Locator)")
+        ]
+        
+        for element_key, operation_desc in strategies:
+            try:
+                success = self.safe_actions.safe_click_with_config(
+                    element_key, self.region, must_exist=False,
+                    operation=operation_desc
+                )
+                
+                if success:
+                    logger.info(f"{self.log_prefix}成功: {operation_desc}")
+                    return
+                else:
+                    logger.info(f"{self.log_prefix}跳过: {operation_desc}")
+                    
+            except Exception as e:
+                logger.info(f"{self.log_prefix}跳过: {operation_desc}, 原因: {e}")
+                continue
+        
+        # 策略2: 直接使用Playwright的文本定位器作为最后手段
+        try:
+            logger.info(f"{self.log_prefix}尝试直接文本定位器")
+            element = self.page.get_by_text("改為手動填寫").first
+            if element.is_visible():
+                element.click()
+                logger.info(f"{self.log_prefix}成功: 直接文本定位器")
+                return
+        except Exception as e:
+            logger.info(f"{self.log_prefix}直接文本定位器失败: {e}")
+        
+        # 策略3: 尝试查找包含特定文本的按钮
+        try:
+            logger.info(f"{self.log_prefix}尝试按钮文本定位器")
+            element = self.page.locator("button:has-text('改為手動填寫')").first
+            if element.is_visible():
+                element.click()
+                logger.info(f"{self.log_prefix}成功: 按钮文本定位器")
+                return
+        except Exception as e:
+            logger.info(f"{self.log_prefix}按钮文本定位器失败: {e}")
+        
+        logger.info(f"{self.log_prefix}所有AI文案相关操作都跳过，继续执行后续流程")
         
     def _select_location_by_region(self):
         """根据地域选择Location"""
         # 点击 选择 Location
-        safe_click_with_wait(self.page, "input.D_tk", must_exist=False,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击选择Location")
+        self.safe_actions.safe_click_with_config(
+            "region_specific.sg.location_selector", self.region, must_exist=False,
+            operation="点击选择Location"
+        )
         self.page.wait_for_timeout(2000)
-        safe_click_with_wait(self.page, ".D_bMM:nth-child(2) > .D_la", must_exist=True,
-                               browser_id=self.browser_id, sku=self.sku, operation="选择面交地点")
+        
+        # 选择面交地点
+        self.safe_actions.safe_click_with_config(
+            "region_specific.sg.location_option", self.region, must_exist=True,
+            operation="选择面交地点"
+        )
         
     def _publish_product(self):
         """发布商品"""
         # 点击发布
-        safe_click_with_wait(self.page, "button.D_uG", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击发布按钮")
+        self.safe_actions.safe_click_with_config(
+            "publishing.publish_button", self.region, must_exist=True,
+            operation="点击发布按钮"
+        )
         
     # ========= 公共方法：编辑模式 =========
     def _enter_edit_mode(self):
         """进入编辑模式"""
         # 点击 未活跃
-        safe_click_with_wait(self.page, "button.D_bwN:nth-child(2)", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击未活跃按钮")
+        self.safe_actions.safe_click_with_config(
+            "editing.inactive_tab", self.region, must_exist=True,
+            operation="点击未活跃按钮"
+        )
 
         # 点击 未活跃第一个元素
-        safe_click_with_wait(self.page, "div.D_bvK", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击未活跃第一个元素") 
+        self.safe_actions.safe_click_with_config(
+            "editing.inactive_first_item", self.region, must_exist=True,
+            operation="点击未活跃第一个元素"
+        )
         self.page.wait_for_timeout(2000)
+        
         # 编辑
-        safe_click_with_wait(self.page, ".D_boX:nth-child(1) > .D_mx", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击编辑按钮")
+        self.safe_actions.safe_click_with_config(
+            "editing.edit_button", self.region, must_exist=True,
+            operation="点击编辑按钮"
+        )
         
     def _activate_product(self):
         """激活商品"""
@@ -376,16 +497,22 @@ class BaseUploader:
         self._navigate_to_manage_page()
         
         # 点击 未活跃
-        safe_click_with_wait(self.page, "button.D_bwN:nth-child(2)", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击未活跃按钮")
+        self.safe_actions.safe_click_with_config(
+            "editing.inactive_tab", self.region, must_exist=True,
+            operation="点击未活跃按钮"
+        )
         
         # 点击 激活
-        safe_click_with_wait(self.page, "button.D_mo", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击激活按钮")
+        self.safe_actions.safe_click_with_config(
+            "editing.activate_button", self.region, must_exist=True,
+            operation="点击激活按钮"
+        )
         
         # 点击确认激活
-        safe_click_with_wait(self.page, "button.D_me", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击确认激活按钮")
+        self.safe_actions.safe_click_with_config(
+            "editing.confirm_activate", self.region, must_exist=True,
+            operation="点击确认激活按钮"
+        )
         
         self.page.wait_for_timeout(5000)
         

@@ -4,7 +4,7 @@
 """
 from core.models import ProductInfo
 from core.logger import logger
-from uploader.base_uploader import BaseUploader, safe_click_with_wait, safe_input_with_fallback, safe_input_with_wait
+from uploader.base_uploader import BaseUploader
 
 class HKSneakersUploader(BaseUploader):
     """香港运动鞋上传器"""
@@ -69,6 +69,9 @@ class HKSneakersUploader(BaseUploader):
         # 进入编辑模式
         self._enter_edit_mode()
         
+        # 处理AI文案相关操作
+        self._handle_ai_writing_operations()
+        
         # 修改为运动鞋类目
         self._change_to_sneakers_category(enriched_info)
         
@@ -81,85 +84,134 @@ class HKSneakersUploader(BaseUploader):
     def _change_to_sneakers_category(self, enriched_info: ProductInfo):
         """修改为运动鞋类目"""
         # 修改产品类目
-        safe_click_with_wait(self.page, "div.D_aFi", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="修改产品类目")
+        self.safe_actions.safe_click_with_config(
+            "sneakers_hk.category_selector", self.region, must_exist=True,
+            operation="修改产品类目"
+        )
 
         # 输入运动鞋搜索关键词
-        safe_input_with_fallback(self.page, ".D_aFn > .D_Kr", "label.D_aFn", "波鞋", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="输入运动鞋搜索关键词")
+        search_keyword = self.safe_actions.css_manager.get_selector(
+            "sneakers_hk.category_search_keyword", self.region, "primary"
+        ) or "波鞋"
+        
+        self.safe_actions.safe_input_with_config(
+            "sneakers_hk.category_search_input", search_keyword, self.region, must_exist=True,
+            operation="输入运动鞋搜索关键词"
+        )
 
         self.page.wait_for_timeout(2000)
+        
         # 根据性别选择子类目
         if enriched_info.gender.lower() in ["male", "men", "mens"]:
             # 点击 男装波鞋
-            self._safe_click_subcategory(".D_aFp:nth-child(2) > .D_aFx > .D_mx", "男装波鞋")
+            self.safe_actions.safe_click_with_config(
+                "sneakers_hk.men_sneakers_option", self.region, must_exist=True,
+                operation="选择男装波鞋"
+            )
         else:
             # 点击女装波鞋
-            self._safe_click_subcategory(".D_aFp:nth-child(1) > .D_aFx > .D_mx", "女装波鞋")
+            self.safe_actions.safe_click_with_config(
+                "sneakers_hk.women_sneakers_option", self.region, must_exist=True,
+                operation="选择女装波鞋"
+            )
     
     def _fill_sneakers_details(self, enriched_info: ProductInfo):
         """
         填写运动鞋详细信息
-        保持原有的点击操作顺序和CSS选择器不变
+        使用配置文件中的CSS选择器
         """
         # 点击 新旧
-        safe_click_with_wait(self.page, ".D_agi:nth-child(2) .D_oo:nth-child(1)", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击新旧条件")
+        self.safe_actions.safe_click_with_config(
+            "sneakers_hk.condition_selector", self.region, must_exist=True,
+            operation="点击新旧条件"
+        )
 
         # 点击 品牌
-        safe_click_with_wait(self.page, "#FieldSetField-Container-field_brand_enum .D_sp", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击品牌选择")
+        self.safe_actions.safe_click_with_config(
+            "sneakers_hk.brand_selector", self.region, must_exist=True,
+            operation="点击品牌选择"
+        )
 
         # 点击搜索品牌
-        safe_input_with_wait(self.page, ".D_vy .D_Kr", "其他", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="输入品牌搜索")
+        brand_search_keyword = self.safe_actions.css_manager.get_selector(
+            "sneakers_hk.brand_search_keyword", self.region, "primary"
+        ) or "其他"
+        
+        self.safe_actions.safe_input_with_config(
+            "sneakers_hk.brand_search_input", brand_search_keyword, self.region, must_exist=True,
+            operation="输入品牌搜索"
+        )
 
         self.page.wait_for_timeout(2000)
+        
         # 点击other品牌
-        safe_click_with_wait(self.page, "li.D_aeG", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击Other品牌")
+        self.safe_actions.safe_click_with_config(
+            "sneakers_hk.brand_option", self.region, must_exist=True,
+            operation="点击Other品牌"
+        )
 
         # 输入品牌
-        safe_input_with_wait(self.page, "input#brand", enriched_info.brand, must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="输入品牌名称")
+        self.safe_actions.safe_input_with_config(
+            "sneakers_hk.brand_input", enriched_info.brand, self.region, must_exist=True,
+            operation="输入品牌名称"
+        )
         
         # 点击size
-        safe_click_with_wait(self.page, "#FieldSetField-Container-field_size .D_sp", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击尺寸选择")
+        self.safe_actions.safe_click_with_config(
+            "sneakers_hk.size_selector", self.region, must_exist=True,
+            operation="点击尺寸选择"
+        )
       
         # 输入size
-        safe_input_with_wait(self.page, ".D_vy .D_Kr", str(enriched_info.size), must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="输入尺寸搜索")
+        self.safe_actions.safe_input_with_config(
+            "sneakers_hk.size_search_input", str(enriched_info.size), self.region, must_exist=True,
+            operation="输入尺寸搜索"
+        )
 
         self.page.wait_for_timeout(2000)
 
         # 点击查找的size
-        safe_click_with_wait(self.page, ".D_aeK > .D_aeQ > .D_mx", must_exist=True,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击选择尺寸")
+        self.safe_actions.safe_click_with_config(
+            "sneakers_hk.size_option", self.region, must_exist=True,
+            operation="点击选择尺寸"
+        )
 
         # 点击 多产品销售复选框
-        safe_click_with_wait(self.page, "#FieldSetField-Container-field_multi_quantities .D_axg", must_exist=False,
-                           browser_id=self.browser_id, sku=self.sku, operation="点击多产品销售复选框")
+        self.safe_actions.safe_click_with_config(
+            "sneakers_hk.multi_quantity_checkbox", self.region, must_exist=False,
+            operation="点击多产品销售复选框"
+        )
     
     
     def _handle_meetup_settings(self, enriched_info: ProductInfo):
         """处理面交设置"""
-        # 检查是否存在 input.D_uN 选择器，如果不存在则执行面交相关操作
-        if not self.page.query_selector("input.D_vI"):
+        # 检查是否存在已选好的面交地点
+        meetup_input_selector = self.safe_actions.css_manager.get_selector(
+            "sneakers_hk.meetup_input", self.region, "primary"
+        ) or "input.D_vI"
+        
+        if not self.page.query_selector(meetup_input_selector):
             logger.info("页面中不存在已选好的面交地点，执行面交相关操作")
             
             # 开启面交
-            safe_click_with_wait(self.page, ".D_pZ > .D_mx", must_exist=True,
-                               browser_id=self.browser_id, sku=self.sku, operation="开启面交")
+            self.safe_actions.safe_click_with_config(
+                "sneakers_hk.meetup_toggle_hk", self.region, must_exist=True,
+                operation="开启面交"
+            )
 
             # 点击面交地点选择框
-            safe_input_with_wait(self.page, "input.D_vI", enriched_info.meetup_location, must_exist=True,
-                               browser_id=self.browser_id, sku=self.sku, operation="输入面交地点")
+            self.safe_actions.safe_input_with_config(
+                "sneakers_hk.meetup_input", enriched_info.meetup_location, self.region, must_exist=True,
+                operation="输入面交地点"
+            )
             
             self.page.wait_for_timeout(2000)
+            
             # 选择面交地点
-            safe_click_with_wait(self.page, ".D_cCh:nth-child(2) .D_mK", must_exist=True,
-                               browser_id=self.browser_id, sku=self.sku, operation="选择面交地点")
+            self.safe_actions.safe_click_with_config(
+                "sneakers_hk.meetup_option", self.region, must_exist=True,
+                operation="选择面交地点"
+            )
         else:
             logger.info("页面中存在已选好的面交地点，跳过面交相关操作")
         
@@ -169,22 +221,30 @@ class HKSneakersUploader(BaseUploader):
 
     def _handle_other_settings(self):
         """处理其他设置 - 仅用于直上传方式"""
-         # 关闭送货
-        if not self.page.query_selector(".D_Iu .D_pf"):
+        # 关闭送货
+        delivery_check_selector = ".D_Iu .D_pf"  # 检查是否已关闭送货
+        if not self.page.query_selector(delivery_check_selector):
             logger.info("关闭送货")
-            safe_click_with_wait(self.page, ".D_agx > .D_mK", must_exist=True,
-                               browser_id=self.browser_id, sku=self.sku, operation="关闭送货")
+            self.safe_actions.safe_click_with_config(
+                "sneakers_hk.delivery_toggle_hk", self.region, must_exist=True,
+                operation="关闭送货"
+            )
         else:
             logger.info("跳过关闭送货操作")
 
         # 关闭平台收款
-        if self.page.query_selector("p.D_agB"):
+        platform_payment_check_selector = "p.D_agB"  # 检查是否存在平台收款提示
+        if self.page.query_selector(platform_payment_check_selector):
             logger.info("关闭平台收款")
-            safe_click_with_wait(self.page, ".D_aeF:nth-child(2) .D_mx", must_exist=True,
-                               browser_id=self.browser_id, sku=self.sku, operation="关闭平台收款")
+            self.safe_actions.safe_click_with_config(
+                "sneakers_hk.platform_payment_close", self.region, must_exist=True,
+                operation="关闭平台收款"
+            )
 
             # 确认关闭平台收款
-            safe_click_with_wait(self.page, "button.D_oU", must_exist=True,
-                               browser_id=self.browser_id, sku=self.sku, operation="确认关闭平台收款")
+            self.safe_actions.safe_click_with_config(
+                "sneakers_hk.confirm_platform_payment", self.region, must_exist=True,
+                operation="确认关闭平台收款"
+            )
         else:
             logger.info("跳过关闭平台收款操作")

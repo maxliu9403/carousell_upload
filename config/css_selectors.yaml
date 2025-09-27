@@ -1,0 +1,443 @@
+# CSS选择器配置文件
+# 支持热更新和用户交互式更新
+# region字段支持地域特定配置，热更新时会替换所有相同选择器
+
+# 基础页面元素
+basic_elements:
+  sell_button:
+    primary: "a.D__s"
+    fallback: "a[href*='sell']"
+    description: "Sell按钮"
+    region: "all"
+  
+  upload_images_button:
+    primary: "div.D_JY"
+    fallback: "div[class*='upload']"
+    description: "上传图片按钮"
+    region: "all"
+  
+  new_account_popup_close:
+    primary: ".D_ayk > .D_oN > .D_oZ"
+    fallback: ".D_oN .D_oZ"
+    description: "新账号弹窗关闭按钮"
+    region: "all"
+  
+  ai_writing_cancel:
+    primary: "button[type='button'] div.D_pL"
+    fallback: "div.D_pL"
+    description: "取消AI编写文案/改为手动填写"
+    region: "all"
+  
+  manual_writing_button:
+    primary: "button[type='button'] div.D_pL"
+    fallback: "div.D_pL"
+    description: "改为手动填写按钮"
+    region: "all"
+  
+  # 基于XPath的稳定选择器
+  manual_writing_button_xpath:
+    primary: "//button[@type='button']//div[contains(text(),'改為手動填寫')]"
+    fallback: "//div[contains(text(),'改為手動填寫')]"
+    description: "基于XPath的稳定选择器"
+    region: "all"
+  
+  # 基于文本内容的Playwright Locator
+  manual_writing_button_locator:
+    primary: "text=改為手動填寫"
+    fallback: "button:has-text('改為手動填寫')"
+    description: "基于Playwright Locator的选择器"
+    region: "all"
+
+# 类目选择相关
+category_selection:
+  service_category_selector:
+    primary: "div.D_aFi"
+    fallback: "div[class*='category']"
+    description: "服务类目选择器"
+    region: "all"
+  
+  category_search_input:
+    primary: "input.D_Kr"
+    fallback: "input[placeholder*='搜索']"
+    description: "类目搜索输入框"
+    region: "all"
+  
+  service_category_option:
+    hk: ".D_aFp:nth-child(5) > .D_aFx > .D_mx"
+    sg: ".D_aEk:nth-child(2) > .D_aEs > .D_la"
+    my: ".D_aEk:nth-child(2) > .D_aEs > .D_la"
+    description: "服务类目选项"
+    region: "all"
+
+# 商品信息填写
+product_info:
+  title_input:
+    primary: "input#title"
+    fallback: "input[name='title']"
+    description: "商品标题输入框"
+    region: "all"
+  
+  price_input:
+    primary: "input#price"
+    fallback: "input[name='price']"
+    description: "商品价格输入框"
+    region: "all"
+  
+  description_input:
+    primary: "textarea.D_tk"
+    fallback: "textarea[placeholder*='描述']"
+    description: "商品描述输入框"
+    region: "all"
+  
+  description_input_fallback:
+    primary: ".D_aAb .D_tk"
+    fallback: "textarea.D_tk"
+    description: "商品描述输入框(备用)"
+    region: "all"
+
+# 地域特定元素
+region_specific:
+  hk:
+    condition_new_used:
+      primary: "button.D_oo:nth-child(1)"
+      fallback: "button[class*='condition']"
+      description: "香港新旧程度选择"
+      region: "HK"
+  
+  sg:
+    location_selector:
+      primary: "input.D_tk"
+      fallback: "input[placeholder*='location']"
+      description: "新加坡位置选择器"
+      region: "SG"
+    
+    location_option:
+      primary: ".D_bMM:nth-child(2) > .D_la"
+      fallback: ".D_la:nth-child(2)"
+      description: "新加坡位置选项"
+      region: "SG"
+
+# 弹窗和设置
+popups_and_settings:
+  whatsapp_close:
+    primary: "rect.D_axg"
+    fallback: "button[aria-label*='close']"
+    description: "WhatsApp弹窗关闭"
+    region: "all"
+  
+  meetup_toggle:
+    primary: "#FieldSetField-Container-field_meetup > .D_IL"
+    fallback: ".D_pZ > .D_mx"
+    description: "面交开关"
+    region: "all"
+  
+  delivery_toggle:
+    primary: ".D_agx > .D_mK"
+    fallback: "#FieldSetField-Container-field_mailing .D_mx"
+    description: "送货开关"
+    region: "all"
+
+# 发布相关
+publishing:
+  publish_button:
+    primary: "button.D_uG"
+    fallback: "button[type='submit']"
+    description: "发布按钮"
+    region: "all"
+
+# 编辑和激活
+editing:
+  inactive_tab:
+    primary: "button.D_bwN:nth-child(2)"
+    fallback: "button[class*='inactive']"
+    description: "未活跃标签页"
+    region: "all"
+  
+  inactive_first_item:
+    primary: "div.D_bvK"
+    fallback: "div[class*='item']"
+    description: "未活跃第一个商品"
+    region: "all"
+  
+  edit_button:
+    primary: ".D_boX:nth-child(1) > .D_mx"
+    fallback: "button[class*='edit']"
+    description: "编辑按钮"
+    region: "all"
+  
+  activate_button:
+    primary: "button.D_mo"
+    fallback: "button[class*='activate']"
+    description: "激活按钮"
+    region: "all"
+  
+  confirm_activate:
+    primary: "button.D_me"
+    fallback: "button[class*='confirm']"
+    description: "确认激活按钮"
+    region: "all"
+
+# 运动鞋特定选择器 - HK
+sneakers_hk:
+  category_selector:
+    primary: "div.D_aFi"
+    fallback: "div[class*='category']"
+    description: "HK运动鞋类目选择器"
+    region: "HK"
+  
+  category_search_input:
+    primary: ".D_aFn > .D_Kr"
+    fallback: "label.D_aFn"
+    description: "HK运动鞋类目搜索输入框"
+    region: "HK"
+  
+  category_search_keyword:
+    primary: "波鞋"
+    fallback: "运动鞋"
+    description: "HK运动鞋搜索关键词"
+    region: "HK"
+  
+  men_sneakers_option:
+    primary: ".D_aFp:nth-child(2) > .D_aFx > .D_mx"
+    fallback: ".D_aFp:nth-child(2) .D_mx"
+    description: "HK男装波鞋选项"
+    region: "HK"
+  
+  women_sneakers_option:
+    primary: ".D_aFp:nth-child(1) > .D_aFx > .D_mx"
+    fallback: ".D_aFp:nth-child(1) .D_mx"
+    description: "HK女装波鞋选项"
+    region: "HK"
+  
+  condition_selector:
+    primary: ".D_agi:nth-child(2) .D_oo:nth-child(1)"
+    fallback: ".D_oo:nth-child(1)"
+    description: "HK新旧条件选择器"
+    region: "HK"
+  
+  brand_selector:
+    primary: "#FieldSetField-Container-field_brand_enum .D_sp"
+    fallback: ".D_sp"
+    description: "HK品牌选择器"
+    region: "HK"
+  
+  brand_search_input:
+    primary: ".D_vy .D_Kr"
+    fallback: ".D_Kr"
+    description: "HK品牌搜索输入框"
+    region: "HK"
+  
+  brand_search_keyword:
+    primary: "其他"
+    fallback: "Other"
+    description: "HK品牌搜索关键词"
+    region: "HK"
+  
+  brand_option:
+    primary: "li.D_aeG"
+    fallback: "li[class*='brand']"
+    description: "HK其他品牌选项"
+    region: "HK"
+  
+  brand_input:
+    primary: "input#brand"
+    fallback: "input[name='brand']"
+    description: "HK品牌输入框"
+    region: "HK"
+  
+  size_selector:
+    primary: "#FieldSetField-Container-field_size .D_sp"
+    fallback: ".D_sp"
+    description: "HK尺寸选择器"
+    region: "HK"
+  
+  size_search_input:
+    primary: ".D_vy .D_Kr"
+    fallback: ".D_Kr"
+    description: "HK尺寸搜索输入框"
+    region: "HK"
+  
+  size_option:
+    primary: ".D_aeK > .D_aeQ > .D_mx"
+    fallback: ".D_aeQ .D_mx"
+    description: "HK尺寸选项"
+    region: "HK"
+  
+  multi_quantity_checkbox:
+    primary: "#FieldSetField-Container-field_multi_quantities .D_axg"
+    fallback: ".D_axg"
+    description: "HK多产品销售复选框"
+    region: "HK"
+  
+  meetup_toggle_hk:
+    primary: ".D_pZ > .D_mx"
+    fallback: ".D_mx"
+    description: "HK面交开关"
+    region: "HK"
+  
+  meetup_input:
+    primary: "input.D_vI"
+    fallback: "input[placeholder*='面交']"
+    description: "HK面交地点输入框"
+    region: "HK"
+  
+  meetup_option:
+    primary: ".D_cCh:nth-child(2) .D_mK"
+    fallback: ".D_mK"
+    description: "HK面交地点选项"
+    region: "HK"
+  
+  delivery_toggle_hk:
+    primary: ".D_agx > .D_mK"
+    fallback: ".D_mK"
+    description: "HK送货开关"
+    region: "HK"
+  
+  platform_payment_close:
+    primary: ".D_aeF:nth-child(2) .D_mx"
+    fallback: ".D_aeF .D_mx"
+    description: "HK平台收款关闭按钮"
+    region: "HK"
+  
+  confirm_platform_payment:
+    primary: "button.D_oU"
+    fallback: "button[class*='confirm']"
+    description: "HK确认关闭平台收款"
+    region: "HK"
+
+# 运动鞋特定选择器 - SG
+sneakers_sg:
+  category_selector:
+    primary: "div.D_aEc"
+    fallback: "div[class*='category']"
+    description: "SG运动鞋类目选择器"
+    region: "SG"
+  
+  category_search_input:
+    primary: ".D_aEi > .D_Kv"
+    fallback: ".D_aEi .D_Kv"
+    description: "SG运动鞋类目搜索输入框"
+    region: "SG"
+  
+  category_search_keyword:
+    primary: "sneakers"
+    fallback: "shoes"
+    description: "SG运动鞋搜索关键词"
+    region: "SG"
+  
+  men_sneakers_option:
+    primary: ".D_aEk:nth-child(2) > .D_aEs"
+    fallback: ".D_aEk:nth-child(2) .D_aEs"
+    description: "SG男装运动鞋选项"
+    region: "SG"
+  
+  women_sneakers_option:
+    primary: ".D_aEk:nth-child(3) > .D_aEs"
+    fallback: ".D_aEk:nth-child(3) .D_aEs"
+    description: "SG女装运动鞋选项"
+    region: "SG"
+  
+  condition_selector:
+    primary: ".D_agi:nth-child(2) .D_oo:nth-child(1)"
+    fallback: ".D_oo:nth-child(1)"
+    description: "SG新旧条件选择器"
+    region: "SG"
+  
+  brand_selector:
+    primary: "#FieldSetField-Container-field_brand_enum .D_sp"
+    fallback: ".D_sp"
+    description: "SG品牌选择器"
+    region: "SG"
+  
+  brand_search_input:
+    primary: ".D_vy .D_Kr"
+    fallback: ".D_Kr"
+    description: "SG品牌搜索输入框"
+    region: "SG"
+  
+  brand_search_keyword:
+    primary: "Other"
+    fallback: "其他"
+    description: "SG品牌搜索关键词"
+    region: "SG"
+  
+  brand_option:
+    primary: "li.D_aeG"
+    fallback: "li[class*='brand']"
+    description: "SG其他品牌选项"
+    region: "SG"
+  
+  brand_input:
+    primary: "input#brand"
+    fallback: "input[name='brand']"
+    description: "SG品牌输入框"
+    region: "SG"
+  
+  size_selector:
+    primary: "#FieldSetField-Container-field_size .D_sp"
+    fallback: ".D_sp"
+    description: "SG尺寸选择器"
+    region: "SG"
+  
+  size_search_input:
+    primary: ".D_vy .D_Kr"
+    fallback: ".D_Kr"
+    description: "SG尺寸搜索输入框"
+    region: "SG"
+  
+  size_option:
+    primary: ".D_aeK > .D_aeQ > .D_mx"
+    fallback: ".D_aeQ .D_mx"
+    description: "SG尺寸选项"
+    region: "SG"
+  
+  multi_quantity_checkbox:
+    primary: "#FieldSetField-Container-field_multi_quantities .D_axg"
+    fallback: ".D_axg"
+    description: "SG多产品销售复选框"
+    region: "SG"
+  
+  meetup_toggle_sg:
+    primary: ".D_pZ > .D_mx"
+    fallback: ".D_mx"
+    description: "SG面交开关"
+    region: "SG"
+  
+  meetup_input:
+    primary: "input.D_vI"
+    fallback: "input[placeholder*='meetup']"
+    description: "SG面交地点输入框"
+    region: "SG"
+  
+  meetup_option:
+    primary: ".D_cCh:nth-child(2) .D_mK"
+    fallback: ".D_mK"
+    description: "SG面交地点选项"
+    region: "SG"
+  
+  delivery_toggle_sg:
+    primary: ".D_agx > .D_mK"
+    fallback: ".D_mK"
+    description: "SG送货开关"
+    region: "SG"
+  
+  platform_payment_close:
+    primary: ".D_aeF:nth-child(2) .D_mx"
+    fallback: ".D_aeF .D_mx"
+    description: "SG平台收款关闭按钮"
+    region: "SG"
+  
+  confirm_platform_payment:
+    primary: "button.D_oU"
+    fallback: "button[class*='confirm']"
+    description: "SG确认关闭平台收款"
+    region: "SG"
+
+# 配置文件元数据
+metadata:
+  version: "2.0.0"
+  last_updated: "2024-01-01T00:00:00Z"
+  description: "CSS选择器配置文件，支持热更新和地域特定配置"
+  regions: ["HK", "SG", "MY"]
+  categories: ["sneakers", "bags", "clothes"]
+  region_field_support: true

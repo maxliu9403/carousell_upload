@@ -92,6 +92,6 @@ product:
 
 # 页面操作配置
 actions:
-  default_timeout: 8000    # 默认超时时间（毫秒）
+  default_timeout: 5000    # 默认超时时间（毫秒）
   retry_times: 1           # 重试次数
   retry_delay: 1.0         # 每次重试间隔（秒）
