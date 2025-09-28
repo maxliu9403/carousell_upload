@@ -123,14 +123,13 @@ class ImageClicker:
             if match_result:
                 x, y, w, h = match_result
                 
-                # 计算点击中心点
-                center_x = x + w // 2
-                center_y = y + h // 2
+                # 智能选择点击位置
+                click_x, click_y = self._find_smart_click_position(x, y, w, h)
                 
-                logger.info(f"点击图片位置: ({center_x}, {center_y})")
+                logger.info(f"点击图片位置: ({click_x}, {click_y})")
                 
                 # 执行点击
-                self.page.mouse.click(center_x, center_y)
+                self.page.mouse.click(click_x, click_y)
                 human_delay(0.5, 1.0)
                 
                 logger.info(f"成功点击图片: {template_path}")
@@ -168,14 +167,18 @@ class ImageClicker:
                 logger.info(f"尝试模板: {Path(template_path).name}")
                 
                 # 尝试不同的阈值
-                for threshold in [0.8, 0.7, 0.6]:
+                thresholds = [0.8, 0.7, 0.6]
+                for i, threshold in enumerate(thresholds):
                     logger.info(f"尝试阈值: {threshold}")
                     if self.click_image(template_path, threshold):
                         logger.info(f"成功点击AI文案按钮: {Path(template_path).name}")
                         return True
                     else:
-                        logger.info(f"阈值 {threshold} 未找到匹配，等待{self.threshold_delay}秒后尝试下一个阈值...")
-                        time.sleep(self.threshold_delay)
+                        logger.info(f"阈值 {threshold} 未找到匹配")
+                        # 在尝试下一个阈值前等待
+                        if i < len(thresholds) - 1:  # 不是最后一个阈值
+                            logger.info(f"等待{self.threshold_delay}秒后尝试下一个阈值...")
+                            time.sleep(self.threshold_delay)
             
             logger.info("所有AI文案模板都未找到匹配")
             return False
@@ -305,7 +308,7 @@ class ImageClicker:
         logger.info(f"开始匹配 {len(existing_templates)} 张模板")
         
         # 尝试不同的匹配阈值
-        for threshold in thresholds:
+        for i, threshold in enumerate(thresholds):
             logger.info(f"尝试匹配阈值: {threshold}")
             
             # 遍历所有模板文件
@@ -320,13 +323,89 @@ class ImageClicker:
                     return (template_path.name, threshold, match_result)
                 else:
                     logger.info(f"❌ 模板 {template_path.name} 阈值 {threshold} 未找到匹配")
-                    # 等待指定时间再尝试下一个阈值
-                    logger.info(f"等待{self.threshold_delay}秒后尝试下一个阈值...")
-                    time.sleep(self.threshold_delay)
+            
+            # 在尝试下一个阈值前等待
+            if i < len(thresholds) - 1:  # 不是最后一个阈值
+                logger.info(f"等待{self.threshold_delay}秒后尝试下一个阈值...")
+                time.sleep(self.threshold_delay)
         
         logger.info("所有模板都未找到匹配")
         return None
     
+    def _find_smart_click_position(self, x: int, y: int, w: int, h: int) -> Tuple[int, int]:
+        """
+        智能选择点击位置，避免无效区域
+        
+        Args:
+            x, y, w, h: 匹配区域的坐标和尺寸
+            
+        Returns:
+            Tuple[int, int]: 优化后的点击坐标
+        """
+        try:
+            # 截取匹配区域
+            screenshot_path = self.capture_page_screenshot()
+            screenshot = cv2.imread(screenshot_path)
+            
+            if screenshot is None:
+                logger.warning("无法读取截图，使用默认中心点")
+                return (x + w // 2, y + h // 2)
+            
+            # 提取匹配区域
+            region = screenshot[y:y+h, x:x+w]
+            
+            # 转换为灰度图
+            gray = cv2.cvtColor(region, cv2.COLOR_BGR2GRAY)
+            
+            # 使用边缘检测找到有效区域
+            edges = cv2.Canny(gray, 50, 150)
+            
+            # 查找轮廓
+            contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            
+            if contours:
+                # 找到最大的轮廓
+                largest_contour = max(contours, key=cv2.contourArea)
+                
+                # 计算轮廓的质心
+                M = cv2.moments(largest_contour)
+                if M["m00"] != 0:
+                    cx = int(M["m10"] / M["m00"])
+                    cy = int(M["m01"] / M["m00"])
+                    
+                    # 转换为全局坐标
+                    global_x = x + cx
+                    global_y = y + cy
+                    
+                    logger.info(f"智能点击位置: ({global_x}, {global_y}) (基于轮廓质心)")
+                    return (global_x, global_y)
+            
+            # 如果轮廓检测失败，尝试寻找非白色区域
+            # 将白色区域（接近255）设为0，其他区域设为1
+            mask = (gray < 240).astype(np.uint8) * 255
+            
+            # 查找非零像素
+            non_zero = cv2.findNonZero(mask)
+            if non_zero is not None and len(non_zero) > 0:
+                # 计算非零像素的中心
+                mean_x = int(np.mean(non_zero[:, 0, 0]))
+                mean_y = int(np.mean(non_zero[:, 0, 1]))
+                
+                # 转换为全局坐标
+                global_x = x + mean_x
+                global_y = y + mean_y
+                
+                logger.info(f"智能点击位置: ({global_x}, {global_y}) (基于非白色区域)")
+                return (global_x, global_y)
+            
+            # 如果所有方法都失败，使用默认中心点
+            logger.info("使用默认中心点作为点击位置")
+            return (x + w // 2, y + h // 2)
+            
+        except Exception as e:
+            logger.warning(f"智能点击位置计算失败: {e}，使用默认中心点")
+            return (x + w // 2, y + h // 2)
+
     def click_multiple_images(self, template_candidates: List[str],
                             thresholds: List[float] = None,
                             templates_dir: Path = None) -> bool:
@@ -348,14 +427,13 @@ class ImageClicker:
             if match_result:
                 template_name, threshold, (x, y, w, h) = match_result
                 
-                # 计算点击中心点
-                center_x = x + w // 2
-                center_y = y + h // 2
+                # 智能选择点击位置
+                click_x, click_y = self._find_smart_click_position(x, y, w, h)
                 
-                logger.info(f"点击图片位置: ({center_x}, {center_y})")
+                logger.info(f"点击图片位置: ({click_x}, {click_y})")
                 
                 # 执行点击
-                self.page.mouse.click(center_x, center_y)
+                self.page.mouse.click(click_x, click_y)
                 human_delay(0.5, 1.0)
                 
                 logger.info(f"成功点击图片: {template_name} (阈值: {threshold})")
@@ -366,40 +444,7 @@ class ImageClicker:
                 
         except Exception as e:
             logger.error(f"多张图片点击失败: {e}")
-            return False
-    
-    def generate_template_candidates(self, base_name: str, region: str = None, 
-                                   max_count: int = 3) -> List[str]:
-        """
-        生成模板候选文件名列表 - 通用方法
-        
-        Args:
-            base_name: 基础模板名称 (如 "close_delivery")
-            region: 地域代码 (HK, SG, MY等)
-            max_count: 最大模板数量，默认3个
-            
-        Returns:
-            List[str]: 候选文件名列表，按优先级排序
-        """
-        candidates = []
-        
-        # 地域特定模板（优先级高）
-        if region and region != "all":
-            # 地域特定的多张模板
-            for i in range(1, max_count + 1):
-                candidates.append(f"{base_name}_{region.lower()}_{i}.png")
-            # 默认地域模板
-            candidates.append(f"{base_name}_{region.lower()}.png")
-        
-        # 通用模板（优先级低）
-        for i in range(1, max_count + 1):
-            candidates.append(f"{base_name}_{i}.png")
-        # 默认通用模板
-        candidates.append(f"{base_name}.png")
-        
-        return candidates
-    
-
+            return False  
 
 def click_ai_writing_button_with_image(page: Page, region: str = "all", 
                                       templates_dir: str = "templates") -> bool:
