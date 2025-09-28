@@ -17,7 +17,7 @@ from browser.actions import human_delay
 class ImageClicker:
     """图片匹配点击器"""
     
-    def __init__(self, page: Page, templates_dir: str = "templates", threshold_delay: float = 2.0):
+    def __init__(self, page: Page, templates_dir: str = "templates", threshold_delay: float = 1.0):
         """
         初始化图片匹配点击器
         
