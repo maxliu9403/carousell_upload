@@ -181,6 +181,8 @@ class BaseUploader:
         self.region = region
         self.browser_id = browser_id
         self.sku = sku
+        # 初始化日志前缀
+        self.log_prefix = f"BrowserID: {browser_id}, SKU: {sku}, " if browser_id and sku else ""
         # 初始化增强安全操作
         self.safe_actions = EnhancedSafeActions(page, browser_id, sku)
         
@@ -224,42 +226,77 @@ class BaseUploader:
         if self.region == "SG":
             # 选择地域相关设置
             self._select_location_by_region()
-        
-        # 发布商品
-        self._publish_product()
-        
+
         # 等待页面稳定
         self.page.wait_for_timeout(10000)
+
+        # 发布商品
+        self._publish_product()
+
+        # 判断是否存在出现 # div.D_wC，如果存在，则点击
+        if self.page.query_selector("#div.D_wC"):
+            self._publish_product()
+        
     
     # HK逻辑
     def _closewhatsapp(self):
-        """关闭WhatsApp"""
-        if self.page.query_selector("button.D_mk"):
-            logger.info("关闭whatsapp")
+        """关闭WhatsApp - 智能检测版本"""
+        logger.info(f"{self.log_prefix}开始检查WhatsApp弹窗")
+        
+        # 使用用户交互式检测WhatsApp弹窗
+        whatsapp_detected = self.safe_actions.safe_check_element_with_user_interaction(
+            "popups_and_settings.whatsapp_detection", self.region,
+            operation="检测WhatsApp弹窗", timeout_seconds=30
+        )
+        
+        if whatsapp_detected:
+            logger.info(f"{self.log_prefix}检测到WhatsApp弹窗，准备关闭")
             self.safe_actions.safe_click_with_config(
                 "popups_and_settings.whatsapp_close", self.region, must_exist=True,
                 operation="关闭WhatsApp"
             )
+        else:
+            logger.info(f"{self.log_prefix}未检测到WhatsApp弹窗，跳过关闭操作")
     
     # HK逻辑
     def _closemeetup(self):
-        """关闭meetup"""
-        if self.page.query_selector("input.D_vI"):
-            logger.info("关闭面交")
+        """关闭面交 - 智能检测版本"""
+        logger.info(f"{self.log_prefix}开始检查面交状态")
+        
+        # 使用用户交互式检测面交状态
+        meetup_enabled = self.safe_actions.safe_check_element_with_user_interaction(
+            "popups_and_settings.meetup_detection", self.region,
+            operation="检测面交状态", timeout_seconds=30
+        )
+        
+        if meetup_enabled:
+            logger.info(f"{self.log_prefix}检测到面交已开启，准备关闭")
             self.safe_actions.safe_click_with_config(
                 "popups_and_settings.meetup_toggle", self.region, must_exist=True,
                 operation="关闭面交"
             )
+        else:
+            logger.info(f"{self.log_prefix}面交未开启，跳过关闭操作")
 
     # HK开启送货
     def _open_delivery(self):
-        """开启送货"""
-        if not self.page.query_selector("#FieldSetField-Container-field_mailing_details .D_tk"):
-            logger.info("开启送货")
+        """开启送货 - 智能检测版本"""
+        logger.info(f"{self.log_prefix}开始检查送货状态")
+        
+        # 使用用户交互式检测送货状态
+        delivery_enabled = self.safe_actions.safe_check_element_with_user_interaction(
+            "popups_and_settings.delivery_detection", self.region,
+            operation="检测送货状态", timeout_seconds=30
+        )
+        
+        if not delivery_enabled:
+            logger.info(f"{self.log_prefix}检测到送货未开启，准备开启")
             self.safe_actions.safe_click_with_config(
                 "popups_and_settings.delivery_toggle", self.region, must_exist=True,
                 operation="开启送货"
             )
+        else:
+            logger.info(f"{self.log_prefix}送货已开启，跳过开启操作")
             
     # ========= 公共方法：页面导航 =========
     def _navigate_to_homepage(self):
@@ -303,17 +340,8 @@ class BaseUploader:
                 operation="关闭新账号弹窗"
             )
         
-        # 忽略AI编写文案
-        self.safe_actions.safe_click_with_config(
-            "basic_elements.ai_writing_cancel", self.region, must_exist=False,
-            operation="取消AI编写文案"
-        )
-        
-        # 尝试点击改为手动填写按钮（如果AI编写文案没有被取消）
-        self.safe_actions.safe_click_with_config(
-            "basic_elements.manual_writing_button", self.region, must_exist=False,
-            operation="改为手动填写"
-        )
+        # 处理AI文案相关操作（使用图片匹配）
+        self._handle_ai_writing_operations()
 
     def _select_service_category(self):
         """选择服务类目"""
@@ -394,57 +422,67 @@ class BaseUploader:
             )
 
     def _handle_ai_writing_operations(self):
-        """处理AI文案相关操作 - 深度优化版本"""
+        """处理AI文案相关操作 - 基于ImageClicker的优化版本"""
         logger.info(f"{self.log_prefix}开始处理AI文案相关操作")
         
-        # 策略1: 尝试基于class的CSS选择器
-        strategies = [
-            ("basic_elements.ai_writing_cancel", "取消AI编写文案 (CSS)"),
-            ("basic_elements.manual_writing_button", "改为手动填写 (CSS)"),
-            ("basic_elements.manual_writing_button_xpath", "改为手动填写 (XPath)"),
-            ("basic_elements.manual_writing_button_locator", "改为手动填写 (Locator)")
-        ]
-        
-        for element_key, operation_desc in strategies:
-            try:
-                success = self.safe_actions.safe_click_with_config(
-                    element_key, self.region, must_exist=False,
-                    operation=operation_desc
-                )
+        try:
+            # 使用ImageClicker专门匹配ai_writing_cancel.png
+            from .image_clicker import ImageClicker
+            
+            image_clicker = ImageClicker(self.page)
+            
+            # 专门查找ai_writing_cancel.png模板（支持地域特定模板）
+            template_candidates = [
+                f"ai_writing_cancel_{self.region.lower()}.png",  # 地域特定模板
+                "ai_writing_cancel.png"  # 通用模板
+            ]
+            
+            template_path = None
+            for candidate in template_candidates:
+                candidate_path = image_clicker.ai_templates_dir / candidate
+                if candidate_path.exists():
+                    template_path = candidate_path
+                    logger.info(f"{self.log_prefix}找到模板文件: {candidate}")
+                    break
+            
+            if template_path is None:
+                logger.info(f"{self.log_prefix}未找到任何AI文案取消模板文件")
+                logger.info(f"{self.log_prefix}AI文案操作跳过，继续执行后续流程")
+                return
+            
+            logger.info(f"{self.log_prefix}开始匹配模板: {template_path.name}")
+            
+            # 尝试不同的匹配阈值
+            thresholds = [0.8, 0.7, 0.6]
+            for threshold in thresholds:
+                logger.info(f"{self.log_prefix}尝试匹配阈值: {threshold}")
                 
-                if success:
-                    logger.info(f"{self.log_prefix}成功: {operation_desc}")
+                # 查找图片位置
+                match_result = image_clicker.find_image_on_page(str(template_path), threshold)
+                
+                if match_result:
+                    x, y, w, h = match_result
+                    center_x = x + w // 2
+                    center_y = y + h // 2
+                    
+                    logger.info(f"{self.log_prefix}找到匹配位置: ({center_x}, {center_y}), 置信度: {threshold}")
+                    
+                    # 执行点击
+                    self.page.mouse.click(center_x, center_y)
+                    from browser.actions import human_delay
+                    human_delay(0.5, 1.0)
+                    
+                    logger.info(f"{self.log_prefix}成功点击AI文案取消按钮 (阈值: {threshold})")
                     return
                 else:
-                    logger.info(f"{self.log_prefix}跳过: {operation_desc}")
-                    
-            except Exception as e:
-                logger.info(f"{self.log_prefix}跳过: {operation_desc}, 原因: {e}")
-                continue
-        
-        # 策略2: 直接使用Playwright的文本定位器作为最后手段
-        try:
-            logger.info(f"{self.log_prefix}尝试直接文本定位器")
-            element = self.page.get_by_text("改為手動填寫").first
-            if element.is_visible():
-                element.click()
-                logger.info(f"{self.log_prefix}成功: 直接文本定位器")
-                return
+                    logger.info(f"{self.log_prefix}阈值 {threshold} 未找到匹配")
+            
+            logger.info(f"{self.log_prefix}所有阈值都未找到 {template_path.name} 匹配")
+            
         except Exception as e:
-            logger.info(f"{self.log_prefix}直接文本定位器失败: {e}")
+            logger.info(f"{self.log_prefix}图片匹配异常: {e}")
         
-        # 策略3: 尝试查找包含特定文本的按钮
-        try:
-            logger.info(f"{self.log_prefix}尝试按钮文本定位器")
-            element = self.page.locator("button:has-text('改為手動填寫')").first
-            if element.is_visible():
-                element.click()
-                logger.info(f"{self.log_prefix}成功: 按钮文本定位器")
-                return
-        except Exception as e:
-            logger.info(f"{self.log_prefix}按钮文本定位器失败: {e}")
-        
-        logger.info(f"{self.log_prefix}所有AI文案相关操作都跳过，继续执行后续流程")
+        logger.info(f"{self.log_prefix}AI文案操作跳过，继续执行后续流程")
         
     def _select_location_by_region(self):
         """根据地域选择Location"""
@@ -547,13 +585,12 @@ class BaseUploader:
             selector: CSS选择器
             timeout: 超时时间（毫秒），默认60秒
         """
-        log_prefix = f"BrowserID: {self.browser_id}, SKU: {self.sku}, " if self.browser_id and self.sku else ""
-        logger.info(f"{log_prefix}等待元素消失: {selector}, 超时时间: {timeout}ms")
+        logger.info(f"{self.log_prefix}等待元素消失: {selector}, 超时时间: {timeout}ms")
         
         try:
             # 等待元素消失
             self.page.wait_for_selector(selector, state="detached", timeout=timeout)
-            logger.info(f"{log_prefix}元素已消失: {selector}")
+            logger.info(f"{self.log_prefix}元素已消失: {selector}")
             return True
         except Exception as e:
             error_msg = f"等待元素消失超时: {selector}, 超时时间: {timeout}ms"

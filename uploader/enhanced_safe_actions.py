@@ -177,7 +177,7 @@ class EnhancedSafeActions:
         
         Args:
             element_key: 元素键名
-            operation_type: 操作类型 (click, input)
+            operation_type: 操作类型 (click, input, check)
             operation_func: 操作函数
             *args, **kwargs: 操作函数参数
             
@@ -216,6 +216,8 @@ class EnhancedSafeActions:
                 result = self._smart_click(new_selector, True, DEFAULT_TIMEOUT)
             elif operation_type == "input":
                 result = self._smart_input(new_selector, args[0], True, DEFAULT_TIMEOUT)
+            elif operation_type == "check":
+                result = self._check_element_exists(new_selector, must_exist, DEFAULT_TIMEOUT)
             else:
                 logger.error(f"❌ 不支持的操作类型: {operation_type}")
                 return False
@@ -303,7 +305,7 @@ class EnhancedSafeActions:
                         logger.error(f"{self.log_prefix}所有选择器都失败，请求用户更新")
                         return self._update_selector_and_retry(
                             element_key, "click", click_with_wait, 
-                            must_exist, self.page, primary_selector, must_exist, timeout
+                            must_exist, primary_selector, must_exist, timeout
                         )
                         
             except Exception as e:
@@ -313,7 +315,7 @@ class EnhancedSafeActions:
                     logger.error(f"{self.log_prefix}操作失败，请求用户更新选择器")
                     return self._update_selector_and_retry(
                         element_key, "click", click_with_wait,
-                        must_exist, self.page, primary_selector, must_exist, timeout
+                        must_exist, primary_selector, must_exist, timeout
                     )
         
         return False
@@ -388,7 +390,7 @@ class EnhancedSafeActions:
                         logger.error(f"{self.log_prefix}所有选择器都失败，请求用户更新")
                         return self._update_selector_and_retry(
                             element_key, "input", input_with_wait,
-                            must_exist, self.page, primary_selector, text, must_exist, timeout
+                            must_exist, primary_selector, text, must_exist, timeout
                         )
                         
             except Exception as e:
@@ -398,7 +400,7 @@ class EnhancedSafeActions:
                     logger.error(f"{self.log_prefix}操作失败，请求用户更新选择器")
                     return self._update_selector_and_retry(
                         element_key, "input", input_with_wait,
-                        must_exist, self.page, primary_selector, text, must_exist, timeout
+                        must_exist, primary_selector, text, must_exist, timeout
                     )
         
         return False
@@ -445,6 +447,223 @@ class EnhancedSafeActions:
         return self.safe_input_with_config(
             element_key, text, region, must_exist, timeout, operation, max_retries
         )
+    
+    def safe_check_element_exists_with_config(self, element_key: str, region: str = None,
+                                            must_exist: bool = False, timeout: int = None,
+                                            operation: str = "检测元素", max_retries: int = 1) -> bool:
+        """
+        基于配置文件的元素存在性检测
+        
+        Args:
+            element_key: 元素键名
+            region: 地域代码
+            must_exist: 是否必须存在
+            timeout: 超时时间
+            operation: 操作描述
+            max_retries: 最大重试次数
+            
+        Returns:
+            bool: 元素是否存在
+        """
+        # 设置默认超时时间
+        if timeout is None:
+            timeout = DEFAULT_TIMEOUT
+        
+        # 检查并重新加载配置
+        self.css_manager.check_and_reload()
+        
+        # 获取选择器
+        primary_selector, fallback_selector = self.css_manager.get_selector_with_fallback(
+            element_key, region
+        )
+        
+        if not primary_selector:
+            logger.warning(f"⚠️ 找不到选择器配置: {element_key}")
+            if must_exist:
+                return self._update_selector_and_retry(
+                    element_key, "check", self._check_element_exists,
+                    must_exist, timeout, operation, max_retries
+                )
+            else:
+                logger.info(f"ℹ️ 跳过元素检测: {element_key}")
+                return False
+        
+        # 先尝试主选择器
+        try:
+            result = self._check_element_exists(primary_selector, must_exist, timeout)
+            if result:
+                logger.debug(f"✅ 主选择器检测成功: {element_key}")
+                return True
+        except Exception as e:
+            logger.warning(f"⚠️ 主选择器检测失败: {primary_selector}, 错误: {e}")
+        
+        # 尝试备用选择器
+        if fallback_selector:
+            try:
+                result = self._check_element_exists(fallback_selector, must_exist, timeout)
+                if result:
+                    logger.debug(f"✅ 备用选择器检测成功: {element_key}")
+                    return True
+            except Exception as e:
+                logger.warning(f"⚠️ 备用选择器检测失败: {fallback_selector}, 错误: {e}")
+        
+        # 如果都失败了且需要存在，则请求用户更新选择器
+        if must_exist:
+            return self._update_selector_and_retry(
+                element_key, "check", self._check_element_exists,
+                must_exist, timeout, operation, max_retries
+            )
+        
+        logger.info(f"ℹ️ 元素不存在: {element_key}")
+        return False
+    
+    def _check_element_exists(self, selector: str, must_exist: bool = False, timeout: int = None) -> bool:
+        """
+        检测元素是否存在
+        
+        Args:
+            selector: CSS选择器
+            must_exist: 是否必须存在
+            timeout: 超时时间
+            
+        Returns:
+            bool: 元素是否存在
+        """
+        try:
+            # 使用page.query_selector快速检测
+            element = self.page.query_selector(selector)
+            if element:
+                # 检查元素是否可见
+                if element.is_visible():
+                    logger.debug(f"✅ 元素存在且可见: {selector}")
+                    return True
+                else:
+                    logger.debug(f"⚠️ 元素存在但不可见: {selector}")
+                    return False
+            else:
+                logger.debug(f"❌ 元素不存在: {selector}")
+                return False
+                
+        except Exception as e:
+            logger.warning(f"⚠️ 元素检测异常: {selector}, 错误: {e}")
+            return False
+    
+    def safe_check_element_with_user_interaction(self, element_key: str, region: str = None,
+                                               operation: str = "检测元素", 
+                                               timeout_seconds: int = 30) -> bool:
+        """
+        检测元素存在性，如果不存在则等待用户重新捕获CSS选择器
+        
+        Args:
+            element_key: 元素键名
+            region: 地域代码
+            operation: 操作描述
+            timeout_seconds: 等待用户输入的超时时间（秒）
+            
+        Returns:
+            bool: 元素是否存在
+        """
+        # 检查并重新加载配置
+        self.css_manager.check_and_reload()
+        
+        # 获取选择器
+        primary_selector, fallback_selector = self.css_manager.get_selector_with_fallback(
+            element_key, region
+        )
+        
+        if not primary_selector:
+            logger.warning(f"⚠️ 找不到选择器配置: {element_key}")
+            return self._wait_for_user_css_input(element_key, operation, timeout_seconds)
+        
+        # 先尝试主选择器
+        try:
+            element = self.page.query_selector(primary_selector)
+            if element and element.is_visible():
+                logger.debug(f"✅ 主选择器检测成功: {element_key}")
+                return True
+        except Exception as e:
+            logger.warning(f"⚠️ 主选择器检测失败: {primary_selector}, 错误: {e}")
+        
+        # 尝试备用选择器
+        if fallback_selector:
+            try:
+                element = self.page.query_selector(fallback_selector)
+                if element and element.is_visible():
+                    logger.debug(f"✅ 备用选择器检测成功: {element_key}")
+                    return True
+            except Exception as e:
+                logger.warning(f"⚠️ 备用选择器检测失败: {fallback_selector}, 错误: {e}")
+        
+        # 如果都失败了，等待用户重新捕获
+        return self._wait_for_user_css_input(element_key, operation, timeout_seconds)
+    
+    def _wait_for_user_css_input(self, element_key: str, operation: str, timeout_seconds: int) -> bool:
+        """
+        等待用户输入新的CSS选择器
+        
+        Args:
+            element_key: 元素键名
+            operation: 操作描述
+            timeout_seconds: 超时时间
+            
+        Returns:
+            bool: 元素是否存在（用户输入后重新检测的结果）
+        """
+        print(f"\n{'='*60}")
+        print(f"⚠️  CSS选择器失效检测")
+        print(f"{'='*60}")
+        print(f"🔍 操作: {operation}")
+        print(f"🎯 元素: {element_key}")
+        print(f"⏰ 等待时间: {timeout_seconds}秒")
+        print(f"\n📋 选项:")
+        print(f"   1. 输入新的CSS选择器")
+        print(f"   2. 输入 'skip' 跳过此操作")
+        print(f"{'='*60}")
+        
+        try:
+            # 直接获取用户输入，不使用多线程
+            user_input = input(f"\n💬 请输入新的CSS选择器 (或输入 'skip' 跳过): ").strip()
+            
+            if user_input.lower() == 'skip':
+                logger.info(f"✅ 用户跳过操作: {element_key}")
+                return False
+            elif user_input:
+                # 更新配置并重新检测
+                logger.info(f"🔄 用户提供新选择器: {user_input}")
+                success = self.css_manager.update_selector(element_key, "primary", user_input)
+                
+                if success:
+                    logger.info(f"✅ CSS选择器已更新: {element_key} -> {user_input}")
+                    
+                    # 等待页面稳定
+                    from browser.actions import human_delay
+                    human_delay(1, 2)
+                    
+                    # 重新检测
+                    try:
+                        element = self.page.query_selector(user_input)
+                        if element and element.is_visible():
+                            logger.info(f"✅ 新选择器检测成功: {element_key}")
+                            return True
+                        else:
+                            logger.warning(f"⚠️ 新选择器检测失败: {user_input}")
+                            return False
+                    except Exception as e:
+                        logger.error(f"❌ 新选择器检测异常: {e}")
+                        return False
+                else:
+                    logger.error(f"❌ 更新CSS选择器配置失败: {element_key}")
+                    return False
+            else:
+                logger.warning(f"⚠️ 用户输入为空，按原逻辑执行")
+                return False
+                
+        except KeyboardInterrupt:
+            logger.info(f"⚠️ 用户中断操作: {element_key}")
+            return False
+        except Exception as e:
+            logger.error(f"❌ 用户输入异常: {e}")
+            return False
 
 
 # 便捷函数

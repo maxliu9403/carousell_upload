@@ -79,6 +79,51 @@ class CSSSelectorManager:
         self.check_and_reload()
         
         try:
+            # 首先尝试地域特定的选择器
+            if region and region != "all":
+                # 构建地域特定的键名
+                keys = element_key.split('.')
+                if len(keys) >= 2:
+                    # 例如: category_selection.service_category_option -> category_selection.service_category_option_sg
+                    region_specific_key = f"{keys[0]}.{keys[1]}_{region.lower()}"
+                    selector = self._get_selector_by_key(region_specific_key, selector_type, region)
+                    if selector:
+                        logger.debug(f"🎯 使用地域特定选择器: {region_specific_key} -> {selector}")
+                        return selector
+                else:
+                    # 如果只有一个键，直接添加地域后缀
+                    region_specific_key = f"{element_key}_{region.lower()}"
+                    selector = self._get_selector_by_key(region_specific_key, selector_type, region)
+                    if selector:
+                        logger.debug(f"🎯 使用地域特定选择器: {region_specific_key} -> {selector}")
+                        return selector
+            
+            # 尝试通用选择器
+            selector = self._get_selector_by_key(element_key, selector_type, region)
+            if selector:
+                logger.debug(f"🎯 使用通用选择器: {element_key} -> {selector}")
+                return selector
+            
+            logger.warning(f"⚠️ 找不到选择器配置: {element_key}")
+            return None
+                
+        except Exception as e:
+            logger.error(f"❌ 获取CSS选择器失败: {element_key}, 错误: {e}")
+            return None
+    
+    def _get_selector_by_key(self, element_key: str, selector_type: str, region: str = None) -> Optional[str]:
+        """
+        根据键名获取选择器
+        
+        Args:
+            element_key: 元素键名
+            selector_type: 选择器类型
+            region: 地域代码
+            
+        Returns:
+            Optional[str]: CSS选择器字符串
+        """
+        try:
             # 解析嵌套路径
             keys = element_key.split('.')
             current_data = self.config_data
@@ -87,7 +132,6 @@ class CSSSelectorManager:
                 if isinstance(current_data, dict) and key in current_data:
                     current_data = current_data[key]
                 else:
-                    logger.warning(f"⚠️ 找不到元素配置: {element_key}")
                     return None
             
             # 如果是地域特定的选择器
@@ -98,17 +142,13 @@ class CSSSelectorManager:
             if isinstance(current_data, dict):
                 if selector_type in current_data:
                     selector = current_data[selector_type]
-                    logger.debug(f"🎯 获取CSS选择器: {element_key} -> {selector}")
                     return selector
                 else:
-                    logger.warning(f"⚠️ 找不到选择器类型 {selector_type}: {element_key}")
                     return None
             elif isinstance(current_data, str):
                 # 直接是字符串选择器
-                logger.debug(f"🎯 获取CSS选择器: {element_key} -> {current_data}")
                 return current_data
             else:
-                logger.warning(f"⚠️ 无效的选择器配置: {element_key}")
                 return None
                 
         except Exception as e:
