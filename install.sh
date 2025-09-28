@@ -168,11 +168,54 @@ check_pip() {
 get_project_files() {
     print_info "🔍 获取项目文件列表..."
     
+    # 检查GitHub API访问限制
+    print_info "检查GitHub API访问状态..."
+    local api_status=$(curl -s -o /dev/null -w "%{http_code}" "https://api.github.com/repos/maxliu9403/carousell_upload/contents" 2>/dev/null)
+    
+    if [ "$api_status" = "403" ]; then
+        print_warning "⚠️ GitHub API访问受限 (HTTP 403)"
+        print_info "可能原因:"
+        print_info "  - API请求次数超限 (未认证用户每小时60次)"
+        print_info "  - 需要配置GitHub Token"
+        print_info "解决方案:"
+        print_info "  - 等待1小时后重试"
+        print_info "  - 或设置GITHUB_TOKEN环境变量"
+        print_info "  - 或使用静态文件列表"
+        return 1
+    elif [ "$api_status" = "404" ]; then
+        print_error "❌ 仓库不存在或无法访问 (HTTP 404)"
+        return 1
+    elif [ "$api_status" != "200" ]; then
+        print_warning "⚠️ GitHub API访问异常 (HTTP $api_status)"
+        print_info "回退到静态文件列表"
+        return 1
+    fi
+    
     # 尝试从GitHub API获取文件列表
     local api_url="https://api.github.com/repos/maxliu9403/carousell_upload/contents"
     local temp_file="/tmp/project_files.json"
     
-    if curl -fsSL "$api_url" -o "$temp_file" 2>/dev/null; then
+    # 检查是否有GitHub Token
+    local github_token=""
+    if [ -n "$GITHUB_TOKEN" ]; then
+        print_info "使用GitHub Token进行认证"
+        github_token="$GITHUB_TOKEN"
+    elif [ -f "$HOME/.github_token" ]; then
+        print_info "从文件读取GitHub Token"
+        github_token=$(cat "$HOME/.github_token" 2>/dev/null | tr -d '\n\r')
+    fi
+    
+    # 构建curl命令
+    local curl_cmd="curl -fsSL"
+    if [ -n "$github_token" ]; then
+        curl_cmd="$curl_cmd -H \"Authorization: token $github_token\""
+        print_info "使用认证Token访问GitHub API"
+    else
+        print_warning "未配置GitHub Token，使用匿名访问 (限制: 60次/小时)"
+    fi
+    
+    print_info "GitHub API访问正常，获取文件列表..."
+    if eval "$curl_cmd \"$api_url\"" -o "$temp_file" 2>/dev/null; then
         # 使用Python解析GitHub API响应，获取文件哈希和修改时间
         python3 -c "
 import json
@@ -232,8 +275,26 @@ except Exception as e:
         fi
     fi
     
-    # 如果API失败，使用预定义的文件列表作为备用
-    print_warning "⚠️ API获取失败，使用预定义文件列表"
+    # 如果API失败，尝试其他方法
+    print_warning "⚠️ API获取失败，尝试备用方案"
+    
+    # 备用方案1: 尝试Git克隆
+    if command -v git &> /dev/null; then
+        print_info "尝试使用Git克隆获取最新代码..."
+        if git clone --depth 1 https://github.com/maxliu9403/carousell_upload.git temp_repo 2>/dev/null; then
+            print_success "✅ Git克隆成功，使用克隆的代码"
+            # 复制文件到当前目录
+            cp -r temp_repo/* . 2>/dev/null || true
+            cp -r temp_repo/.* . 2>/dev/null || true
+            rm -rf temp_repo
+            return 0
+        else
+            print_warning "Git克隆失败，回退到静态文件列表"
+        fi
+    fi
+    
+    # 备用方案2: 使用预定义文件列表
+    print_warning "⚠️ 使用预定义文件列表"
     return 1
 }
 
@@ -968,6 +1029,31 @@ EOF
     print_success "快速启动脚本创建完成: run.sh"
 }
 
+# 显示GitHub Token配置指南
+show_github_token_guide() {
+    print_info "🔑 GitHub Token 配置指南"
+    echo ""
+    print_info "为了获得更好的更新体验，建议配置GitHub Token:"
+    echo ""
+    print_info "方法1: 环境变量"
+    print_info "  export GITHUB_TOKEN=your_token_here"
+    echo ""
+    print_info "方法2: 文件配置"
+    print_info "  echo 'your_token_here' > ~/.github_token"
+    echo ""
+    print_info "获取Token步骤:"
+    print_info "  1. 访问: https://github.com/settings/tokens"
+    print_info "  2. 点击 'Generate new token'"
+    print_info "  3. 选择 'public_repo' 权限"
+    print_info "  4. 复制生成的Token"
+    echo ""
+    print_info "Token优势:"
+    print_info "  - 每小时5000次API请求 (vs 60次匿名)"
+    print_info "  - 更稳定的文件更新"
+    print_info "  - 支持私有仓库访问"
+    echo ""
+}
+
 # 显示使用说明
 show_usage() {
     print_success "🎉 安装完成！"
@@ -975,6 +1061,10 @@ show_usage() {
     print_info "📁 项目目录: $PROJECT_DIR"
     print_info "🐍 虚拟环境: $PROJECT_DIR/venv"
     echo ""
+    
+    # 显示GitHub Token配置指南
+    show_github_token_guide
+    
     print_info "🚀 快速使用:"
     
     # 根据操作系统显示正确的激活路径
