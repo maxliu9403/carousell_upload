@@ -66,9 +66,7 @@ class SGSneakersUploader(BaseUploader):
         # 进入编辑模式
         self._enter_edit_mode()
         
-        # 处理AI文案相关操作
-        self._handle_ai_writing_operations()
-        
+
         # 修改为运动鞋类目
         self._change_to_sneakers_category(enriched_info)
         
@@ -76,7 +74,10 @@ class SGSneakersUploader(BaseUploader):
         self._fill_sneakers_details(enriched_info)
         
         # 处理面交设置
-        self._handle_meetup_settings(enriched_info)
+        self._openmeetup()
+
+        # 关闭收款保障
+        self._close_buyer_protection()
     
     def _change_to_sneakers_category(self, enriched_info: ProductInfo):
         """修改为运动鞋类目"""
@@ -180,37 +181,7 @@ class SGSneakersUploader(BaseUploader):
         )
     
     
-    def _handle_meetup_settings(self, enriched_info: ProductInfo):
-        """处理面交设置"""
-        # 检查是否存在已选好的面交地点
-        meetup_input_selector = self.safe_actions.css_manager.get_selector(
-            "sneakers_sg.meetup_input", self.region, "primary"
-        ) or "input.D_tk"
-        
-        if not self.page.query_selector(meetup_input_selector):
-            logger.info("页面中不存在已选好的面交地点，执行面交相关操作")
-            
-            # 开启面交
-            self.safe_actions.safe_click_with_config(
-                "sneakers_sg.meetup_toggle_sg", self.region, must_exist=True,
-                operation="开启面交"
-            )
 
-            # 点击面交地点选择框
-            self.safe_actions.safe_input_with_config(
-                "sneakers_sg.meetup_input", enriched_info.meetup_location, self.region, must_exist=True,
-                operation="输入面交地点"
-            )
-            
-            self.page.wait_for_timeout(2000)
-            
-            # 选择面交地点
-            self.safe_actions.safe_click_with_config(
-                "sneakers_sg.meetup_option", self.region, must_exist=True,
-                operation="选择面交地点"
-            )
-        else:
-            logger.info("页面中存在已选好的面交地点，跳过面交相关操作")
 
     def _handle_other_settings(self):
         """处理其他设置 - 仅用于直上传方式"""

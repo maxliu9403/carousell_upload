@@ -282,14 +282,56 @@ class BaseUploader:
             logger.error(f"{self.log_prefix}检测面交状态异常: {e}")
             logger.info(f"{self.log_prefix}跳见面交关闭操作")
 
+    def _openmeetup(self):
+        """开启面交"""
+        logger.info(f"{self.log_prefix}开始检查面交状态")
+        
+        try:
+            # 直接检测面交状态文字
+            meetup_enabled = self.page.locator("text=添加地點").is_visible()
+            
+            if not meetup_enabled:
+                logger.info(f"{self.log_prefix}检测到面交未开启，准备开启")
+                self.safe_actions.safe_click_with_config(
+                    "popups_and_settings.meetup_toggle", self.region, must_exist=True,
+                    operation="开启面交"
+                )
+            else:
+                logger.info(f"{self.log_prefix}面交已开启，跳过开启操作")
+                
+        except Exception as e:
+            logger.error(f"{self.log_prefix}检测面交状态异常: {e}")
+            logger.info(f"{self.log_prefix}跳见面交开启操作")
+
+    def _close_delivery(self):
+        """关闭送货"""
+        logger.info(f"{self.log_prefix}开始检查送货状态")
+        
+        try:
+            # 直接检测送货状态文字
+            delivery_enabled = self.page.locator("text=仲有冇額外郵寄資料同埋更多選擇").is_visible()
+            
+            if delivery_enabled:
+                logger.info(f"{self.log_prefix}检测到送货已开启，准备关闭")
+                self.safe_actions.safe_click_with_config(
+                    "popups_and_settings.delivery_toggle", self.region, must_exist=True,
+                    operation="关闭送货"
+                )
+            else:
+                logger.info(f"{self.log_prefix}送货未开启，跳过关闭操作")
+                
+        except Exception as e:
+            logger.error(f"{self.log_prefix}检测送货状态异常: {e}")
+            logger.info(f"{self.log_prefix}跳过送货关闭操作")
+
     # HK开启送货
     def _open_delivery(self):
         """开启送货 - 简化检测版本"""
         logger.info(f"{self.log_prefix}开始检查送货状态")
         
         try:
-            # 直接检测送货状态文字
-            delivery_enabled = self.page.locator("text=仲有冇額外郵寄資料同埋更多選擇").is_visible()
+            # 直接检测送货状态 - 通过placeholder属性检测
+            delivery_enabled = self.page.locator("textarea[placeholder='仲有冇額外郵寄資料同埋更多選擇']").is_visible()
             
             if not delivery_enabled:
                 logger.info(f"{self.log_prefix}检测到送货未开启，准备开启")
@@ -303,7 +345,34 @@ class BaseUploader:
         except Exception as e:
             logger.error(f"{self.log_prefix}检测送货状态异常: {e}")
             logger.info(f"{self.log_prefix}跳过送货开启操作")
+
+    # 关闭收款
+    def _close_buyer_protection(self):
+        """关闭收款保障"""
+        logger.info(f"{self.log_prefix}开始检查收款保障状态")
+        
+        try:
+            # 直接检测收款保障状态文字
+            buyer_protection_enabled = self.page.locator("text=所有透過「平台收款功能」成功交易的訂單將豁免所有費用").is_visible()
             
+            if buyer_protection_enabled:
+                logger.info(f"{self.log_prefix}检测到收款保障已开启，准备关闭")
+                self.safe_actions.safe_click_with_config(
+                    "popups_and_settings.buyer_protection_toggle", self.region, must_exist=True,
+                    operation="关闭收款保障"
+                )
+                self.safe_actions.safe_click_with_config(
+                    "popups_and_settings.buyer_protection_confirm", self.region, must_exist=True,
+                    operation="确认关闭收款保障"
+                )
+            else:
+                logger.info(f"{self.log_prefix}收款保障未开启，跳过关闭操作")
+                
+        except Exception as e:
+            logger.error(f"{self.log_prefix}检测收款保障状态异常: {e}")
+            logger.info(f"{self.log_prefix}跳过收款保障关闭操作")
+
+        
     # ========= 公共方法：页面导航 =========
     def _navigate_to_homepage(self):
         """导航到主页"""
@@ -411,21 +480,12 @@ class BaseUploader:
             "product_info.price_input", enriched_info.price, self.region, must_exist=True,
             operation="输入产品价格"
         )
-
-        # 处理AI文案相关操作
-        self._handle_ai_writing_operations()
         
         # 输入产品描述
         if self.region == "HK":
             self.safe_actions.safe_input_with_config(
                 "product_info.description_input", enriched_info.description, self.region, must_exist=True,
-                operation="输入产品描述"
-            )
-        else:
-            self.safe_actions.safe_input_with_config(
-                "product_info.description_input_fallback", enriched_info.description, self.region, must_exist=True,
-                operation="输入产品描述"
-            )
+                operation="输入产品描述")
 
     def _handle_ai_writing_operations(self):
         """处理AI文案相关操作 - 使用文字匹配点击"""

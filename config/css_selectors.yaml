@@ -15,7 +15,7 @@ basic_elements:
     description: 新账号弹窗关闭按钮
     region: all
   ai_writing_cancel_button:
-    primary: button:has-text('改為手動填寫')
+    primary: div.D_aEN
     fallback: button:has-text('改为手动填写')
     description: AI文案取消按钮 - 文字匹配
     region: all
@@ -58,13 +58,8 @@ product_info:
     region: all
   description_input:
     primary: .D_azq .D_uf
-    fallback: textarea[placeholder*='描述']
-    description: 商品描述输入框
-    region: all
-  description_input_fallback:
-    primary: .D_aAb .D_tk
     fallback: textarea.D_tk
-    description: 商品描述输入框(备用)
+    description: 商品描述输入框
     region: all
 region_specific:
   hk:
@@ -101,7 +96,7 @@ popups_and_settings:
     description: 面交添加地点输入框
     region: all
   meetup_toggle:
-    primary: '#FieldSetField-Container-field_meetup > .D_IL'
+    primary: .D_qV > .D_kI
     fallback: .D_pZ > .D_mx
     description: 面交开关
     region: all
@@ -115,25 +110,35 @@ popups_and_settings:
     fallback: '#FieldSetField-Container-field_mailing .D_mx'
     description: 送货开关
     region: all
+  buyer_protection_toggle:
+    primary: '.D_agH:nth-child(2) .D_kI'
+    fallback: .D_mx
+    description: 收款保障开关
+    region: all
+  buyer_protection_confirm:
+    primary: '.button.D_pA'
+    fallback: .D_mx
+    description: 确认关闭收款保障
+    region: all
 publishing:
   publish_button:
-    primary: button.D_uG
+    primary: button.D_wS
     fallback: button[type='submit']
     description: 发布按钮
     region: all
 editing:
   inactive_tab:
-    primary: button.D_bwN:nth-child(2)
+    primary: button.D_bwO:nth-child(2)
     fallback: button[class*='inactive']
     description: 未活跃标签页
     region: all
   inactive_first_item:
-    primary: div.D_bvK
+    primary: tr:nth-child(1) .D_bwY
     fallback: div[class*='item']
     description: 未活跃第一个商品
     region: all
   edit_button:
-    primary: .D_boX:nth-child(1) > .D_mx
+    primary: .D_bmu:nth-child(1) > .D_kI
     fallback: button[class*='edit']
     description: 编辑按钮
     region: all
@@ -149,12 +154,12 @@ editing:
     region: all
 sneakers_hk:
   category_selector:
-    primary: div.D_aFi
+    primary: .D_aES > .D_JZ
     fallback: div[class*='category']
     description: HK运动鞋类目选择器
     region: HK
   category_search_input:
-    primary: .D_aFn > .D_Kr
+    primary: .D_aES > .D_JZ
     fallback: label.D_aFn
     description: HK运动鞋类目搜索输入框
     region: HK
@@ -164,7 +169,7 @@ sneakers_hk:
     description: HK运动鞋搜索关键词
     region: HK
   men_sneakers_option:
-    primary: .D_aFp:nth-child(2) > .D_aFx > .D_mx
+    primary: .D_aEU:nth-child(2) > .D_aFc > .D_kI
     fallback: .D_aFp:nth-child(2) .D_mx
     description: HK男装波鞋选项
     region: HK
@@ -174,17 +179,17 @@ sneakers_hk:
     description: HK女装波鞋选项
     region: HK
   condition_selector:
-    primary: .D_agi:nth-child(2) .D_oo:nth-child(1)
+    primary: .D_ago:nth-child(2) .D_rF:nth-child(1)
     fallback: .D_oo:nth-child(1)
     description: HK新旧条件选择器
     region: HK
   brand_selector:
-    primary: '#FieldSetField-Container-field_brand_enum .D_sp'
+    primary: '#FieldSetField-Container-field_brand_enum .D_rN'
     fallback: .D_sp
     description: HK品牌选择器
     region: HK
   brand_search_input:
-    primary: .D_vy .D_Kr
+    primary: .D_vE .D_JZ
     fallback: .D_Kr
     description: HK品牌搜索输入框
     region: HK
@@ -194,7 +199,7 @@ sneakers_hk:
     description: HK品牌搜索关键词
     region: HK
   brand_option:
-    primary: li.D_aeG
+    primary: .D_agM > .D_agS > .D_kI
     fallback: li[class*='brand']
     description: HK其他品牌选项
     region: HK
@@ -204,37 +209,37 @@ sneakers_hk:
     description: HK品牌输入框
     region: HK
   size_selector:
-    primary: '#FieldSetField-Container-field_size .D_sp'
+    primary: '#FieldSetField-Container-field_size .D_rN'
     fallback: .D_sp
     description: HK尺寸选择器
     region: HK
   size_search_input:
-    primary: .D_vy .D_Kr
+    primary: .D_vE .D_JZ
     fallback: .D_Kr
     description: HK尺寸搜索输入框
     region: HK
   size_option:
-    primary: .D_aeK > .D_aeQ > .D_mx
+    primary: .D_agH:nth-child(1) .D_agM > .D_agS > .D_kI
     fallback: .D_aeQ .D_mx
     description: HK尺寸选项
     region: HK
   multi_quantity_checkbox:
-    primary: '#FieldSetField-Container-field_multi_quantities .D_axg'
+    primary: '#FieldSetField-Container-field_multi_quantities > .D_IA .D_kI'
     fallback: .D_axg
     description: HK多产品销售复选框
     region: HK
   meetup_toggle_hk:
-    primary: .D_pZ > .D_mx
+    primary: .D_qV > .D_kI
     fallback: .D_mx
     description: HK面交开关
     region: HK
   meetup_input:
-    primary: input.D_vI
+    primary: input.D_tr
     fallback: input[placeholder*='面交']
     description: HK面交地点输入框
     region: HK
   meetup_option:
-    primary: .D_cCh:nth-child(2) .D_mK
+    primary: .D_cEg:nth-child(2) .D_kW
     fallback: .D_mK
     description: HK面交地点选项
     region: HK
@@ -361,7 +366,7 @@ sneakers_sg:
     region: SG
 metadata:
   version: 2.0.0
-  last_updated: '2025-09-27T21:57:50.600644'
+  last_updated: '2025-09-28T22:29:32.497126'
   description: CSS选择器配置文件，支持热更新和地域特定配置
   regions:
   - HK
