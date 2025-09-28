@@ -422,36 +422,19 @@ class BaseUploader:
             )
 
     def _handle_ai_writing_operations(self):
-        """处理AI文案相关操作 - 使用ImageClicker的智能点击功能"""
+        """处理AI文案相关操作 - 使用文字匹配点击"""
         logger.info(f"{self.log_prefix}开始处理AI文案相关操作")
         
         try:
-            # 使用ImageClicker的智能点击功能
-            from .image_clicker import ImageClicker
-            
-            # 创建ImageClicker实例，使用1秒延迟
-            image_clicker = ImageClicker(self.page, threshold_delay=1.0)
-            
-            # 构建模板候选列表（支持地域特定模板）
-            template_candidates = [
-                f"ai_writing_cancel_{self.region.lower()}.png",  # 地域特定模板
-                "ai_writing_cancel.png"  # 通用模板
-            ]
-            
-            logger.info(f"{self.log_prefix}开始智能图片匹配，候选模板: {template_candidates}")
-            
-            # 使用智能点击功能，包含完整的阈值和延迟逻辑
-            success = image_clicker.click_multiple_images(
-                template_candidates=template_candidates,
-                thresholds=[0.8, 0.7, 0.6, 0.5, 0.4, 0.3],  # 使用完整的阈值范围
-                templates_dir=image_clicker.ai_templates_dir
+            # 使用文字匹配点击 "改為手動填寫" 按钮
+            self.safe_actions.safe_click_with_config(
+                "basic_elements.ai_writing_cancel_button", 
+                self.region, 
+                must_exist=False,  # 非必需操作，如果不存在则跳过
+                operation="点击AI文案取消按钮"
             )
             
-            if success:
-                logger.info(f"{self.log_prefix}成功点击AI文案取消按钮")
-                return
-            else:
-                logger.info(f"{self.log_prefix}未找到AI文案取消按钮")
+            logger.info(f"{self.log_prefix}AI文案操作完成")
             
         except Exception as e:
             logger.error(f"{self.log_prefix}AI文案操作异常: {e}")

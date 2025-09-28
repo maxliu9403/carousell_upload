@@ -19,6 +19,11 @@ basic_elements:
     fallback: div.D_pL
     description: 取消AI编写文案/改为手动填写
     region: all
+  ai_writing_cancel_button:
+    primary: button:has-text('改為手動填寫')
+    fallback: button:has-text('改为手动填写')
+    description: AI文案取消按钮 - 文字匹配
+    region: all
   manual_writing_button:
     primary: button[type='button'] div.D_pL
     fallback: div.D_pL
