@@ -378,7 +378,34 @@ class ImageClicker:
                 global_x = x + cx
                 global_y = y + cy
                 
+                # 添加调试信息
+                logger.info(f"轮廓边界框: ({x_contour}, {y_contour}, {w_contour}, {h_contour})")
+                logger.info(f"轮廓中心: ({cx}, {cy})")
+                logger.info(f"原始区域: ({x}, {y}, {w}, {h})")
                 logger.info(f"智能点击位置: ({global_x}, {global_y}) (基于轮廓中心)")
+                
+                # 验证位置是否合理
+                if global_y < y or global_y > y + h:
+                    logger.warning(f"Y轴位置超出原始区域: {global_y}, 原始范围: [{y}, {y + h}]")
+                    # 使用原始中心点作为后备
+                    fallback_x = x + w // 2
+                    fallback_y = y + h // 2
+                    logger.info(f"使用后备位置: ({fallback_x}, {fallback_y})")
+                    return (fallback_x, fallback_y)
+                
+                # 如果Y轴位置偏差过大，使用优化策略
+                original_center_y = y + h // 2
+                y_diff = abs(global_y - original_center_y)
+                if y_diff > h // 4:  # 如果偏差超过高度的1/4
+                    logger.info(f"Y轴偏差较大: {y_diff}像素，使用优化位置")
+                    # 使用轮廓顶部 + 高度/4 作为更稳定的位置
+                    optimized_y = y + y_contour + h_contour // 4
+                    if optimized_y >= y and optimized_y <= y + h:
+                        global_y = optimized_y
+                        logger.info(f"使用优化Y轴位置: {global_y}")
+                    else:
+                        logger.info(f"优化位置超出范围，保持原位置: {global_y}")
+                
                 return (global_x, global_y)
             
             # 如果轮廓检测失败，尝试寻找非白色区域
