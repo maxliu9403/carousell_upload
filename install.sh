@@ -307,9 +307,25 @@ get_project_files() {
     local temp_file="/tmp/project_files.json"
     
     print_info "使用GitHub Token获取文件列表..."
+    print_info "Token前缀: ${github_token:0:10}..."
+    print_info "API URL: $api_url"
+    
+    # 测试GitHub API连接
+    print_info "测试GitHub API连接..."
+    local test_response=$(curl -s -H "Authorization: token $github_token" "https://api.github.com/rate_limit" 2>/dev/null)
+    if echo "$test_response" | grep -q '"limit": 5000'; then
+        print_success "✅ GitHub API连接正常"
+    else
+        print_warning "⚠️ GitHub API连接可能有问题"
+        print_info "测试响应: $test_response"
+    fi
+    
     if curl -fsSL -H "Authorization: token $github_token" "$api_url" -o "$temp_file" 2>/dev/null; then
+        print_info "GitHub API响应已保存到: $temp_file"
+        print_info "响应文件大小: $(wc -c < "$temp_file" 2>/dev/null || echo "0") 字节"
+        
         # 使用Python解析GitHub API响应，获取文件哈希和修改时间
-        python3 -c "
+        GITHUB_TOKEN="$github_token" python3 -c "
 import json
 import sys
 import subprocess
@@ -317,7 +333,7 @@ import hashlib
 import os
 from datetime import datetime
 
-def get_files_from_api(data, prefix=''):
+def get_files_from_api(data, prefix='', github_token=''):
     files = []
     for item in data:
         if item['type'] == 'file':
@@ -333,20 +349,27 @@ def get_files_from_api(data, prefix=''):
         elif item['type'] == 'dir' and item['name'] not in ['.git', '__pycache__', '.venv', 'node_modules', 'logs', 'temp']:
             # 递归获取子目录文件
             try:
-                result = subprocess.run(['curl', '-fsSL', '-H', 'Authorization: token $github_token', item['url']], 
+                auth_header = f'Authorization: token {github_token}'
+                result = subprocess.run(['curl', '-fsSL', '-H', auth_header, item['url']], 
                                       capture_output=True, text=True, timeout=10)
                 if result.returncode == 0:
                     subdata = json.loads(result.stdout)
-                    files.extend(get_files_from_api(subdata, prefix + item['name'] + '/'))
-            except:
-                pass
+                    files.extend(get_files_from_api(subdata, prefix + item['name'] + '/', github_token))
+                else:
+                    print(f'Warning: Failed to fetch directory {item[\"name\"]}: {result.stderr}', file=sys.stderr)
+            except Exception as e:
+                print(f'Warning: Error processing directory {item[\"name\"]}: {e}', file=sys.stderr)
     return files
 
 try:
     with open('$temp_file', 'r') as f:
         data = json.load(f)
     
-    files = get_files_from_api(data)
+    print(f'Processing {len(data)} root items...')
+    github_token = os.environ.get('GITHUB_TOKEN', '')
+    print(f'Using GitHub token: {github_token[:10]}...')
+    files = get_files_from_api(data, '', github_token)
+    print(f'Found {len(files)} files total')
     
     # 输出文件信息到临时文件
     with open('/tmp/project_files_info.json', 'w') as f:
@@ -358,13 +381,36 @@ try:
         
 except Exception as e:
     print(f'Error: {e}', file=sys.stderr)
+    print(f'Temp file content preview:', file=sys.stderr)
+    try:
+        with open('$temp_file', 'r') as f:
+            content = f.read()
+            print(f'File size: {len(content)}', file=sys.stderr)
+            print(f'First 200 chars: {content[:200]}', file=sys.stderr)
+    except:
+        print('Could not read temp file', file=sys.stderr)
     sys.exit(1)
 " > /tmp/project_files_list.txt 2>/dev/null
         
         if [ -s /tmp/project_files_list.txt ]; then
             print_success "✅ 成功获取项目文件列表"
+            print_info "文件列表行数: $(wc -l < /tmp/project_files_list.txt 2>/dev/null || echo "0")"
             return 0
+        else
+            print_error "❌ 文件列表为空"
+            print_info "检查临时文件:"
+            print_info "  - /tmp/project_files.json: $(ls -la /tmp/project_files.json 2>/dev/null || echo "不存在")"
+            print_info "  - /tmp/project_files_list.txt: $(ls -la /tmp/project_files_list.txt 2>/dev/null || echo "不存在")"
+            if [ -f /tmp/project_files.json ]; then
+                print_info "API响应内容预览:"
+                head -5 /tmp/project_files.json 2>/dev/null || echo "无法读取文件"
+            fi
         fi
+    else
+        print_error "❌ GitHub API请求失败"
+        print_info "检查网络连接和Token权限"
+        print_info "API URL: $api_url"
+        print_info "Token前缀: ${github_token:0:10}..."
     fi
     
     # API获取失败
@@ -1013,7 +1059,6 @@ show_usage() {
     echo "- 配置说明: config/settings.example.yaml"
     echo "- 问题反馈: https://github.com/maxliu9403/carousell_upload/issues"
 }
-
 
 # 主函数
 main() {
