@@ -181,6 +181,12 @@ def click_with_wait(
         page.wait_for_timeout(150)   # 轻微延迟，防止动画干扰
         element.click()
         logger.info(f"点击成功: {selector}")
+        
+        # 点击成功后添加2-3秒随机等待时间
+        success_delay = random.uniform(2.0, 3.0)
+        logger.info(f"点击操作完成，等待 {success_delay:.1f}s 后继续...")
+        time.sleep(success_delay)
+        
         return True
 
     except PlaywrightTimeout:
@@ -223,6 +229,12 @@ def input_with_wait(page: Page, selector: str, text: str,
         element.fill("")                        # 清空
         element.type(text, delay=50)             # 模拟人工输入，每字 50ms
         logger.info(f"输入成功: {selector} -> {text}")
+        
+        # 输入成功后添加2-3秒随机等待时间
+        success_delay = random.uniform(2.0, 3.0)
+        logger.info(f"输入操作完成，等待 {success_delay:.1f}s 后继续...")
+        time.sleep(success_delay)
+        
         return True
     except Exception as e:
         msg = f"输入失败: {selector}，原因: {e}"
@@ -271,7 +283,7 @@ def upload_folder_with_keyboard(folder_path: str, image_exts: set):
     pyautogui.press("enter")
     logger.info(f"已选择文件夹中所有文件上传: {', '.join(files)}")
 
-def smart_goto(page: Page, url: str, wait_until: str = "domcontentloaded", timeout: int = 15000, retry_times: int = 3):
+def smart_goto(page: Page, url: str, wait_until: str = "domcontentloaded", timeout: int = 15000, retry_times: int = 2):
     """
     智能页面导航，支持重试和多种等待策略
     

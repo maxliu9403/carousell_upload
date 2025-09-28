@@ -3,6 +3,7 @@
 """
 
 import time
+import random
 from typing import Optional, Tuple, List
 from playwright.sync_api import Page
 from browser.actions import click_with_wait, input_with_wait, human_delay, DEFAULT_TIMEOUT
@@ -61,6 +62,12 @@ class EnhancedSafeActions:
                 element.scroll_into_view_if_needed()
                 human_delay(0.5, 1.0)
                 element.click()
+                
+                # 点击成功后添加2-3秒随机等待时间
+                success_delay = random.uniform(2.0, 3.0)
+                logger.info(f"{self.log_prefix}点击操作完成，等待 {success_delay:.1f}s 后继续...")
+                time.sleep(success_delay)
+                
                 return True
             else:
                 if must_exist:
@@ -103,6 +110,12 @@ class EnhancedSafeActions:
                 # 清空输入框并输入指定文本，避免剪贴板干扰
                 element.fill("")  # 先清空
                 element.type(text, delay=50)  # 模拟人工输入
+                
+                # 输入成功后添加2-3秒随机等待时间
+                success_delay = random.uniform(2.0, 3.0)
+                logger.info(f"{self.log_prefix}输入操作完成，等待 {success_delay:.1f}s 后继续...")
+                time.sleep(success_delay)
+                
                 return True
             else:
                 if must_exist:

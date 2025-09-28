@@ -233,10 +233,12 @@ class BaseUploader:
         # 发布商品
         self._publish_product()
 
-        # 判断是否存在出现 # div.D_wC，如果存在，则点击
-        # if self.page.query_selector("#div.D_wC"):
-        #     self._publish_product()
-        
+        # 判断元素出现
+        if self.page.get_by_text("產品仲未發佈").wait_for(state="visible", timeout=15000):
+            logger.info(f"{self.log_prefix}產品已發佈，继续执行后续流程")
+        else:
+            logger.info(f"{self.log_prefix}產品仲未發佈，退出流程")
+            raise Exception("產品仲未發佈")
     
     # HK逻辑
     def _closewhatsapp(self):
@@ -377,13 +379,13 @@ class BaseUploader:
     def _navigate_to_homepage(self):
         """导航到主页"""
         domain = self._get_domain_by_region()
-        smart_goto(self.page, domain, wait_until="domcontentloaded", timeout=30000)
+        smart_goto(self.page, domain, wait_until="domcontentloaded", timeout=20000)
         logger.info("🌐 已打开主页")
         
     def _navigate_to_manage_page(self):
         """导航到管理页面"""
         domain = self._get_domain_by_region()
-        smart_goto(self.page, f"{domain}/manage-listings/", wait_until="domcontentloaded", timeout=30000)
+        smart_goto(self.page, f"{domain}/manage-listings/", wait_until="domcontentloaded", timeout=20000)
         logger.info("🌐 已打开目标页面")
         
     # ========= 公共方法：上传流程 =========
