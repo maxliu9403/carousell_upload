@@ -123,8 +123,9 @@ class ImageClicker:
             if match_result:
                 x, y, w, h = match_result
                 
-                # 智能选择点击位置
-                click_x, click_y = self._find_smart_click_position(x, y, w, h)
+                # 使用匹配位置的中心点
+                click_x = x + w // 2
+                click_y = y + h // 2
                 
                 logger.info(f"点击图片位置: ({click_x}, {click_y})")
                 
@@ -334,105 +335,6 @@ class ImageClicker:
         logger.info("所有模板都未找到匹配")
         return None
     
-    def _find_smart_click_position(self, x: int, y: int, w: int, h: int) -> Tuple[int, int]:
-        """
-        智能选择点击位置，避免无效区域
-        
-        Args:
-            x, y, w, h: 匹配区域的坐标和尺寸
-            
-        Returns:
-            Tuple[int, int]: 优化后的点击坐标
-        """
-        try:
-            # 截取匹配区域
-            screenshot_path = self.capture_page_screenshot()
-            screenshot = cv2.imread(screenshot_path)
-            
-            if screenshot is None:
-                logger.warning("无法读取截图，使用默认中心点")
-                return (x + w // 2, y + h // 2)
-            
-            # 提取匹配区域
-            region = screenshot[y:y+h, x:x+w]
-            
-            # 转换为灰度图
-            gray = cv2.cvtColor(region, cv2.COLOR_BGR2GRAY)
-            
-            # 使用边缘检测找到有效区域
-            edges = cv2.Canny(gray, 50, 150)
-            
-            # 查找轮廓
-            contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            
-            if contours:
-                # 找到最大的轮廓
-                largest_contour = max(contours, key=cv2.contourArea)
-                
-                # 计算轮廓的边界框中心位置
-                x_contour, y_contour, w_contour, h_contour = cv2.boundingRect(largest_contour)
-                cx = x_contour + w_contour // 2
-                cy = y_contour + h_contour // 2
-                
-                # 转换为全局坐标
-                global_x = x + cx
-                global_y = y + cy
-                
-                # 添加调试信息
-                logger.info(f"轮廓边界框: ({x_contour}, {y_contour}, {w_contour}, {h_contour})")
-                logger.info(f"轮廓中心: ({cx}, {cy})")
-                logger.info(f"原始区域: ({x}, {y}, {w}, {h})")
-                logger.info(f"智能点击位置: ({global_x}, {global_y}) (基于轮廓中心)")
-                
-                # 验证位置是否合理
-                if global_y < y or global_y > y + h:
-                    logger.warning(f"Y轴位置超出原始区域: {global_y}, 原始范围: [{y}, {y + h}]")
-                    # 使用原始中心点作为后备
-                    fallback_x = x + w // 2
-                    fallback_y = y + h // 2
-                    logger.info(f"使用后备位置: ({fallback_x}, {fallback_y})")
-                    return (fallback_x, fallback_y)
-                
-                # 如果Y轴位置偏差过大，使用优化策略
-                original_center_y = y + h // 2
-                y_diff = abs(global_y - original_center_y)
-                if y_diff > h // 4:  # 如果偏差超过高度的1/4
-                    logger.info(f"Y轴偏差较大: {y_diff}像素，使用优化位置")
-                    # 使用轮廓顶部 + 高度/4 作为更稳定的位置
-                    optimized_y = y + y_contour + h_contour // 4
-                    if optimized_y >= y and optimized_y <= y + h:
-                        global_y = optimized_y
-                        logger.info(f"使用优化Y轴位置: {global_y}")
-                    else:
-                        logger.info(f"优化位置超出范围，保持原位置: {global_y}")
-                
-                return (global_x, global_y)
-            
-            # 如果轮廓检测失败，尝试寻找非白色区域
-            # 将白色区域（接近255）设为0，其他区域设为1
-            mask = (gray < 240).astype(np.uint8) * 255
-            
-            # 查找非零像素
-            non_zero = cv2.findNonZero(mask)
-            if non_zero is not None and len(non_zero) > 0:
-                # 计算非零像素的中心
-                mean_x = int(np.mean(non_zero[:, 0, 0]))
-                mean_y = int(np.mean(non_zero[:, 0, 1]))
-                
-                # 转换为全局坐标
-                global_x = x + mean_x
-                global_y = y + mean_y
-                
-                logger.info(f"智能点击位置: ({global_x}, {global_y}) (基于非白色区域)")
-                return (global_x, global_y)
-            
-            # 如果所有方法都失败，使用默认中心点
-            logger.info("使用默认中心点作为点击位置")
-            return (x + w // 2, y + h // 2)
-            
-        except Exception as e:
-            logger.warning(f"智能点击位置计算失败: {e}，使用默认中心点")
-            return (x + w // 2, y + h // 2)
 
     def click_multiple_images(self, template_candidates: List[str],
                             thresholds: List[float] = None,
@@ -455,8 +357,9 @@ class ImageClicker:
             if match_result:
                 template_name, threshold, (x, y, w, h) = match_result
                 
-                # 智能选择点击位置
-                click_x, click_y = self._find_smart_click_position(x, y, w, h)
+                # 使用匹配位置的中心点
+                click_x = x + w // 2
+                click_y = y + h // 2
                 
                 logger.info(f"点击图片位置: ({click_x}, {click_y})")
                 
