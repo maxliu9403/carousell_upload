@@ -163,59 +163,132 @@ check_pip() {
     fi
 }
 
-# 下载项目文件
-# 获取项目文件列表（智能增量更新）
+# 检查并获取有效的GitHub Token
+check_and_get_github_token() {
+    print_info "🔑 检查GitHub Token配置..."
+    
+    local github_token=""
+    local token_file="$HOME/.github_token"
+    
+    # 检查本地Token文件是否存在
+    if [ -f "$token_file" ]; then
+        print_info "发现本地Token文件: $token_file"
+        github_token=$(cat "$token_file" 2>/dev/null | tr -d '\n\r')
+        
+        if [ -n "$github_token" ]; then
+            print_info "从文件读取GitHub Token"
+            
+            # 验证Token是否有效
+            if validate_github_token "$github_token"; then
+                print_success "✅ GitHub Token有效"
+                echo "$github_token"
+                return 0
+            else
+                print_warning "⚠️ GitHub Token无效或已过期"
+                print_info "需要重新配置Token"
+            fi
+        else
+            print_warning "⚠️ Token文件为空"
+        fi
+    else
+        print_info "未找到本地Token文件: $token_file"
+    fi
+    
+    # 提示用户输入新的Token
+    print_info "🔑 请输入您的GitHub Token"
+    print_info "获取Token步骤:"
+    print_info "  1. 访问: https://github.com/settings/tokens"
+    print_info "  2. 点击 'Generate new token (classic)'"
+    print_info "  3. 选择 'public_repo' 权限"
+    print_info "  4. 复制生成的Token"
+    echo ""
+    
+    while true; do
+        read -p "请输入GitHub Token: " github_token
+        
+        if [ -z "$github_token" ]; then
+            print_error "Token不能为空，请重新输入"
+            continue
+        fi
+        
+        # 验证Token格式
+        if [[ ! "$github_token" =~ ^ghp_[A-Za-z0-9]{36}$ ]]; then
+            print_warning "Token格式可能不正确，标准格式: ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            read -p "是否继续使用此Token? (y/n): " confirm
+            if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+                continue
+            fi
+        fi
+        
+        # 验证Token有效性
+        if validate_github_token "$github_token"; then
+            print_success "✅ GitHub Token验证成功"
+            
+            # 保存Token到文件
+            echo "$github_token" > "$token_file"
+            chmod 600 "$token_file"
+            print_success "Token已保存到: $token_file"
+            
+            echo "$github_token"
+            return 0
+        else
+            print_error "❌ Token验证失败，请检查Token是否正确"
+            read -p "是否重新输入Token? (y/n): " retry
+            if [[ ! "$retry" =~ ^[Yy]$ ]]; then
+                print_error "安装终止：需要有效的GitHub Token"
+                exit 1
+            fi
+        fi
+    done
+}
+
+# 验证GitHub Token有效性
+validate_github_token() {
+    local token="$1"
+    
+    if [ -z "$token" ]; then
+        return 1
+    fi
+    
+    print_info "验证GitHub Token有效性..."
+    
+    # 使用Token测试API访问
+    local response=$(curl -s -H "Authorization: token $token" https://api.github.com/rate_limit 2>/dev/null)
+    
+    if echo "$response" | grep -q '"limit": 5000'; then
+        print_success "Token验证成功 - 认证用户权限"
+        return 0
+    elif echo "$response" | grep -q '"message": "Bad credentials"'; then
+        print_error "Token无效或已过期"
+        return 1
+    elif echo "$response" | grep -q '"limit": 60'; then
+        print_warning "Token可能无效，返回匿名用户权限"
+        return 1
+    else
+        print_error "无法验证Token，网络或API错误"
+        return 1
+    fi
+}
+
+# 获取项目文件列表（仅使用Token方式）
 get_project_files() {
     print_info "🔍 获取项目文件列表..."
     
-    # 检查GitHub API访问限制
-    print_info "检查GitHub API访问状态..."
-    local api_status=$(curl -s -o /dev/null -w "%{http_code}" "https://api.github.com/repos/maxliu9403/carousell_upload/contents" 2>/dev/null)
+    # 获取有效的GitHub Token
+    local github_token
+    github_token=$(check_and_get_github_token)
     
-    if [ "$api_status" = "403" ]; then
-        print_warning "⚠️ GitHub API访问受限 (HTTP 403)"
-        print_info "可能原因:"
-        print_info "  - API请求次数超限 (未认证用户每小时60次)"
-        print_info "  - 需要配置GitHub Token"
-        print_info "解决方案:"
-        print_info "  - 等待1小时后重试"
-        print_info "  - 或设置GITHUB_TOKEN环境变量"
-        print_info "  - 或使用静态文件列表"
-        return 1
-    elif [ "$api_status" = "404" ]; then
-        print_error "❌ 仓库不存在或无法访问 (HTTP 404)"
-        return 1
-    elif [ "$api_status" != "200" ]; then
-        print_warning "⚠️ GitHub API访问异常 (HTTP $api_status)"
-        print_info "回退到静态文件列表"
-        return 1
+    if [ -z "$github_token" ]; then
+        print_error "❌ 无法获取有效的GitHub Token"
+        exit 1
     fi
     
-    # 尝试从GitHub API获取文件列表
+    # 从GitHub API获取文件列表
     local api_url="https://api.github.com/repos/maxliu9403/carousell_upload/contents"
     local temp_file="/tmp/project_files.json"
     
-    # 检查是否有GitHub Token
-    local github_token=""
-    if [ -n "$GITHUB_TOKEN" ]; then
-        print_info "使用GitHub Token进行认证"
-        github_token="$GITHUB_TOKEN"
-    elif [ -f "$HOME/.github_token" ]; then
-        print_info "从文件读取GitHub Token"
-        github_token=$(cat "$HOME/.github_token" 2>/dev/null | tr -d '\n\r')
-    fi
-    
-    # 构建curl命令
-    local curl_cmd="curl -fsSL"
-    if [ -n "$github_token" ]; then
-        curl_cmd="$curl_cmd -H \"Authorization: token $github_token\""
-        print_info "使用认证Token访问GitHub API"
-    else
-        print_warning "未配置GitHub Token，使用匿名访问 (限制: 60次/小时)"
-    fi
-    
-    print_info "GitHub API访问正常，获取文件列表..."
-    if eval "$curl_cmd \"$api_url\"" -o "$temp_file" 2>/dev/null; then
+    print_info "使用GitHub Token获取文件列表..."
+    if curl -fsSL -H "Authorization: token $github_token" "$api_url" -o "$temp_file" 2>/dev/null; then
         # 使用Python解析GitHub API响应，获取文件哈希和修改时间
         python3 -c "
 import json
@@ -241,7 +314,7 @@ def get_files_from_api(data, prefix=''):
         elif item['type'] == 'dir' and item['name'] not in ['.git', '__pycache__', '.venv', 'node_modules', 'logs', 'temp']:
             # 递归获取子目录文件
             try:
-                result = subprocess.run(['curl', '-fsSL', item['url']], 
+                result = subprocess.run(['curl', '-fsSL', '-H', 'Authorization: token $github_token', item['url']], 
                                       capture_output=True, text=True, timeout=10)
                 if result.returncode == 0:
                     subdata = json.loads(result.stdout)
@@ -275,27 +348,10 @@ except Exception as e:
         fi
     fi
     
-    # 如果API失败，尝试其他方法
-    print_warning "⚠️ API获取失败，尝试备用方案"
-    
-    # 备用方案1: 尝试Git克隆
-    if command -v git &> /dev/null; then
-        print_info "尝试使用Git克隆获取最新代码..."
-        if git clone --depth 1 https://github.com/maxliu9403/carousell_upload.git temp_repo 2>/dev/null; then
-            print_success "✅ Git克隆成功，使用克隆的代码"
-            # 复制文件到当前目录
-            cp -r temp_repo/* . 2>/dev/null || true
-            cp -r temp_repo/.* . 2>/dev/null || true
-            rm -rf temp_repo
-            return 0
-        else
-            print_warning "Git克隆失败，回退到静态文件列表"
-        fi
-    fi
-    
-    # 备用方案2: 使用预定义文件列表
-    print_warning "⚠️ 使用预定义文件列表"
-    return 1
+    # API获取失败
+    print_error "❌ 无法从GitHub API获取文件列表"
+    print_error "请检查网络连接和Token权限"
+    exit 1
 }
 
 # 检查版本信息
@@ -367,13 +423,13 @@ update_project_code() {
         return 1
     fi
     
-    # 尝试获取动态文件列表
+    # 获取项目文件并更新
     if get_project_files; then
-        print_info "📋 使用动态文件列表..."
+        print_info "📋 使用GitHub API获取文件列表..."
         update_with_dynamic_list
     else
-        print_info "📋 使用预定义文件列表..."
-        update_with_static_list
+        print_error "❌ 无法获取项目文件"
+        exit 1
     fi
 }
 
@@ -525,125 +581,7 @@ if __name__ == '__main__':
     fi
 }
 
-# 使用预定义文件列表更新
-update_with_static_list() {
-    # 创建必要的目录结构
-    mkdir -p config uploader browser cli scripts core data uploader/regions/hk/sneakers uploader/regions/hk/bags uploader/regions/hk/clothes uploader/regions/sg/sneakers uploader/regions/sg/bags uploader/regions/sg/clothes uploader/regions/my/sneakers uploader/regions/my/bags uploader/regions/my/clothes
-    
-    # 下载根目录文件
-    print_info "📄 下载根目录文件..."
-    download_file "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/__init__.py" "__init__.py"
-    download_file "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/requirements.txt" "requirements.txt"
-    download_file "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/README.md" "README.md"
-    download_file "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/setup.py" "setup.py"
-    download_file "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/pyproject.toml" "pyproject.toml"
-    download_file "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/.gitignore" ".gitignore"
-    download_file "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/create_example_excel.py" "create_example_excel.py"
-    download_file "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/deploy.sh" "deploy.sh"
-    chmod +x deploy.sh
-    
-    # 下载核心配置文件
-    print_info "📋 下载配置文件..."
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/config/settings.yaml -o config/settings.yaml
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/config/settings.example.yaml -o config/settings.example.yaml
-    
-    # 下载核心Python模块
-    print_info "🐍 下载核心Python模块..."
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/core/__init__.py -o core/__init__.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/core/config.py -o core/config.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/core/logger.py -o core/logger.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/core/models.py -o core/models.py
-    
-    # 下载浏览器模块
-    print_info "🌐 下载浏览器模块..."
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/browser/__init__.py -o browser/__init__.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/browser/browser.py -o browser/browser.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/browser/browser_interface.py -o browser/browser_interface.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/browser/browser_factory.py -o browser/browser_factory.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/browser/browser_selector.py -o browser/browser_selector.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/browser/actions.py -o browser/actions.py
-    
-    # 下载上传器模块
-    print_info "📤 下载上传器模块..."
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/__init__.py -o uploader/__init__.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/base_uploader.py -o uploader/base_uploader.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/carousell_uploader_new.py -o uploader/carousell_uploader_new.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/multi_account_uploader.py -o uploader/multi_account_uploader.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/uploader_factory.py -o uploader/uploader_factory.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/utils.py -o uploader/utils.py
-    
-    # 下载地域上传器 - 完整支持所有地域和类目
-    print_info "🌍 下载地域上传器..."
-    # 地域模块初始化文件
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/__init__.py -o uploader/regions/__init__.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/hk/__init__.py -o uploader/regions/hk/__init__.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/sg/__init__.py -o uploader/regions/sg/__init__.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/my/__init__.py -o uploader/regions/my/__init__.py
-    
-    # HK地域上传器
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/hk/sneakers/__init__.py -o uploader/regions/hk/sneakers/__init__.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/hk/sneakers/sneakers_uploader.py -o uploader/regions/hk/sneakers/sneakers_uploader.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/hk/bags/__init__.py -o uploader/regions/hk/bags/__init__.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/hk/bags/bags_uploader.py -o uploader/regions/hk/bags/bags_uploader.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/hk/clothes/__init__.py -o uploader/regions/hk/clothes/__init__.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/hk/clothes/clothes_uploader.py -o uploader/regions/hk/clothes/clothes_uploader.py
-    
-    # SG地域上传器
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/sg/sneakers/__init__.py -o uploader/regions/sg/sneakers/__init__.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/sg/sneakers/sneakers_uploader.py -o uploader/regions/sg/sneakers/sneakers_uploader.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/sg/bags/__init__.py -o uploader/regions/sg/bags/__init__.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/sg/bags/bags_uploader.py -o uploader/regions/sg/bags/bags_uploader.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/sg/clothes/__init__.py -o uploader/regions/sg/clothes/__init__.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/sg/clothes/clothes_uploader.py -o uploader/regions/sg/clothes/clothes_uploader.py
-    
-    # MY地域上传器
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/my/sneakers/__init__.py -o uploader/regions/my/sneakers/__init__.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/my/sneakers/sneakers_uploader.py -o uploader/regions/my/sneakers/sneakers_uploader.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/my/bags/__init__.py -o uploader/regions/my/bags/__init__.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/my/bags/bags_uploader.py -o uploader/regions/my/bags/bags_uploader.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/my/clothes/__init__.py -o uploader/regions/my/clothes/__init__.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/uploader/regions/my/clothes/clothes_uploader.py -o uploader/regions/my/clothes/clothes_uploader.py
-    
-    # 下载CLI模块
-    print_info "💻 下载CLI模块..."
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/cli/__init__.py -o cli/__init__.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/cli/main.py -o cli/main.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/cli/cli.py -o cli/cli.py
-    
-    # 下载数据模块
-    print_info "📊 下载数据模块..."
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/data/__init__.py -o data/__init__.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/data/excel_parser.py -o data/excel_parser.py
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/data/record_manager.py -o data/record_manager.py
-    
-    # 下载脚本文件
-    print_info "🚀 下载脚本文件..."
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/scripts/docker-deploy.sh -o scripts/docker-deploy.sh
-    curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/scripts/quick-deploy.sh -o scripts/quick-deploy.sh
-    chmod +x scripts/docker-deploy.sh scripts/quick-deploy.sh
-    
-    print_success "✅ 项目代码更新完成"
-    return 0
-}
 
-download_project_files() {
-    print_info "尝试下载项目文件..."
-    
-    # 检查curl是否可用
-    if command -v curl &> /dev/null; then
-        print_info "使用curl下载项目文件..."
-        
-        # 调用完整的update_project_code函数
-        update_project_code
-        
-        print_success "项目文件下载完成"
-        return 0
-    else
-        print_error "curl不可用，无法下载项目文件"
-        print_info "请手动克隆项目: git clone https://github.com/maxliu9403/carousell_upload.git"
-        return 1
-    fi
-}
 
 # 创建项目目录
 create_project_dir() {
@@ -656,20 +594,19 @@ create_project_dir() {
     
     # 检查当前目录是否包含项目文件
     if [ ! -f "requirements.txt" ] && [ ! -f "README.md" ]; then
-        print_warning "当前目录不包含项目文件"
-        print_info "正在自动下载项目文件..."
+        print_info "当前目录不包含项目文件，开始下载..."
         
-        # 使用新的更新函数
+        # 使用GitHub API下载项目文件
         if ! update_project_code; then
-            print_error "无法下载项目文件"
-            print_info "请手动克隆项目: git clone https://github.com/maxliu9403/carousell_upload.git"
+            print_error "❌ 无法下载项目文件"
+            print_error "请检查网络连接和GitHub Token权限"
             exit 1
         fi
     else
         print_success "检测到项目文件，正在更新到最新版本..."
-        # 即使存在项目文件，也尝试更新到最新版本
+        # 更新现有项目到最新版本
         if ! update_project_code; then
-            print_warning "代码更新失败，使用现有文件继续安装"
+            print_warning "⚠️ 代码更新失败，使用现有文件继续安装"
         else
             print_success "✅ 项目代码更新成功"
         fi
@@ -1031,26 +968,23 @@ EOF
 
 # 显示GitHub Token配置指南
 show_github_token_guide() {
-    print_info "🔑 GitHub Token 配置指南"
+    print_info "🔑 GitHub Token 配置说明"
     echo ""
-    print_info "为了获得更好的更新体验，建议配置GitHub Token:"
+    print_info "本安装脚本使用GitHub Token进行文件下载和更新:"
     echo ""
-    print_info "方法1: 环境变量"
-    print_info "  export GITHUB_TOKEN=your_token_here"
+    print_info "Token已保存到: ~/.github_token"
+    print_info "下次运行安装脚本时会自动使用此Token"
     echo ""
-    print_info "方法2: 文件配置"
-    print_info "  echo 'your_token_here' > ~/.github_token"
-    echo ""
-    print_info "获取Token步骤:"
+    print_info "获取新Token步骤:"
     print_info "  1. 访问: https://github.com/settings/tokens"
-    print_info "  2. 点击 'Generate new token'"
+    print_info "  2. 点击 'Generate new token (classic)'"
     print_info "  3. 选择 'public_repo' 权限"
     print_info "  4. 复制生成的Token"
     echo ""
     print_info "Token优势:"
     print_info "  - 每小时5000次API请求 (vs 60次匿名)"
-    print_info "  - 更稳定的文件更新"
-    print_info "  - 支持私有仓库访问"
+    print_info "  - 智能增量更新，只下载有变化的文件"
+    print_info "  - 更稳定的文件更新体验"
     echo ""
 }
 
