@@ -233,19 +233,26 @@ class BaseUploader:
         # 发布商品
         self._publish_product()
 
-        # 判断元素出现
+        # 判断元素出现 - 使用XPath选择器检测StaticText元素
         try:
-            # 先尝试检测元素是否存在（不等待可见）
-            element = self.page.get_by_text("產品仲未發佈").first
-            if element and element.is_visible():
-                logger.info(f"{self.log_prefix}检测到成功标识符'產品仲未發佈'，继续执行后续流程")
-            else:
-                logger.warning(f"{self.log_prefix}成功标识符'產品仲未發佈'不可见，尝试等待...")
-                if self.page.get_by_text("產品仲未發佈").wait_for(state="visible", timeout=15000):
-                    logger.info(f"{self.log_prefix}等待后检测到成功标识符，继续执行后续流程")
+            # 使用XPath选择器检测StaticText元素
+            xpath_selector = "//h3/StaticText"
+            element = self.page.wait_for_selector(f"xpath={xpath_selector}", timeout=15000)
+            
+            if element:
+                # 检查元素文本内容
+                element_text = element.text_content()
+                logger.info(f"{self.log_prefix}检测到StaticText元素，文本内容: '{element_text}'")
+                
+                if "產品仲未發佈" in element_text:
+                    logger.info(f"{self.log_prefix}检测到成功标识符'產品仲未發佈'，继续执行后续流程")
                 else:
-                    logger.error(f"{self.log_prefix}未检测到成功标识符'產品仲未發佈'，退出流程")
+                    logger.warning(f"{self.log_prefix}StaticText元素存在但文本不匹配，退出流程")
                     raise Exception("產品仲未發佈")
+            else:
+                logger.error(f"{self.log_prefix}未检测到StaticText元素，退出流程")
+                raise Exception("產品仲未發佈")
+                
         except Exception as e:
             logger.error(f"{self.log_prefix}检测成功标识符时发生异常: {e}")
             raise Exception("產品仲未發佈")
