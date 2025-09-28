@@ -369,18 +369,17 @@ class ImageClicker:
                 # 找到最大的轮廓
                 largest_contour = max(contours, key=cv2.contourArea)
                 
-                # 计算轮廓的质心
-                M = cv2.moments(largest_contour)
-                if M["m00"] != 0:
-                    cx = int(M["m10"] / M["m00"])
-                    cy = int(M["m01"] / M["m00"])
-                    
-                    # 转换为全局坐标
-                    global_x = x + cx
-                    global_y = y + cy
-                    
-                    logger.info(f"智能点击位置: ({global_x}, {global_y}) (基于轮廓质心)")
-                    return (global_x, global_y)
+                # 计算轮廓的边界框中心位置
+                x_contour, y_contour, w_contour, h_contour = cv2.boundingRect(largest_contour)
+                cx = x_contour + w_contour // 2
+                cy = y_contour + h_contour // 2
+                
+                # 转换为全局坐标
+                global_x = x + cx
+                global_y = y + cy
+                
+                logger.info(f"智能点击位置: ({global_x}, {global_y}) (基于轮廓中心)")
+                return (global_x, global_y)
             
             # 如果轮廓检测失败，尝试寻找非白色区域
             # 将白色区域（接近255）设为0，其他区域设为1
