@@ -99,7 +99,10 @@ class EnhancedSafeActions:
             if element:
                 element.scroll_into_view_if_needed()
                 human_delay(0.5, 1.0)
-                element.fill(text)
+                
+                # 清空输入框并输入指定文本，避免剪贴板干扰
+                element.fill("")  # 先清空
+                element.type(text, delay=50)  # 模拟人工输入
                 return True
             else:
                 if must_exist:

@@ -277,7 +277,7 @@ class ImageClicker:
             (匹配的模板文件名, 匹配阈值, 位置坐标) 或 None
         """
         if thresholds is None:
-            thresholds = [0.8, 0.7, 0.6]
+            thresholds = [0.8, 0.7, 0.6, 0.5, 0.4, 0.3]
         
         if templates_dir is None:
             templates_dir = self.ai_templates_dir
@@ -292,13 +292,15 @@ class ImageClicker:
         
         if not existing_templates:
             logger.warning(f"未找到任何模板文件，候选: {template_candidates}")
+            logger.warning(f"模板目录: {templates_dir}")
+            logger.warning(f"请检查模板文件是否存在")
             return None
         
         logger.info(f"开始匹配 {len(existing_templates)} 张模板")
         
         # 尝试不同的匹配阈值
         for threshold in thresholds:
-            logger.debug(f"尝试匹配阈值: {threshold}")
+            logger.info(f"尝试匹配阈值: {threshold}")
             
             # 遍历所有模板文件
             for template_path in existing_templates:
@@ -308,10 +310,10 @@ class ImageClicker:
                 match_result = self.find_image_on_page(str(template_path), threshold)
                 
                 if match_result:
-                    logger.info(f"找到匹配 - 模板: {template_path.name}, 阈值: {threshold}")
+                    logger.info(f"✅ 找到匹配 - 模板: {template_path.name}, 阈值: {threshold}")
                     return (template_path.name, threshold, match_result)
                 else:
-                    logger.debug(f"模板 {template_path.name} 阈值 {threshold} 未找到匹配")
+                    logger.info(f"❌ 模板 {template_path.name} 阈值 {threshold} 未找到匹配")
         
         logger.info("所有模板都未找到匹配")
         return None
