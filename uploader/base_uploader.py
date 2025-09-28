@@ -422,65 +422,39 @@ class BaseUploader:
             )
 
     def _handle_ai_writing_operations(self):
-        """处理AI文案相关操作 - 基于ImageClicker的优化版本"""
+        """处理AI文案相关操作 - 使用ImageClicker的智能点击功能"""
         logger.info(f"{self.log_prefix}开始处理AI文案相关操作")
         
         try:
-            # 使用ImageClicker专门匹配ai_writing_cancel.png
+            # 使用ImageClicker的智能点击功能
             from .image_clicker import ImageClicker
             
-            image_clicker = ImageClicker(self.page)
+            # 创建ImageClicker实例，使用2秒延迟
+            image_clicker = ImageClicker(self.page, threshold_delay=2.0)
             
-            # 专门查找ai_writing_cancel.png模板（支持地域特定模板）
+            # 构建模板候选列表（支持地域特定模板）
             template_candidates = [
                 f"ai_writing_cancel_{self.region.lower()}.png",  # 地域特定模板
                 "ai_writing_cancel.png"  # 通用模板
             ]
             
-            template_path = None
-            for candidate in template_candidates:
-                candidate_path = image_clicker.ai_templates_dir / candidate
-                if candidate_path.exists():
-                    template_path = candidate_path
-                    logger.info(f"{self.log_prefix}找到模板文件: {candidate}")
-                    break
+            logger.info(f"{self.log_prefix}开始智能图片匹配，候选模板: {template_candidates}")
             
-            if template_path is None:
-                logger.info(f"{self.log_prefix}未找到任何AI文案取消模板文件")
-                logger.info(f"{self.log_prefix}AI文案操作跳过，继续执行后续流程")
+            # 使用智能点击功能，包含完整的阈值和延迟逻辑
+            success = image_clicker.click_multiple_images(
+                template_candidates=template_candidates,
+                thresholds=[0.8, 0.7, 0.6, 0.5, 0.4, 0.3],  # 使用完整的阈值范围
+                templates_dir=image_clicker.ai_templates_dir
+            )
+            
+            if success:
+                logger.info(f"{self.log_prefix}成功点击AI文案取消按钮")
                 return
-            
-            logger.info(f"{self.log_prefix}开始匹配模板: {template_path.name}")
-            
-            # 尝试不同的匹配阈值
-            thresholds = [0.8, 0.7, 0.6]
-            for threshold in thresholds:
-                logger.info(f"{self.log_prefix}尝试匹配阈值: {threshold}")
-                
-                # 查找图片位置
-                match_result = image_clicker.find_image_on_page(str(template_path), threshold)
-                
-                if match_result:
-                    x, y, w, h = match_result
-                    center_x = x + w // 2
-                    center_y = y + h // 2
-                    
-                    logger.info(f"{self.log_prefix}找到匹配位置: ({center_x}, {center_y}), 置信度: {threshold}")
-                    
-                    # 执行点击
-                    self.page.mouse.click(center_x, center_y)
-                    from browser.actions import human_delay
-                    human_delay(0.5, 1.0)
-                    
-                    logger.info(f"{self.log_prefix}成功点击AI文案取消按钮 (阈值: {threshold})")
-                    return
-                else:
-                    logger.info(f"{self.log_prefix}阈值 {threshold} 未找到匹配")
-            
-            logger.info(f"{self.log_prefix}所有阈值都未找到 {template_path.name} 匹配")
+            else:
+                logger.info(f"{self.log_prefix}未找到AI文案取消按钮")
             
         except Exception as e:
-            logger.info(f"{self.log_prefix}图片匹配异常: {e}")
+            logger.error(f"{self.log_prefix}AI文案操作异常: {e}")
         
         logger.info(f"{self.log_prefix}AI文案操作跳过，继续执行后续流程")
         

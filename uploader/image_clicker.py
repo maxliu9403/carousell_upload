@@ -17,7 +17,7 @@ from browser.actions import human_delay
 class ImageClicker:
     """图片匹配点击器"""
     
-    def __init__(self, page: Page, templates_dir: str = "templates", threshold_delay: float = 3.0):
+    def __init__(self, page: Page, templates_dir: str = "templates", threshold_delay: float = 2.0):
         """
         初始化图片匹配点击器
         
@@ -162,23 +162,25 @@ class ImageClicker:
                 logger.warning("没有找到AI文案模板")
                 return False
             
-            # 按优先级尝试模板
-            for template_path in templates:
-                logger.info(f"尝试模板: {Path(template_path).name}")
+            # 尝试不同的阈值
+            thresholds = [0.8, 0.7, 0.6, 0.5, 0.4, 0.3]
+            for i, threshold in enumerate(thresholds):
+                logger.info(f"尝试匹配阈值: {threshold}")
                 
-                # 尝试不同的阈值
-                thresholds = [0.8, 0.7, 0.6]
-                for i, threshold in enumerate(thresholds):
-                    logger.info(f"尝试阈值: {threshold}")
+                # 按优先级尝试模板
+                for template_path in templates:
+                    logger.info(f"尝试模板: {Path(template_path).name}")
+                    
                     if self.click_image(template_path, threshold):
                         logger.info(f"成功点击AI文案按钮: {Path(template_path).name}")
                         return True
                     else:
-                        logger.info(f"阈值 {threshold} 未找到匹配")
-                        # 在尝试下一个阈值前等待
-                        if i < len(thresholds) - 1:  # 不是最后一个阈值
-                            logger.info(f"等待{self.threshold_delay}秒后尝试下一个阈值...")
-                            time.sleep(self.threshold_delay)
+                        logger.info(f"模板 {Path(template_path).name} 阈值 {threshold} 未找到匹配")
+                
+                # 在尝试下一个阈值前等待
+                if i < len(thresholds) - 1:  # 不是最后一个阈值
+                    logger.info(f"等待{self.threshold_delay}秒后尝试下一个阈值...")
+                    time.sleep(self.threshold_delay)
             
             logger.info("所有AI文案模板都未找到匹配")
             return False
