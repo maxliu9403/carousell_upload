@@ -165,7 +165,7 @@ check_pip() {
 
 # 检查并获取有效的GitHub Token
 check_and_get_github_token() {
-    print_info "🔑 检查GitHub Token配置..."
+    print_info "🔑 强制检查GitHub Token配置..."
     
     local github_token=""
     local token_file="$HOME/.github_token"
@@ -173,25 +173,29 @@ check_and_get_github_token() {
     # 检查本地Token文件是否存在
     if [ -f "$token_file" ]; then
         print_info "发现本地Token文件: $token_file"
+        print_info "文件权限: $(ls -la "$token_file" 2>/dev/null || echo "无法获取权限信息")"
+        
         github_token=$(cat "$token_file" 2>/dev/null | tr -d '\n\r')
         
         if [ -n "$github_token" ]; then
-            print_info "从文件读取GitHub Token"
+            print_info "从文件读取GitHub Token (长度: ${#github_token})"
+            print_info "Token前缀: ${github_token:0:10}..."
             
-            # 验证Token是否有效
+            # 强制验证Token是否有效
+            print_info "开始验证Token有效性..."
             if validate_github_token "$github_token"; then
-                print_success "✅ GitHub Token有效"
+                print_success "✅ GitHub Token验证成功"
                 echo "$github_token"
                 return 0
             else
-                print_warning "⚠️ GitHub Token无效或已过期"
+                print_error "❌ GitHub Token验证失败"
                 print_info "需要重新配置Token"
             fi
         else
-            print_warning "⚠️ Token文件为空"
+            print_error "❌ Token文件为空或无法读取"
         fi
     else
-        print_info "未找到本地Token文件: $token_file"
+        print_error "❌ 未找到本地Token文件: $token_file"
     fi
     
     # 提示用户输入新的Token
@@ -247,25 +251,40 @@ validate_github_token() {
     local token="$1"
     
     if [ -z "$token" ]; then
+        print_error "Token为空，无法验证"
         return 1
     fi
     
-    print_info "验证GitHub Token有效性..."
+    print_info "🔍 开始验证GitHub Token有效性..."
+    print_info "API端点: https://api.github.com/rate_limit"
+    print_info "请求头: Authorization: token ${token:0:10}..."
     
     # 使用Token测试API访问
     local response=$(curl -s -H "Authorization: token $token" https://api.github.com/rate_limit 2>/dev/null)
+    local curl_exit_code=$?
+    
+    print_info "Curl退出码: $curl_exit_code"
+    
+    if [ $curl_exit_code -ne 0 ]; then
+        print_error "❌ 网络请求失败，退出码: $curl_exit_code"
+        return 1
+    fi
+    
+    print_info "API响应长度: ${#response}"
+    print_info "API响应内容: $response"
     
     if echo "$response" | grep -q '"limit": 5000'; then
-        print_success "Token验证成功 - 认证用户权限"
+        print_success "✅ Token验证成功 - 认证用户权限 (5000次/小时)"
         return 0
     elif echo "$response" | grep -q '"message": "Bad credentials"'; then
-        print_error "Token无效或已过期"
+        print_error "❌ Token无效或已过期"
         return 1
     elif echo "$response" | grep -q '"limit": 60'; then
-        print_warning "Token可能无效，返回匿名用户权限"
+        print_error "❌ Token可能无效，返回匿名用户权限 (60次/小时)"
         return 1
     else
-        print_error "无法验证Token，网络或API错误"
+        print_error "❌ 无法验证Token，网络或API错误"
+        print_info "响应内容: $response"
         return 1
     fi
 }
@@ -354,47 +373,13 @@ except Exception as e:
     exit 1
 }
 
-# 检查版本信息
-check_version() {
-    print_info "🔍 检查版本信息..."
-    
-    # 获取远程版本信息
-    local remote_version=$(curl -fsSL "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/version.txt" 2>/dev/null || echo "unknown")
-    local local_version="unknown"
-    
-    # 获取本地版本信息
-    if [ -f "version.txt" ]; then
-        local_version=$(cat version.txt 2>/dev/null || echo "unknown")
-    fi
-    
-    print_info "远程版本: $remote_version"
-    print_info "本地版本: $local_version"
-    
-    if [ "$remote_version" != "unknown" ] && [ "$local_version" != "unknown" ]; then
-        if [ "$remote_version" = "$local_version" ]; then
-            print_success "✅ 版本已是最新"
-            return 1  # 不需要更新
-        else
-            print_info "🔄 发现新版本，准备更新"
-            return 0  # 需要更新
-        fi
-    else
-        print_info "🔄 无法确定版本，执行更新"
-        return 0  # 需要更新
-    fi
-}
 
 # 更新项目代码到最新版本
 update_project_code() {
     print_info "🔄 更新项目代码到最新版本..."
     
-    # 检查版本
-    if check_version; then
-        print_info "需要更新代码"
-    else
-        print_success "代码已是最新版本，跳过更新"
-        return 0
-    fi
+    # 直接执行更新，不检查版本
+    print_info "开始更新项目代码..."
     
     # 检查是否已存在项目目录
     if [ -d ".git" ]; then
@@ -509,58 +494,21 @@ def main():
         if not download_url:
             continue
         
-        # 特殊处理：跳过正在运行的install.sh
-        if filepath == 'install.sh':
-            # 检查是否是当前正在运行的脚本
-            current_script = os.path.abspath(__file__) if '__file__' in globals() else None
-            if current_script and os.path.samefile(filepath, current_script):
-                stats['unchanged_files'] += 1
-                print(f'⏭️  跳过: {filepath} (正在运行的脚本)')
-                continue
-            
-            # 检查文件是否被其他进程使用
-            try:
-                with open(filepath, 'r') as f:
-                    pass  # 尝试打开文件
-            except (PermissionError, OSError):
-                stats['unchanged_files'] += 1
-                print(f'⏭️  跳过: {filepath} (文件被占用)')
-                continue
-            
-            # 备份当前install.sh
-            if os.path.exists(filepath):
-                backup_path = f'{filepath}.backup'
-                try:
-                    import shutil
-                    shutil.copy2(filepath, backup_path)
-                    print(f'📋 备份: {filepath} -> {backup_path}')
-                except:
-                    pass
+        # 直接覆盖更新所有文件，包括install.sh
+        print(f'🔄 准备更新文件: {filepath}')
         
-        # 检查文件是否需要更新
-        local_hash = calculate_file_hash(filepath)
-        needs_update = True
-        
-        if local_hash:
-            # 比较哈希值（简化比较，实际应该比较SHA）
-            if local_hash == remote_sha:
-                needs_update = False
-                stats['unchanged_files'] += 1
-                print(f'⏭️  跳过: {filepath} (未修改)')
-                continue
-        
-        # 下载文件
-        print(f'📥 下载: {filepath}')
+        # 强制覆盖更新所有文件
+        print(f'📥 强制下载并覆盖: {filepath}')
         if download_file(download_url, filepath):
-            if not local_hash:
-                stats['new_files'] += 1
-                print(f'✅ 新增: {filepath}')
-            else:
+            if os.path.exists(filepath):
                 stats['updated_files'] += 1
-                print(f'🔄 更新: {filepath}')
+                print(f'✅ 覆盖更新: {filepath}')
+            else:
+                stats['new_files'] += 1
+                print(f'✅ 新增文件: {filepath}')
         else:
             stats['failed_downloads'] += 1
-            print(f'❌ 失败: {filepath}')
+            print(f'❌ 下载失败: {filepath}')
     
     # 检查需要删除的文件
     remote_file_paths = {f['path'] for f in remote_files}
@@ -576,12 +524,12 @@ def main():
                     print(f'⚠️  无法删除: {local_file}')
     
     # 输出统计信息
-    print(f'\\n📊 更新统计:')
+    print(f'\\n📊 强制覆盖更新统计:')
     print(f'  ✅ 新增文件: {stats[\"new_files\"]}')
-    print(f'  🔄 更新文件: {stats[\"updated_files\"]}')
-    print(f'  ⏭️  未修改: {stats[\"unchanged_files\"]}')
+    print(f'  🔄 覆盖更新: {stats[\"updated_files\"]}')
     print(f'  🗑️  删除文件: {stats[\"deleted_files\"]}')
     print(f'  ❌ 下载失败: {stats[\"failed_downloads\"]}')
+    print(f'  📝 总计处理: {stats[\"new_files\"] + stats[\"updated_files\"]} 个文件')
     
     return 0 if stats['failed_downloads'] == 0 else 1
 
@@ -1066,28 +1014,6 @@ show_usage() {
     echo "- 问题反馈: https://github.com/maxliu9403/carousell_upload/issues"
 }
 
-# 检查并处理install.sh更新问题
-check_install_script_update() {
-    print_info "🔍 检查install.sh更新状态..."
-    
-    # 检查当前脚本是否是最新版本
-    local current_script="$0"
-    local script_name="install.sh"
-    
-    if [ -f "$script_name" ] && [ "$current_script" != "./$script_name" ]; then
-        print_warning "⚠️ 检测到本地存在 $script_name"
-        print_info "为了避免更新冲突，建议："
-        print_info "  1. 使用最新版本: curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/install.sh | bash"
-        print_info "  2. 或先备份当前版本: cp $script_name ${script_name}.backup"
-        echo ""
-        
-        read -p "是否继续使用当前版本? (y/n): " continue_install
-        if [[ ! "$continue_install" =~ ^[Yy]$ ]]; then
-            print_info "请使用最新版本重新运行安装"
-            exit 0
-        fi
-    fi
-}
 
 # 主函数
 main() {
@@ -1095,8 +1021,6 @@ main() {
     echo "=================================="
     echo ""
     
-    # 检查install.sh更新问题
-    check_install_script_update
     
     # 环境检查阶段
     print_info "🔍 环境检查阶段"
