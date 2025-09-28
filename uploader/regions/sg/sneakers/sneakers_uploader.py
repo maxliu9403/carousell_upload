@@ -66,7 +66,6 @@ class SGSneakersUploader(BaseUploader):
         # 进入编辑模式
         self._enter_edit_mode()
         
-
         # 修改为运动鞋类目
         self._change_to_sneakers_category(enriched_info)
         
@@ -183,30 +182,3 @@ class SGSneakersUploader(BaseUploader):
     
 
 
-    def _handle_other_settings(self):
-        """处理其他设置 - 仅用于直上传方式"""
-        # 条件判断：关闭送货
-        delivery_check_selector = "button.D_ol"  # 检查是否已关闭送货
-        if not self.page.query_selector(delivery_check_selector):
-            logger.info("关闭送货")
-            self.safe_actions.safe_click_with_config(
-                "sneakers_sg.delivery_toggle_sg", self.region, must_exist=True,
-                operation="关闭送货"
-            )
-        else:
-            logger.info("跳过关闭送货操作")
-
-        # 条件判断：关闭买家保障
-        buyer_protection_check_selector = "span.D_aNX"  # 检查是否存在买家保障提示
-        if self.page.query_selector(buyer_protection_check_selector):
-            logger.info("关闭买家保障")
-            self.safe_actions.safe_click_with_config(
-                "sneakers_sg.platform_payment_close", self.region, must_exist=True,
-                operation="关闭买家保障"
-            )
-            self.safe_actions.safe_click_with_config(
-                "sneakers_sg.confirm_platform_payment", self.region, must_exist=True,
-                operation="确认关闭买家保障"
-            )
-        else:
-            logger.info("跳过关闭买家保障操作")

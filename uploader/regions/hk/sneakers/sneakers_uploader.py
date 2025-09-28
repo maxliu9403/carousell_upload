@@ -80,6 +80,9 @@ class HKSneakersUploader(BaseUploader):
         
         # 处理面交设置
         self._handle_meetup_settings(enriched_info)
+        
+        # 关闭平台收款
+        self._close_buyer_protection()
     
     def _change_to_sneakers_category(self, enriched_info: ProductInfo):
         """修改为运动鞋类目"""
@@ -217,34 +220,5 @@ class HKSneakersUploader(BaseUploader):
         
         self.page.wait_for_timeout(2000)
         
-        self._handle_other_settings()
 
-    def _handle_other_settings(self):
-        """处理其他设置 - 仅用于直上传方式"""
-        # 关闭送货
-        delivery_check_selector = ".D_Iu .D_pf"  # 检查是否已关闭送货
-        if not self.page.query_selector(delivery_check_selector):
-            logger.info("关闭送货")
-            self.safe_actions.safe_click_with_config(
-                "sneakers_hk.delivery_toggle_hk", self.region, must_exist=True,
-                operation="关闭送货"
-            )
-        else:
-            logger.info("跳过关闭送货操作")
-
-        # 关闭平台收款
-        platform_payment_check_selector = "p.D_agB"  # 检查是否存在平台收款提示
-        if self.page.query_selector(platform_payment_check_selector):
-            logger.info("关闭平台收款")
-            self.safe_actions.safe_click_with_config(
-                "sneakers_hk.platform_payment_close", self.region, must_exist=True,
-                operation="关闭平台收款"
-            )
-
-            # 确认关闭平台收款
-            self.safe_actions.safe_click_with_config(
-                "sneakers_hk.confirm_platform_payment", self.region, must_exist=True,
-                operation="确认关闭平台收款"
-            )
-        else:
-            logger.info("跳过关闭平台收款操作")
+   

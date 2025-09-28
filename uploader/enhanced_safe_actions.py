@@ -291,6 +291,11 @@ class EnhancedSafeActions:
                     logger.info(f"{self.log_prefix}{full_operation}成功")
                     return True
                 else:
+                    # 如果must_exist=False且primary选择器返回False，说明元素不存在，直接返回False
+                    if not must_exist:
+                        logger.info(f"{self.log_prefix}元素不存在，跳过操作: {primary_selector}")
+                        return False
+                    
                     logger.warning(f"{self.log_prefix}主选择器失败: {primary_selector}")
                     
                     # 尝试备用选择器
@@ -376,6 +381,11 @@ class EnhancedSafeActions:
                     logger.info(f"{self.log_prefix}{full_operation}成功")
                     return True
                 else:
+                    # 如果must_exist=False且primary选择器返回False，说明元素不存在，直接返回False
+                    if not must_exist:
+                        logger.info(f"{self.log_prefix}元素不存在，跳过操作: {primary_selector}")
+                        return False
+                    
                     logger.warning(f"{self.log_prefix}主选择器失败: {primary_selector}")
                     
                     # 尝试备用选择器

@@ -15,9 +15,9 @@ basic_elements:
     description: 新账号弹窗关闭按钮
     region: all
   ai_writing_cancel_button:
-    primary: div.D_aEN
-    fallback: button:has-text('改为手动填写')
-    description: AI文案取消按钮 - 文字匹配
+    primary: .D_pr use
+    fallback: button:has-text('改為手動填寫')
+    description: AI文案取消按钮
     region: all
 category_selection:
   service_category_selector:
@@ -111,12 +111,12 @@ popups_and_settings:
     description: 送货开关
     region: all
   buyer_protection_toggle:
-    primary: '.D_agH:nth-child(2) .D_kI'
+    primary: .D_agH:nth-child(2) .D_kI
     fallback: .D_mx
     description: 收款保障开关
     region: all
   buyer_protection_confirm:
-    primary: '.button.D_pA'
+    primary: .button.D_pA
     fallback: .D_mx
     description: 确认关闭收款保障
     region: all
@@ -154,7 +154,7 @@ editing:
     region: all
 sneakers_hk:
   category_selector:
-    primary: .D_aES > .D_JZ
+    primary: div.D_aEN
     fallback: div[class*='category']
     description: HK运动鞋类目选择器
     region: HK
@@ -366,7 +366,7 @@ sneakers_sg:
     region: SG
 metadata:
   version: 2.0.0
-  last_updated: '2025-09-28T22:29:32.497126'
+  last_updated: '2025-09-28T23:34:58.644365'
   description: CSS选择器配置文件，支持热更新和地域特定配置
   regions:
   - HK
