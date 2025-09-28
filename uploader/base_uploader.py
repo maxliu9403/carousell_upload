@@ -234,8 +234,8 @@ class BaseUploader:
         self._publish_product()
 
         # 判断是否存在出现 # div.D_wC，如果存在，则点击
-        if self.page.query_selector("#div.D_wC"):
-            self._publish_product()
+        # if self.page.query_selector("#div.D_wC"):
+        #     self._publish_product()
         
     
     # HK逻辑
@@ -429,8 +429,8 @@ class BaseUploader:
             # 使用ImageClicker的智能点击功能
             from .image_clicker import ImageClicker
             
-            # 创建ImageClicker实例，使用2秒延迟
-            image_clicker = ImageClicker(self.page, threshold_delay=2.0)
+            # 创建ImageClicker实例，使用1秒延迟
+            image_clicker = ImageClicker(self.page, threshold_delay=1.0)
             
             # 构建模板候选列表（支持地域特定模板）
             template_candidates = [
