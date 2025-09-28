@@ -240,63 +240,69 @@ class BaseUploader:
     
     # HK逻辑
     def _closewhatsapp(self):
-        """关闭WhatsApp - 智能检测版本"""
+        """关闭WhatsApp - 简化检测版本"""
         logger.info(f"{self.log_prefix}开始检查WhatsApp弹窗")
         
-        # 使用用户交互式检测WhatsApp弹窗
-        whatsapp_detected = self.safe_actions.safe_check_element_with_user_interaction(
-            "popups_and_settings.whatsapp_detection", self.region,
-            operation="检测WhatsApp弹窗", timeout_seconds=30
-        )
-        
-        if whatsapp_detected:
-            logger.info(f"{self.log_prefix}检测到WhatsApp弹窗，准备关闭")
-            self.safe_actions.safe_click_with_config(
-                "popups_and_settings.whatsapp_close", self.region, must_exist=True,
-                operation="关闭WhatsApp"
-            )
-        else:
-            logger.info(f"{self.log_prefix}未检测到WhatsApp弹窗，跳过关闭操作")
+        try:
+            # 直接检测WhatsApp弹窗文字
+            whatsapp_detected = self.page.locator("text=添加WhatsApp號碼").is_visible()
+            
+            if whatsapp_detected:
+                logger.info(f"{self.log_prefix}检测到WhatsApp弹窗，准备关闭")
+                self.safe_actions.safe_click_with_config(
+                    "popups_and_settings.whatsapp_close", self.region, must_exist=True,
+                    operation="关闭WhatsApp"
+                )
+            else:
+                logger.info(f"{self.log_prefix}未检测到WhatsApp弹窗，跳过关闭操作")
+                
+        except Exception as e:
+            logger.error(f"{self.log_prefix}检测WhatsApp弹窗异常: {e}")
+            logger.info(f"{self.log_prefix}跳过WhatsApp关闭操作")
     
     # HK逻辑
     def _closemeetup(self):
-        """关闭面交 - 智能检测版本"""
+        """关闭面交 - 简化检测版本"""
         logger.info(f"{self.log_prefix}开始检查面交状态")
         
-        # 使用用户交互式检测面交状态
-        meetup_enabled = self.safe_actions.safe_check_element_with_user_interaction(
-            "popups_and_settings.meetup_detection", self.region,
-            operation="检测面交状态", timeout_seconds=30
-        )
-        
-        if meetup_enabled:
-            logger.info(f"{self.log_prefix}检测到面交已开启，准备关闭")
-            self.safe_actions.safe_click_with_config(
-                "popups_and_settings.meetup_toggle", self.region, must_exist=True,
-                operation="关闭面交"
-            )
-        else:
-            logger.info(f"{self.log_prefix}面交未开启，跳过关闭操作")
+        try:
+            # 直接检测面交状态文字
+            meetup_enabled = self.page.locator("text=添加地點").is_visible()
+            
+            if meetup_enabled:
+                logger.info(f"{self.log_prefix}检测到面交已开启，准备关闭")
+                self.safe_actions.safe_click_with_config(
+                    "popups_and_settings.meetup_toggle", self.region, must_exist=True,
+                    operation="关闭面交"
+                )
+            else:
+                logger.info(f"{self.log_prefix}面交未开启，跳过关闭操作")
+                
+        except Exception as e:
+            logger.error(f"{self.log_prefix}检测面交状态异常: {e}")
+            logger.info(f"{self.log_prefix}跳见面交关闭操作")
 
     # HK开启送货
     def _open_delivery(self):
-        """开启送货 - 智能检测版本"""
+        """开启送货 - 简化检测版本"""
         logger.info(f"{self.log_prefix}开始检查送货状态")
         
-        # 使用用户交互式检测送货状态
-        delivery_enabled = self.safe_actions.safe_check_element_with_user_interaction(
-            "popups_and_settings.delivery_detection", self.region,
-            operation="检测送货状态", timeout_seconds=30
-        )
-        
-        if not delivery_enabled:
-            logger.info(f"{self.log_prefix}检测到送货未开启，准备开启")
-            self.safe_actions.safe_click_with_config(
-                "popups_and_settings.delivery_toggle", self.region, must_exist=True,
-                operation="开启送货"
-            )
-        else:
-            logger.info(f"{self.log_prefix}送货已开启，跳过开启操作")
+        try:
+            # 直接检测送货状态文字
+            delivery_enabled = self.page.locator("text=仲有冇額外郵寄資料同埋更多選擇").is_visible()
+            
+            if not delivery_enabled:
+                logger.info(f"{self.log_prefix}检测到送货未开启，准备开启")
+                self.safe_actions.safe_click_with_config(
+                    "popups_and_settings.delivery_toggle", self.region, must_exist=True,
+                    operation="开启送货"
+                )
+            else:
+                logger.info(f"{self.log_prefix}送货已开启，跳过开启操作")
+                
+        except Exception as e:
+            logger.error(f"{self.log_prefix}检测送货状态异常: {e}")
+            logger.info(f"{self.log_prefix}跳过送货开启操作")
             
     # ========= 公共方法：页面导航 =========
     def _navigate_to_homepage(self):
