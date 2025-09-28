@@ -508,7 +508,35 @@ def main():
         
         if not download_url:
             continue
+        
+        # 特殊处理：跳过正在运行的install.sh
+        if filepath == 'install.sh':
+            # 检查是否是当前正在运行的脚本
+            current_script = os.path.abspath(__file__) if '__file__' in globals() else None
+            if current_script and os.path.samefile(filepath, current_script):
+                stats['unchanged_files'] += 1
+                print(f'⏭️  跳过: {filepath} (正在运行的脚本)')
+                continue
             
+            # 检查文件是否被其他进程使用
+            try:
+                with open(filepath, 'r') as f:
+                    pass  # 尝试打开文件
+            except (PermissionError, OSError):
+                stats['unchanged_files'] += 1
+                print(f'⏭️  跳过: {filepath} (文件被占用)')
+                continue
+            
+            # 备份当前install.sh
+            if os.path.exists(filepath):
+                backup_path = f'{filepath}.backup'
+                try:
+                    import shutil
+                    shutil.copy2(filepath, backup_path)
+                    print(f'📋 备份: {filepath} -> {backup_path}')
+                except:
+                    pass
+        
         # 检查文件是否需要更新
         local_hash = calculate_file_hash(filepath)
         needs_update = True
@@ -1038,11 +1066,37 @@ show_usage() {
     echo "- 问题反馈: https://github.com/maxliu9403/carousell_upload/issues"
 }
 
+# 检查并处理install.sh更新问题
+check_install_script_update() {
+    print_info "🔍 检查install.sh更新状态..."
+    
+    # 检查当前脚本是否是最新版本
+    local current_script="$0"
+    local script_name="install.sh"
+    
+    if [ -f "$script_name" ] && [ "$current_script" != "./$script_name" ]; then
+        print_warning "⚠️ 检测到本地存在 $script_name"
+        print_info "为了避免更新冲突，建议："
+        print_info "  1. 使用最新版本: curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/install.sh | bash"
+        print_info "  2. 或先备份当前版本: cp $script_name ${script_name}.backup"
+        echo ""
+        
+        read -p "是否继续使用当前版本? (y/n): " continue_install
+        if [[ ! "$continue_install" =~ ^[Yy]$ ]]; then
+            print_info "请使用最新版本重新运行安装"
+            exit 0
+        fi
+    fi
+}
+
 # 主函数
 main() {
     echo "🚀 Carousell Uploader 一键安装脚本"
     echo "=================================="
     echo ""
+    
+    # 检查install.sh更新问题
+    check_install_script_update
     
     # 环境检查阶段
     print_info "🔍 环境检查阶段"

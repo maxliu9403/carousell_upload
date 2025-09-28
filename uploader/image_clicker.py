@@ -17,23 +17,25 @@ from browser.actions import human_delay
 class ImageClicker:
     """图片匹配点击器"""
     
-    def __init__(self, page: Page, templates_dir: str = "templates"):
+    def __init__(self, page: Page, templates_dir: str = "templates", threshold_delay: float = 3.0):
         """
         初始化图片匹配点击器
         
         Args:
             page: Playwright页面对象
             templates_dir: 图片模板目录
+            threshold_delay: 阈值切换延迟时间（秒）
         """
         self.page = page
         self.templates_dir = Path(templates_dir)
         self.templates_dir.mkdir(exist_ok=True)
+        self.threshold_delay = threshold_delay
         
         # 创建AI文案模板目录
         self.ai_templates_dir = self.templates_dir / "ai_writing"
         self.ai_templates_dir.mkdir(exist_ok=True)
         
-        logger.info(f"图片匹配点击器初始化完成，模板目录: {self.templates_dir}")
+        logger.info(f"图片匹配点击器初始化完成，模板目录: {self.templates_dir}, 阈值延迟: {self.threshold_delay}秒")
     
     def capture_page_screenshot(self, filename: str = None) -> str:
         """
@@ -167,9 +169,13 @@ class ImageClicker:
                 
                 # 尝试不同的阈值
                 for threshold in [0.8, 0.7, 0.6]:
+                    logger.info(f"尝试阈值: {threshold}")
                     if self.click_image(template_path, threshold):
                         logger.info(f"成功点击AI文案按钮: {Path(template_path).name}")
                         return True
+                    else:
+                        logger.info(f"阈值 {threshold} 未找到匹配，等待{self.threshold_delay}秒后尝试下一个阈值...")
+                        time.sleep(self.threshold_delay)
             
             logger.info("所有AI文案模板都未找到匹配")
             return False
@@ -314,6 +320,9 @@ class ImageClicker:
                     return (template_path.name, threshold, match_result)
                 else:
                     logger.info(f"❌ 模板 {template_path.name} 阈值 {threshold} 未找到匹配")
+                    # 等待指定时间再尝试下一个阈值
+                    logger.info(f"等待{self.threshold_delay}秒后尝试下一个阈值...")
+                    time.sleep(self.threshold_delay)
         
         logger.info("所有模板都未找到匹配")
         return None
@@ -416,9 +425,9 @@ def click_ai_writing_button_with_image(page: Page, region: str = "all",
 # 全局实例管理
 _image_clicker_instance = None
 
-def get_image_clicker(page: Page) -> ImageClicker:
+def get_image_clicker(page: Page, threshold_delay: float = 3.0) -> ImageClicker:
     """获取图片点击器实例"""
     global _image_clicker_instance
     if _image_clicker_instance is None:
-        _image_clicker_instance = ImageClicker(page)
+        _image_clicker_instance = ImageClicker(page, threshold_delay=threshold_delay)
     return _image_clicker_instance
