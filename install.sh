@@ -190,6 +190,8 @@ check_and_get_github_token() {
             else
                 print_error "❌ GitHub Token验证失败"
                 print_info "需要重新配置Token"
+                # 不要继续，直接退出让用户重新配置
+                return 1
             fi
         else
             print_error "❌ Token文件为空或无法读取"
@@ -296,6 +298,9 @@ get_project_files() {
     # 获取有效的GitHub Token
     local github_token
     github_token=$(check_and_get_github_token)
+    
+    print_info "获取到的Token长度: ${#github_token}"
+    print_info "获取到的Token前缀: ${github_token:0:10}..."
     
     if [ -z "$github_token" ]; then
         print_error "❌ 无法获取有效的GitHub Token"
