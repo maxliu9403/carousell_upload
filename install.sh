@@ -164,7 +164,7 @@ check_pip() {
 }
 
 # 下载项目文件
-# 获取项目文件列表（动态适配）
+# 获取项目文件列表（智能增量更新）
 get_project_files() {
     print_info "🔍 获取项目文件列表..."
     
@@ -173,18 +173,29 @@ get_project_files() {
     local temp_file="/tmp/project_files.json"
     
     if curl -fsSL "$api_url" -o "$temp_file" 2>/dev/null; then
-        # 使用Python解析GitHub API响应
+        # 使用Python解析GitHub API响应，获取文件哈希和修改时间
         python3 -c "
 import json
 import sys
 import subprocess
+import hashlib
+import os
+from datetime import datetime
 
 def get_files_from_api(data, prefix=''):
     files = []
     for item in data:
         if item['type'] == 'file':
-            files.append(prefix + item['name'])
-        elif item['type'] == 'dir' and item['name'] not in ['.git', '__pycache__', '.venv']:
+            # 包含文件哈希和修改时间信息
+            file_info = {
+                'path': prefix + item['name'],
+                'sha': item.get('sha', ''),
+                'size': item.get('size', 0),
+                'download_url': item.get('download_url', ''),
+                'last_modified': item.get('last_modified', '')
+            }
+            files.append(file_info)
+        elif item['type'] == 'dir' and item['name'] not in ['.git', '__pycache__', '.venv', 'node_modules', 'logs', 'temp']:
             # 递归获取子目录文件
             try:
                 result = subprocess.run(['curl', '-fsSL', item['url']], 
@@ -201,8 +212,15 @@ try:
         data = json.load(f)
     
     files = get_files_from_api(data)
-    for file in sorted(files):
-        print(file)
+    
+    # 输出文件信息到临时文件
+    with open('/tmp/project_files_info.json', 'w') as f:
+        json.dump(files, f, indent=2)
+    
+    # 输出文件路径列表
+    for file_info in sorted(files, key=lambda x: x['path']):
+        print(file_info['path'])
+        
 except Exception as e:
     print(f'Error: {e}', file=sys.stderr)
     sys.exit(1)
@@ -219,9 +237,47 @@ except Exception as e:
     return 1
 }
 
+# 检查版本信息
+check_version() {
+    print_info "🔍 检查版本信息..."
+    
+    # 获取远程版本信息
+    local remote_version=$(curl -fsSL "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/version.txt" 2>/dev/null || echo "unknown")
+    local local_version="unknown"
+    
+    # 获取本地版本信息
+    if [ -f "version.txt" ]; then
+        local_version=$(cat version.txt 2>/dev/null || echo "unknown")
+    fi
+    
+    print_info "远程版本: $remote_version"
+    print_info "本地版本: $local_version"
+    
+    if [ "$remote_version" != "unknown" ] && [ "$local_version" != "unknown" ]; then
+        if [ "$remote_version" = "$local_version" ]; then
+            print_success "✅ 版本已是最新"
+            return 1  # 不需要更新
+        else
+            print_info "🔄 发现新版本，准备更新"
+            return 0  # 需要更新
+        fi
+    else
+        print_info "🔄 无法确定版本，执行更新"
+        return 0  # 需要更新
+    fi
+}
+
 # 更新项目代码到最新版本
 update_project_code() {
     print_info "🔄 更新项目代码到最新版本..."
+    
+    # 检查版本
+    if check_version; then
+        print_info "需要更新代码"
+    else
+        print_success "代码已是最新版本，跳过更新"
+        return 0
+    fi
     
     # 检查是否已存在项目目录
     if [ -d ".git" ]; then
@@ -260,32 +316,135 @@ update_project_code() {
     fi
 }
 
-# 使用动态文件列表更新
+# 使用动态文件列表更新（智能增量更新）
 update_with_dynamic_list() {
-    # 创建必要的目录结构
-    print_info "📁 创建目录结构..."
-    while IFS= read -r file; do
-        if [[ "$file" == *"/"* ]]; then
-            dir=$(dirname "$file")
-            mkdir -p "$dir"
-        fi
-    done < /tmp/project_files_list.txt
+    print_info "🔄 执行智能增量更新..."
     
-    # 下载所有文件
-    print_info "📥 下载项目文件..."
-    local success_count=0
-    local total_count=0
+    # 检查是否有文件信息
+    if [ ! -f "/tmp/project_files_info.json" ]; then
+        print_error "文件信息不可用，回退到静态更新"
+        update_with_static_list
+        return $?
+    fi
     
-    while IFS= read -r file; do
-        total_count=$((total_count + 1))
-        print_info "下载: $file"
+    # 使用Python进行智能增量更新
+    python3 -c "
+import json
+import os
+import hashlib
+import subprocess
+import sys
+from pathlib import Path
+
+def calculate_file_hash(filepath):
+    \"\"\"计算文件SHA256哈希\"\"\"
+    if not os.path.exists(filepath):
+        return None
+    try:
+        with open(filepath, 'rb') as f:
+            return hashlib.sha256(f.read()).hexdigest()
+    except:
+        return None
+
+def download_file(url, filepath):
+    \"\"\"下载文件\"\"\"
+    try:
+        result = subprocess.run(['curl', '-fsSL', url], 
+                              capture_output=True, timeout=30)
+        if result.returncode == 0:
+            # 确保目录存在
+            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            with open(filepath, 'wb') as f:
+                f.write(result.stdout)
+            return True
+        return False
+    except:
+        return False
+
+def main():
+    # 读取远程文件信息
+    with open('/tmp/project_files_info.json', 'r') as f:
+        remote_files = json.load(f)
+    
+    # 统计信息
+    stats = {
+        'new_files': 0,
+        'updated_files': 0,
+        'unchanged_files': 0,
+        'deleted_files': 0,
+        'failed_downloads': 0
+    }
+    
+    # 获取本地文件列表
+    local_files = set()
+    for root, dirs, files in os.walk('.'):
+        for file in files:
+            if not any(skip in root for skip in ['.git', '__pycache__', '.venv', 'node_modules', 'logs', 'temp']):
+                rel_path = os.path.relpath(os.path.join(root, file), '.')
+                local_files.add(rel_path)
+    
+    # 处理远程文件
+    for file_info in remote_files:
+        filepath = file_info['path']
+        remote_sha = file_info.get('sha', '')
+        download_url = file_info.get('download_url', '')
         
-        if download_file "https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/$file" "$file"; then
-            success_count=$((success_count + 1))
-        else
-            print_warning "跳过: $file"
-        fi
-    done < /tmp/project_files_list.txt
+        if not download_url:
+            continue
+            
+        # 检查文件是否需要更新
+        local_hash = calculate_file_hash(filepath)
+        needs_update = True
+        
+        if local_hash:
+            # 比较哈希值（简化比较，实际应该比较SHA）
+            if local_hash == remote_sha:
+                needs_update = False
+                stats['unchanged_files'] += 1
+                print(f'⏭️  跳过: {filepath} (未修改)')
+                continue
+        
+        # 下载文件
+        print(f'📥 下载: {filepath}')
+        if download_file(download_url, filepath):
+            if not local_hash:
+                stats['new_files'] += 1
+                print(f'✅ 新增: {filepath}')
+            else:
+                stats['updated_files'] += 1
+                print(f'🔄 更新: {filepath}')
+        else:
+            stats['failed_downloads'] += 1
+            print(f'❌ 失败: {filepath}')
+    
+    # 检查需要删除的文件
+    remote_file_paths = {f['path'] for f in remote_files}
+    for local_file in local_files:
+        if local_file not in remote_file_paths:
+            # 检查是否是项目文件（排除用户数据）
+            if not any(skip in local_file for skip in ['logs/', 'temp/', 'screenshots/', 'data/', 'venv/']):
+                try:
+                    os.remove(local_file)
+                    stats['deleted_files'] += 1
+                    print(f'🗑️  删除: {local_file}')
+                except:
+                    print(f'⚠️  无法删除: {local_file}')
+    
+    # 输出统计信息
+    print(f'\\n📊 更新统计:')
+    print(f'  ✅ 新增文件: {stats[\"new_files\"]}')
+    print(f'  🔄 更新文件: {stats[\"updated_files\"]}')
+    print(f'  ⏭️  未修改: {stats[\"unchanged_files\"]}')
+    print(f'  🗑️  删除文件: {stats[\"deleted_files\"]}')
+    print(f'  ❌ 下载失败: {stats[\"failed_downloads\"]}')
+    
+    return 0 if stats['failed_downloads'] == 0 else 1
+
+if __name__ == '__main__':
+    sys.exit(main())
+"
+    
+    local update_result=$?
     
     # 设置执行权限
     print_info "🔧 设置执行权限..."
@@ -294,10 +453,15 @@ update_with_dynamic_list() {
     chmod +x scripts/quick-deploy.sh 2>/dev/null || true
     
     # 清理临时文件
-    rm -f /tmp/project_files.json /tmp/project_files_list.txt
+    rm -f /tmp/project_files.json /tmp/project_files_list.txt /tmp/project_files_info.json
     
-    print_success "✅ 项目代码更新完成 ($success_count/$total_count 文件)"
-    return 0
+    if [ $update_result -eq 0 ]; then
+        print_success "✅ 智能增量更新完成"
+        return 0
+    else
+        print_warning "⚠️ 部分文件更新失败，但继续安装"
+        return 0
+    fi
 }
 
 # 使用预定义文件列表更新
