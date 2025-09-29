@@ -3,8 +3,8 @@ from pathlib import Path
 from datetime import datetime
 from playwright.sync_api import Page  # pyright: ignore[reportMissingImports]
 from core.models import ProductInfo, UploadConfig
-from .carousell_uploader_new import CarousellUploader
-from .base_uploader import CriticalOperationFailed
+from ..core.carousell_uploader import CarousellUploader
+from ..core.base_uploader import CriticalOperationFailed
 from browser.browser import (
     start_browser_unified, 
     get_profile_id_by_browser_id_unified, 

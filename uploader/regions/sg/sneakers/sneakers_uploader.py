@@ -4,7 +4,7 @@
 """
 from core.models import ProductInfo
 from core.logger import logger
-from uploader.base_uploader import BaseUploader
+from uploader.core.base_uploader import BaseUploader
 
 class SGSneakersUploader(BaseUploader):
     """新加坡运动鞋上传器"""
@@ -82,17 +82,17 @@ class SGSneakersUploader(BaseUploader):
         """修改为运动鞋类目"""
         # 修改产品类目
         self.safe_actions.safe_click_with_config(
-            "sneakers_sg.category_selector", self.region, must_exist=True,
+            "category_selection.service_category_selector", self.region, must_exist=True,
             operation="修改产品类目"
         )
 
         # 输入运动鞋搜索关键词
         search_keyword = self.safe_actions.css_manager.get_selector(
-            "sneakers_sg.category_search_keyword", self.region, "primary"
+            "sneakers_specific.category_search_keyword", self.region, "primary"
         ) or "sneakers"
         
         self.safe_actions.safe_input_with_config(
-            "sneakers_sg.category_search_input", search_keyword, self.region, must_exist=True,
+            "sneakers_specific.category_search_input", search_keyword, self.region, must_exist=True,
             operation="输入运动鞋搜索关键词"
         )
 
@@ -102,13 +102,13 @@ class SGSneakersUploader(BaseUploader):
         if enriched_info.gender.lower() in ["male", "men", "mens"]:
             # 点击 男装波鞋
             self.safe_actions.safe_click_with_config(
-                "sneakers_sg.men_sneakers_option", self.region, must_exist=True,
+                "sneakers_specific.men_sneakers_option", self.region, must_exist=True,
                 operation="选择男装运动鞋"
             )
         else:
             # 点击女装波鞋
             self.safe_actions.safe_click_with_config(
-                "sneakers_sg.women_sneakers_option", self.region, must_exist=True,
+                "sneakers_specific.women_sneakers_option", self.region, must_exist=True,
                 operation="选择女装运动鞋"
             )
     
@@ -119,23 +119,23 @@ class SGSneakersUploader(BaseUploader):
         """
         # 点击 新旧
         self.safe_actions.safe_click_with_config(
-            "sneakers_sg.condition_selector", self.region, must_exist=True,
+            "sneakers_specific.condition_selector", self.region, must_exist=True,
             operation="点击新旧条件"
         )
 
         # 点击 品牌
         self.safe_actions.safe_click_with_config(
-            "sneakers_sg.brand_selector", self.region, must_exist=True,
+            "sneakers_specific.brand_selector", self.region, must_exist=True,
             operation="点击品牌选择"
         )
 
         # 点击搜索品牌
         brand_search_keyword = self.safe_actions.css_manager.get_selector(
-            "sneakers_sg.brand_search_keyword", self.region, "primary"
+            "sneakers_specific.brand_search_keyword", self.region, "primary"
         ) or "other"
         
         self.safe_actions.safe_input_with_config(
-            "sneakers_sg.brand_search_input", brand_search_keyword, self.region, must_exist=True,
+            "sneakers_specific.brand_search_input", brand_search_keyword, self.region, must_exist=True,
             operation="输入品牌搜索"
         )
 
@@ -143,25 +143,25 @@ class SGSneakersUploader(BaseUploader):
         
         # 点击other品牌
         self.safe_actions.safe_click_with_config(
-            "sneakers_sg.brand_option", self.region, must_exist=True,
+            "sneakers_specific.brand_option", self.region, must_exist=True,
             operation="点击Other品牌"
         )
 
         # 输入品牌
         self.safe_actions.safe_input_with_config(
-            "sneakers_sg.brand_input", enriched_info.brand, self.region, must_exist=True,
+            "sneakers_specific.brand_input", enriched_info.brand, self.region, must_exist=True,
             operation="输入品牌名称"
         )
         
         # 点击size
         self.safe_actions.safe_click_with_config(
-            "sneakers_sg.size_selector", self.region, must_exist=True,
+            "sneakers_specific.size_selector", self.region, must_exist=True,
             operation="点击尺寸选择"
         )
       
         # 输入size
         self.safe_actions.safe_input_with_config(
-            "sneakers_sg.size_search_input", str(enriched_info.size), self.region, must_exist=True,
+            "sneakers_specific.size_search_input", str(enriched_info.size), self.region, must_exist=True,
             operation="输入尺寸搜索"
         )
 
@@ -169,13 +169,13 @@ class SGSneakersUploader(BaseUploader):
 
         # 点击查找的size
         self.safe_actions.safe_click_with_config(
-            "sneakers_sg.size_option", self.region, must_exist=True,
+            "sneakers_specific.size_option", self.region, must_exist=True,
             operation="点击选择尺寸"
         )
 
         # 点击 多产品销售复选框
         self.safe_actions.safe_click_with_config(
-            "sneakers_sg.multi_quantity_checkbox", self.region, must_exist=False,
+            "sneakers_specific.multi_quantity_checkbox", self.region, must_exist=False,
             operation="点击多产品销售复选框"
         )
     

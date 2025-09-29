@@ -365,11 +365,26 @@ carousell_upload/
 │   └── record_manager.py     # 记录管理
 ├── uploader/                 # 上传功能模块
 │   ├── __init__.py
-│   ├── carousell_uploader_new.py # 核心上传逻辑
-│   ├── multi_account_uploader.py # 多账号上传器
-│   ├── base_uploader.py      # 基础上传器
-│   ├── uploader_factory.py   # 上传器工厂
-│   ├── utils.py              # 工具函数
+│   ├── core/                 # 核心功能
+│   │   ├── __init__.py
+│   │   ├── base_uploader.py  # 基础上传器
+│   │   └── carousell_uploader.py # 工厂包装器
+│   ├── actions/              # 安全操作
+│   │   ├── __init__.py
+│   │   └── enhanced_safe_actions.py # 增强安全操作
+│   ├── config/               # 配置管理
+│   │   ├── __init__.py
+│   │   ├── enhanced_css_selector_manager.py # CSS选择器管理
+│   │   └── regional_config_loader.py # 地域配置加载器
+│   ├── factory/              # 工厂模式
+│   │   ├── __init__.py
+│   │   └── uploader_factory.py # 上传器工厂
+│   ├── multi/                # 多账号功能
+│   │   ├── __init__.py
+│   │   └── multi_account_uploader.py # 多账号上传器
+│   ├── utils/                # 工具函数
+│   │   ├── __init__.py
+│   │   └── utils.py          # 工具函数
 │   └── regions/              # 地域特定上传器
 │       ├── sg/               # 新加坡
 │       │   ├── sneakers/     # 运动鞋
@@ -408,12 +423,36 @@ carousell_upload/
 - **core/**: 核心功能模块，包含配置管理、数据模型和日志系统
 - **browser/**: 浏览器操作模块，负责浏览器控制和页面操作
 - **data/**: 数据处理模块，处理Excel解析和记录管理
-- **uploader/**: 上传功能模块，包含Carousell上传器和多账号上传器
+- **uploader/**: 上传功能模块，采用模块化架构设计
+  - **core/**: 核心上传器，包含基础上传器和工厂包装器
+  - **actions/**: 安全操作模块，提供增强的安全操作功能
+  - **config/**: 配置管理模块，管理CSS选择器和地域配置
+  - **factory/**: 工厂模式模块，负责创建上传器实例
+  - **multi/**: 多账号功能模块，支持多账号并发上传
+  - **utils/**: 工具函数模块，提供通用工具函数
   - **regions/**: 地域特定上传器，按地域和类目组织
 - **cli/**: 命令行接口模块，提供主程序入口和CLI接口
 - **config/**: 配置文件目录，存放YAML配置文件
 - **scripts/**: 部署脚本目录，包含各种部署方式
 - **logs/**: 日志文件目录，存放运行日志
+
+### 🎯 架构优势
+
+**模块化设计**:
+- **职责清晰**: 每个模块都有明确的职责和用途
+- **易于维护**: 相关功能集中在一起，便于维护和调试
+- **可读性强**: 目录结构直观，一目了然
+- **扩展性好**: 新增功能可以轻松归类到对应模块
+- **解耦合**: 模块间依赖关系清晰，降低耦合度
+
+**uploader模块架构**:
+- **core/**: 核心业务逻辑，包含基础上传器和工厂包装器
+- **actions/**: 安全操作封装，提供统一的操作接口
+- **config/**: 配置管理，支持地域特定的CSS选择器配置
+- **factory/**: 工厂模式，动态创建地域特定上传器
+- **multi/**: 多账号支持，实现并发上传
+- **utils/**: 工具函数，提供通用功能
+- **regions/**: 地域特定实现，支持不同地区的业务逻辑
 
 ## 🛠️ 技术栈
 

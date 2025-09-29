@@ -4,7 +4,7 @@
 """
 from core.models import ProductInfo
 from core.logger import logger
-from uploader.base_uploader import BaseUploader
+from uploader.core.base_uploader import BaseUploader
 
 class HKSneakersUploader(BaseUploader):
     """香港运动鞋上传器"""
@@ -46,9 +46,6 @@ class HKSneakersUploader(BaseUploader):
         """
         # 第一步：上传服务商品
         self._upload_service_product(enriched_info, folder_path)
-        
-        # 通过判断这个 css = div.D_abL是否消失，最多等待1min，消失则继续执行，超时就退出
-        # self._wait_for_element_to_disappear("div.D_abL", timeout=60000)
 
         # 第二步：编辑为运动鞋
         self._edit_to_sneakers(enriched_info)
@@ -69,17 +66,11 @@ class HKSneakersUploader(BaseUploader):
         # 进入编辑模式
         self._enter_edit_mode()
         
-        # 处理AI文案相关操作
-        self._handle_ai_writing_operations()
-        
         # 修改为运动鞋类目
         self._change_to_sneakers_category(enriched_info)
         
         # 填写运动鞋详细信息
         self._fill_sneakers_details(enriched_info)
-        
-        # 处理面交设置
-        self._handle_meetup_settings(enriched_info)
         
         # 关闭平台收款
         self._close_buyer_protection()
@@ -88,17 +79,17 @@ class HKSneakersUploader(BaseUploader):
         """修改为运动鞋类目"""
         # 修改产品类目
         self.safe_actions.safe_click_with_config(
-            "sneakers_hk.category_selector", self.region, must_exist=True,
+            "category_selection.service_category_selector", self.region, must_exist=True,
             operation="修改产品类目"
         )
 
         # 输入运动鞋搜索关键词
         search_keyword = self.safe_actions.css_manager.get_selector(
-            "sneakers_hk.category_search_keyword", self.region, "primary"
+            "sneakers_specific.category_search_keyword", self.region, "primary"
         ) or "波鞋"
         
         self.safe_actions.safe_input_with_config(
-            "sneakers_hk.category_search_input", search_keyword, self.region, must_exist=True,
+            "sneakers_specific.category_search_input", search_keyword, self.region, must_exist=True,
             operation="输入运动鞋搜索关键词"
         )
 
@@ -108,13 +99,13 @@ class HKSneakersUploader(BaseUploader):
         if enriched_info.gender.lower() in ["male", "men", "mens"]:
             # 点击 男装波鞋
             self.safe_actions.safe_click_with_config(
-                "sneakers_hk.men_sneakers_option", self.region, must_exist=True,
+                "sneakers_specific.men_sneakers_option", self.region, must_exist=True,
                 operation="选择男装波鞋"
             )
         else:
             # 点击女装波鞋
             self.safe_actions.safe_click_with_config(
-                "sneakers_hk.women_sneakers_option", self.region, must_exist=True,
+                "sneakers_specific.women_sneakers_option", self.region, must_exist=True,
                 operation="选择女装波鞋"
             )
     
@@ -125,23 +116,23 @@ class HKSneakersUploader(BaseUploader):
         """
         # 点击 新旧
         self.safe_actions.safe_click_with_config(
-            "sneakers_hk.condition_selector", self.region, must_exist=True,
+            "sneakers_specific.condition_selector", self.region, must_exist=True,
             operation="点击新旧条件"
         )
 
         # 点击 品牌
         self.safe_actions.safe_click_with_config(
-            "sneakers_hk.brand_selector", self.region, must_exist=True,
+            "sneakers_specific.brand_selector", self.region, must_exist=True,
             operation="点击品牌选择"
         )
 
         # 点击搜索品牌
         brand_search_keyword = self.safe_actions.css_manager.get_selector(
-            "sneakers_hk.brand_search_keyword", self.region, "primary"
+            "sneakers_specific.brand_search_keyword", self.region, "primary"
         ) or "其他"
         
         self.safe_actions.safe_input_with_config(
-            "sneakers_hk.brand_search_input", brand_search_keyword, self.region, must_exist=True,
+            "sneakers_specific.brand_search_input", brand_search_keyword, self.region, must_exist=True,
             operation="输入品牌搜索"
         )
 
@@ -149,25 +140,25 @@ class HKSneakersUploader(BaseUploader):
         
         # 点击other品牌
         self.safe_actions.safe_click_with_config(
-            "sneakers_hk.brand_option", self.region, must_exist=True,
+            "sneakers_specific.brand_option", self.region, must_exist=True,
             operation="点击Other品牌"
         )
 
         # 输入品牌
         self.safe_actions.safe_input_with_config(
-            "sneakers_hk.brand_input", enriched_info.brand, self.region, must_exist=True,
+            "sneakers_specific.brand_input", enriched_info.brand, self.region, must_exist=True,
             operation="输入品牌名称"
         )
         
         # 点击size
         self.safe_actions.safe_click_with_config(
-            "sneakers_hk.size_selector", self.region, must_exist=True,
+            "sneakers_specific.size_selector", self.region, must_exist=True,
             operation="点击尺寸选择"
         )
       
         # 输入size
         self.safe_actions.safe_input_with_config(
-            "sneakers_hk.size_search_input", str(enriched_info.size), self.region, must_exist=True,
+            "sneakers_specific.size_search_input", str(enriched_info.size), self.region, must_exist=True,
             operation="输入尺寸搜索"
         )
 
@@ -175,13 +166,13 @@ class HKSneakersUploader(BaseUploader):
 
         # 点击查找的size
         self.safe_actions.safe_click_with_config(
-            "sneakers_hk.size_option", self.region, must_exist=True,
+            "sneakers_specific.size_option", self.region, must_exist=True,
             operation="点击选择尺寸"
         )
 
         # 点击 多产品销售复选框
         self.safe_actions.safe_click_with_config(
-            "sneakers_hk.multi_quantity_checkbox", self.region, must_exist=False,
+            "sneakers_specific.multi_quantity_checkbox", self.region, must_exist=False,
             operation="点击多产品销售复选框"
         )
     
@@ -190,7 +181,7 @@ class HKSneakersUploader(BaseUploader):
         """处理面交设置"""
         # 检查是否存在已选好的面交地点
         meetup_input_selector = self.safe_actions.css_manager.get_selector(
-            "sneakers_hk.meetup_input", self.region, "primary"
+            "sneakers_specific.meetup_input", self.region, "primary"
         ) or "input.D_vI"
         
         if not self.page.query_selector(meetup_input_selector):
@@ -198,13 +189,13 @@ class HKSneakersUploader(BaseUploader):
             
             # 开启面交
             self.safe_actions.safe_click_with_config(
-                "sneakers_hk.meetup_toggle_hk", self.region, must_exist=True,
+                "sneakers_specific.meetup_toggle_hk", self.region, must_exist=True,
                 operation="开启面交"
             )
 
             # 点击面交地点选择框
             self.safe_actions.safe_input_with_config(
-                "sneakers_hk.meetup_input", enriched_info.meetup_location, self.region, must_exist=True,
+                "sneakers_specific.meetup_input", enriched_info.meetup_location, self.region, must_exist=True,
                 operation="输入面交地点"
             )
             
@@ -212,7 +203,7 @@ class HKSneakersUploader(BaseUploader):
             
             # 选择面交地点
             self.safe_actions.safe_click_with_config(
-                "sneakers_hk.meetup_option", self.region, must_exist=True,
+                "sneakers_specific.meetup_option", self.region, must_exist=True,
                 operation="选择面交地点"
             )
         else:

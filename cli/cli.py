@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 from core.config import create_upload_config
 from browser.browser import start_browser, check_browser_api_health
-from uploader.carousell_uploader_new import CarousellUploader
+from uploader.core.carousell_uploader import CarousellUploader
 from core.models import ProductInfo
 from core.logger import logger
 

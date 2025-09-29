@@ -3,10 +3,10 @@ import sys
 from core.config import create_upload_config
 from browser.browser import start_browser, check_browser_api_health, initialize_browser_interface
 from browser.browser_selector import select_browser_type, get_browser_display_name
-from uploader.carousell_uploader_new import CarousellUploader
+from uploader.core.carousell_uploader import CarousellUploader
 from core.models import ProductInfo
 from core.logger import logger
-from uploader.multi_account_uploader import MultiAccountUploader
+from uploader.multi.multi_account_uploader import MultiAccountUploader
 from data.excel_parser import ExcelProductParser
 
 # 全局变量用于跟踪程序状态

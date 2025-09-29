@@ -8,7 +8,7 @@ from typing import Optional, Tuple, List
 from playwright.sync_api import Page
 from browser.actions import click_with_wait, input_with_wait, human_delay, DEFAULT_TIMEOUT
 from core.logger import logger
-from .css_selector_manager import get_css_manager, CSSSelectorManager
+from ..config.enhanced_css_selector_manager import get_enhanced_css_manager, EnhancedCSSSelectorManager
 
 
 class CriticalOperationFailed(Exception):
@@ -19,7 +19,7 @@ class CriticalOperationFailed(Exception):
 class EnhancedSafeActions:
     """增强的安全操作类 - 支持配置文件和用户交互"""
     
-    def __init__(self, page: Page, browser_id: str = None, sku: str = None):
+    def __init__(self, page: Page, browser_id: str = None, sku: str = None, region: str = "HK", category: str = "sneakers"):
         """
         初始化增强安全操作
         
@@ -27,11 +27,15 @@ class EnhancedSafeActions:
             page: Playwright页面对象
             browser_id: 浏览器ID
             sku: 商品SKU
+            region: 地域代码
+            category: 类别代码
         """
         self.page = page
         self.browser_id = browser_id
         self.sku = sku
-        self.css_manager = get_css_manager()
+        self.region = region
+        self.category = category
+        self.css_manager = get_enhanced_css_manager()
         self.log_prefix = f"BrowserID: {browser_id}, SKU: {sku}, " if browser_id and sku else ""
     
     def _smart_click(self, selector: str, must_exist: bool = True, timeout: int = None) -> bool:
@@ -127,13 +131,15 @@ class EnhancedSafeActions:
                 raise RuntimeError(f"输入失败: {selector}, 错误: {e}")
             return False
     
-    def _get_user_input(self, prompt: str, element_key: str, must_exist: bool = True) -> str:
+    def _get_user_input(self, prompt: str, element_key: str, must_exist: bool = True, region: str = None) -> str:
         """
         获取用户输入的新CSS选择器
         
         Args:
             prompt: 提示信息
             element_key: 元素键名
+            must_exist: 是否必须存在
+            region: 地域代码
             
         Returns:
             str: 用户输入的选择器
@@ -143,7 +149,7 @@ class EnhancedSafeActions:
         print(f"{'='*80}")
         print(f"📍 当前操作: {prompt}")
         print(f"🎯 元素键名: {element_key}")
-        print(f"📋 元素描述: {self.css_manager.get_element_description(element_key)}")
+        print(f"📋 元素描述: {self.css_manager.get_element_description(element_key, region, self.category)}")
         print(f"🌐 当前页面: {self.page.url}")
         print(f"📝 请使用浏览器开发者工具捕获新的CSS选择器")
         print(f"💡 提示: 右键元素 -> 检查 -> 复制选择器")
@@ -187,7 +193,7 @@ class EnhancedSafeActions:
                 continue
     
     def _update_selector_and_retry(self, element_key: str, operation_type: str, 
-                                  operation_func, must_exist: bool = True, *args, **kwargs) -> bool:
+                                  operation_func, must_exist: bool = True, region: str = None, *args, **kwargs) -> bool:
         """
         更新选择器并重试操作
         
@@ -195,15 +201,21 @@ class EnhancedSafeActions:
             element_key: 元素键名
             operation_type: 操作类型 (click, input, check)
             operation_func: 操作函数
+            region: 地域代码
             *args, **kwargs: 操作函数参数
             
         Returns:
             bool: 操作是否成功
         """
         try:
+            # 检查region参数
+            if not region:
+                logger.error(f"❌ 必须提供地域代码: {element_key}")
+                return False
+            
             # 获取用户输入的新选择器
             prompt = f"{operation_type.upper()}操作失败，需要更新CSS选择器"
-            new_selector = self._get_user_input(prompt, element_key, must_exist)
+            new_selector = self._get_user_input(prompt, element_key, must_exist, region)
             
             # 如果用户选择跳过操作
             if new_selector == "SKIP":
@@ -212,7 +224,7 @@ class EnhancedSafeActions:
             
             # 更新配置文件
             success = self.css_manager.update_selector(
-                element_key, "primary", new_selector
+                element_key, "primary", new_selector, region, self.category
             )
             
             if not success:
@@ -278,7 +290,7 @@ class EnhancedSafeActions:
         
         # 获取选择器
         primary_selector, fallback_selector = self.css_manager.get_selector_with_fallback(
-            element_key, region
+            element_key, region, self.category
         )
         
         if not primary_selector:
@@ -287,7 +299,7 @@ class EnhancedSafeActions:
                 raise CriticalOperationFailed(f"找不到CSS选择器配置: {element_key}")
             return False
         
-        element_description = self.css_manager.get_element_description(element_key)
+        element_description = self.css_manager.get_element_description(element_key, region, self.category)
         full_operation = f"{operation}: {element_description}"
         
         # 尝试主选择器
@@ -326,7 +338,7 @@ class EnhancedSafeActions:
                         logger.error(f"{self.log_prefix}所有选择器都失败，请求用户更新")
                         return self._update_selector_and_retry(
                             element_key, "click", click_with_wait, 
-                            must_exist, primary_selector, must_exist, timeout
+                            must_exist, region, primary_selector, must_exist, timeout
                         )
                         
             except Exception as e:
@@ -336,7 +348,7 @@ class EnhancedSafeActions:
                     logger.error(f"{self.log_prefix}操作失败，请求用户更新选择器")
                     return self._update_selector_and_retry(
                         element_key, "click", click_with_wait,
-                        must_exist, primary_selector, must_exist, timeout
+                        must_exist, region, primary_selector, must_exist, timeout
                     )
         
         return False
@@ -368,7 +380,7 @@ class EnhancedSafeActions:
         
         # 获取选择器
         primary_selector, fallback_selector = self.css_manager.get_selector_with_fallback(
-            element_key, region
+            element_key, region, self.category
         )
         
         if not primary_selector:
@@ -377,7 +389,7 @@ class EnhancedSafeActions:
                 raise CriticalOperationFailed(f"找不到CSS选择器配置: {element_key}")
             return False
         
-        element_description = self.css_manager.get_element_description(element_key)
+        element_description = self.css_manager.get_element_description(element_key, region, self.category)
         full_operation = f"{operation}: {element_description}"
         
         # 尝试主选择器
@@ -416,7 +428,7 @@ class EnhancedSafeActions:
                         logger.error(f"{self.log_prefix}所有选择器都失败，请求用户更新")
                         return self._update_selector_and_retry(
                             element_key, "input", input_with_wait,
-                            must_exist, primary_selector, text, must_exist, timeout
+                            must_exist, region, primary_selector, text, must_exist, timeout
                         )
                         
             except Exception as e:
@@ -426,7 +438,7 @@ class EnhancedSafeActions:
                     logger.error(f"{self.log_prefix}操作失败，请求用户更新选择器")
                     return self._update_selector_and_retry(
                         element_key, "input", input_with_wait,
-                        must_exist, primary_selector, text, must_exist, timeout
+                        must_exist, region, primary_selector, text, must_exist, timeout
                     )
         
         return False
@@ -500,7 +512,7 @@ class EnhancedSafeActions:
         
         # 获取选择器
         primary_selector, fallback_selector = self.css_manager.get_selector_with_fallback(
-            element_key, region
+            element_key, region, self.category
         )
         
         if not primary_selector:
@@ -508,7 +520,7 @@ class EnhancedSafeActions:
             if must_exist:
                 return self._update_selector_and_retry(
                     element_key, "check", self._check_element_exists,
-                    must_exist, timeout, operation, max_retries
+                    must_exist, region, timeout, operation, max_retries
                 )
             else:
                 logger.info(f"ℹ️ 跳过元素检测: {element_key}")
@@ -537,7 +549,7 @@ class EnhancedSafeActions:
         if must_exist:
             return self._update_selector_and_retry(
                 element_key, "check", self._check_element_exists,
-                must_exist, timeout, operation, max_retries
+                must_exist, region, timeout, operation, max_retries
             )
         
         logger.info(f"ℹ️ 元素不存在: {element_key}")
@@ -594,12 +606,12 @@ class EnhancedSafeActions:
         
         # 获取选择器
         primary_selector, fallback_selector = self.css_manager.get_selector_with_fallback(
-            element_key, region
+            element_key, region, self.category
         )
         
         if not primary_selector:
             logger.warning(f"⚠️ 找不到选择器配置: {element_key}")
-            return self._wait_for_user_css_input(element_key, operation, timeout_seconds)
+            return self._wait_for_user_css_input(element_key, operation, timeout_seconds, region)
         
         # 先尝试主选择器
         try:
@@ -621,9 +633,9 @@ class EnhancedSafeActions:
                 logger.warning(f"⚠️ 备用选择器检测失败: {fallback_selector}, 错误: {e}")
         
         # 如果都失败了，等待用户重新捕获
-        return self._wait_for_user_css_input(element_key, operation, timeout_seconds)
+        return self._wait_for_user_css_input(element_key, operation, timeout_seconds, region)
     
-    def _wait_for_user_css_input(self, element_key: str, operation: str, timeout_seconds: int) -> bool:
+    def _wait_for_user_css_input(self, element_key: str, operation: str, timeout_seconds: int, region: str = None) -> bool:
         """
         等待用户输入新的CSS选择器
         
@@ -631,6 +643,7 @@ class EnhancedSafeActions:
             element_key: 元素键名
             operation: 操作描述
             timeout_seconds: 超时时间
+            region: 地域代码
             
         Returns:
             bool: 元素是否存在（用户输入后重新检测的结果）
@@ -647,6 +660,11 @@ class EnhancedSafeActions:
         print(f"{'='*60}")
         
         try:
+            # 检查region参数
+            if not region:
+                logger.error(f"❌ 必须提供地域代码: {element_key}")
+                return False
+            
             # 直接获取用户输入，不使用多线程
             user_input = input(f"\n💬 请输入新的CSS选择器 (或输入 'skip' 跳过): ").strip()
             
@@ -656,7 +674,7 @@ class EnhancedSafeActions:
             elif user_input:
                 # 更新配置并重新检测
                 logger.info(f"🔄 用户提供新选择器: {user_input}")
-                success = self.css_manager.update_selector(element_key, "primary", user_input)
+                success = self.css_manager.update_selector(element_key, "primary", user_input, region, self.category)
                 
                 if success:
                     logger.info(f"✅ CSS选择器已更新: {element_key} -> {user_input}")
@@ -693,6 +711,6 @@ class EnhancedSafeActions:
 
 
 # 便捷函数
-def create_enhanced_safe_actions(page: Page, browser_id: str = None, sku: str = None) -> EnhancedSafeActions:
+def create_enhanced_safe_actions(page: Page, browser_id: str = None, sku: str = None, region: str = "HK", category: str = "sneakers") -> EnhancedSafeActions:
     """创建增强安全操作实例"""
-    return EnhancedSafeActions(page, browser_id, sku)
+    return EnhancedSafeActions(page, browser_id, sku, region, category)

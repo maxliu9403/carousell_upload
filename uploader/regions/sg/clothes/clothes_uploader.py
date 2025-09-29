@@ -4,7 +4,7 @@
 """
 from core.models import ProductInfo
 from core.logger import logger
-from uploader.base_uploader import BaseUploader
+from uploader.core.base_uploader import BaseUploader
 
 class SGClothesUploader(BaseUploader):
     """新加坡服装上传器"""

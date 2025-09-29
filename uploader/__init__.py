@@ -5,8 +5,8 @@
 
 # 延迟导入，避免在模块级别导入时出现依赖问题
 def get_uploaders():
-    from .carousell_uploader_new import CarousellUploader
-    from .multi_account_uploader import MultiAccountUploader
+    from .core.carousell_uploader import CarousellUploader
+    from .multi.multi_account_uploader import MultiAccountUploader
     return CarousellUploader, MultiAccountUploader
 
 def get_utils():
@@ -20,8 +20,8 @@ def get_utils():
 
 # 为了向后兼容，提供直接导入（如果依赖包可用）
 try:
-    from .carousell_uploader_new import CarousellUploader
-    from .multi_account_uploader import MultiAccountUploader
+    from .core.carousell_uploader import CarousellUploader
+    from .multi.multi_account_uploader import MultiAccountUploader
     from .utils import (
         get_random_description,
         get_random_size,

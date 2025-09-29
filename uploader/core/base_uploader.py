@@ -14,8 +14,8 @@ from browser.actions import (
     DEFAULT_TIMEOUT
 )
 from core.logger import logger
-from .utils import enrich_product_info
-from .enhanced_safe_actions import EnhancedSafeActions, CriticalOperationFailed
+from ..utils.utils import enrich_product_info
+from ..actions.enhanced_safe_actions import EnhancedSafeActions, CriticalOperationFailed, create_enhanced_safe_actions
 
 def safe_click_with_wait(page: Page, selector: str, must_exist: bool = False, timeout: int = None, 
                         browser_id: str = None, sku: str = None, operation: str = "点击操作"):
@@ -175,16 +175,17 @@ def safe_input_with_fallback(page: Page, primary_selector: str, fallback_selecto
 class BaseUploader:
     """基础上传器类 - 包含所有地域和类目的公共功能"""
     
-    def __init__(self, page: Page, config: UploadConfig, region: str = "SG", browser_id: str = None, sku: str = None):
+    def __init__(self, page: Page, config: UploadConfig, region: str = "SG", browser_id: str = None, sku: str = None, category: str = "sneakers"):
         self.page = page
         self.config = config
         self.region = region
+        self.category = category
         self.browser_id = browser_id
         self.sku = sku
         # 初始化日志前缀
         self.log_prefix = f"BrowserID: {browser_id}, SKU: {sku}, " if browser_id and sku else ""
         # 初始化增强安全操作
-        self.safe_actions = EnhancedSafeActions(page, browser_id, sku)
+        self.safe_actions = create_enhanced_safe_actions(page, browser_id, sku, self.region, self.category)
         
     def _get_domain_by_region(self) -> str:
         """根据地域获取对应的域名"""
@@ -485,7 +486,7 @@ class BaseUploader:
 
         if self.region == "HK":
             self.safe_actions.safe_click_with_config(
-                "region_specific.hk.condition_new_used", self.region, must_exist=True,
+                "basic_elements.condition_new_used", self.region, must_exist=True,
                 operation="点击新旧程度选择"
             )
       
@@ -525,14 +526,14 @@ class BaseUploader:
         """根据地域选择Location"""
         # 点击 选择 Location
         self.safe_actions.safe_click_with_config(
-            "region_specific.sg.location_selector", self.region, must_exist=False,
+            "basic_elements.location_selector", self.region, must_exist=False,
             operation="点击选择Location"
         )
         self.page.wait_for_timeout(2000)
         
         # 选择面交地点
         self.safe_actions.safe_click_with_config(
-            "region_specific.sg.location_option", self.region, must_exist=True,
+            "basic_elements.location_option", self.region, must_exist=True,
             operation="选择面交地点"
         )
         

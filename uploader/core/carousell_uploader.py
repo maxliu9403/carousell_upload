@@ -5,7 +5,7 @@ Carousell上传器主类 - 使用工厂模式创建地域和类目特定的上�
 from playwright.sync_api import Page  # pyright: ignore[reportMissingImports]
 from core.models import ProductInfo, UploadConfig
 from core.logger import logger
-from .uploader_factory import UploaderFactory
+from ..factory.uploader_factory import UploaderFactory
 from .base_uploader import BaseUploader
 
 class CarousellUploader:

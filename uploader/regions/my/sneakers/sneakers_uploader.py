@@ -4,7 +4,7 @@
 """
 from core.models import ProductInfo
 from core.logger import logger
-from uploader.base_uploader import BaseUploader
+from uploader.core.base_uploader import BaseUploader
 
 class MYSneakersUploader(BaseUploader):
     """马来西亚运动鞋上传器"""
