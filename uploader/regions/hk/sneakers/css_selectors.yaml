@@ -2,11 +2,7 @@ basic_elements:
   ai_writing_cancel_button:
     description: AI文案取消按钮
     fallback: button:has-text('改為手動填寫')
-    primary: .D_pr use
-  condition_new_used:
-    description: 香港新旧程度选择
-    fallback: button[class*='condition']
-    primary: button.D_oo:nth-child(1)
+    primary: button:has-text('改為手動填寫')
   new_account_popup_close:
     description: 新账号弹窗关闭按钮
     fallback: .D_oN .D_oZ
@@ -22,8 +18,8 @@ basic_elements:
 category_selection:
   category_search_input:
     description: 类目搜索输入框
-    fallback: input[placeholder*='搜索']
-    primary: input.D_JZ
+    fallback: input[placeholder*='搜尋']
+    primary: input[placeholder='搜尋分類']
   service_category_option:
     description: 点击类目输入其他
     fallback: .D_aEk:nth-child(2) > .D_aEs > .D_la
@@ -55,7 +51,7 @@ editing:
     primary: button.D_btZ:nth-child(2)
 metadata:
   category: sneakers
-  description: HK运动鞋CSS选择器配置文件
+  description: 运动鞋CSS选择器配置文件
   last_updated: '2025-09-29T16:02:00.000000'
   region: HK
   version: 2.0.0
@@ -80,6 +76,14 @@ popups_and_settings:
     description: 面交添加地点输入框
     fallback: input[class*='D_vI']
     primary: input.D_vI
+  meetup_input:
+    description: 面交地点输入框
+    fallback: input[aria-label='添加地點']
+    primary: xpath=//form//input[@type="text"][@aria-label="添加地點"]
+  meetup_option:
+    description: 面交地点选项
+    fallback: .D_mK
+    primary: xpath=//div[@class='D_cEg'][1]//div[@class='D_kW']
   meetup_toggle:
     description: 面交开关
     fallback: .D_pZ > .D_mx
@@ -95,8 +99,8 @@ popups_and_settings:
 product_info:
   description_input:
     description: 商品描述输入框
-    fallback: textarea.D_tk
-    primary: .D_azX .D_sf
+    fallback: textarea[placeholder='產品描述']
+    primary: textarea[name='field_description']
   price_input:
     description: 商品价格输入框
     fallback: input[name='price']
@@ -104,7 +108,7 @@ product_info:
   title_input:
     description: 商品标题输入框
     fallback: input[name='title']
-    primary: input#title
+    primary: label:has-text('產品名稱')
 publishing:
   publish_button:
     description: 发布按钮
@@ -112,86 +116,78 @@ publishing:
     primary: button.D_vB
 sneakers_specific:
   brand_input:
-    description: HK品牌输入框
+    description: 品牌输入框
     fallback: input[name='brand']
     primary: '#FieldSetField-Container-field_brand .D_JK'
   brand_option:
-    description: HK其他品牌选项
+    description: 其他品牌选项
     fallback: li[class*='brand']
     primary: li.D_abI
   brand_search_input:
-    description: HK品牌搜索输入框
+    description: 品牌搜索输入框
     fallback: .D_Kr
     primary: .D_uu > .D_JK
   brand_search_keyword:
-    description: HK品牌搜索关键词
+    description: 品牌搜索关键词
     fallback: Other
     primary: 其他
   brand_selector:
-    description: HK品牌选择器
+    description: 品牌选择器
     fallback: .D_sp
     primary: '#FieldSetField-Container-field_brand_enum .D_rC'
   category_search_input:
-    description: HK运动鞋类目搜索输入框
+    description: 运动鞋类目搜索输入框
     fallback: label.D_aFn
     primary: .D_aGs > .D_JZ
   category_search_keyword:
-    description: HK运动鞋搜索关键词
+    description: 运动鞋搜索关键词
     fallback: 运动鞋
     primary: 波鞋
   category_selector:
-    description: HK运动鞋类目选择器
+    description: 运动鞋类目选择器
     fallback: div[class*='category']
     primary: div.D_aEN
   condition_selector:
-    description: HK新旧条件选择器
-    fallback: .D_oo:nth-child(1)
-    primary: .D_afB:nth-child(2) .D_oo:nth-child(1)
+    description: 新旧条件选择器
+    fallback: button:has-text('新')
+    primary: button.D_oo:nth-child(1)
   confirm_platform_payment:
-    description: HK确认关闭平台收款
+    description: 确认关闭平台收款
     fallback: button[class*='confirm']
     primary: button.D_oU
-  delivery_toggle_hk:
-    description: HK送货开关
+  delivery_toggle:
+    description: 送货开关
     fallback: .D_mK
     primary: .D_agx > .D_mK
-  meetup_input:
-    description: HK面交地点输入框
-    fallback: input[placeholder*='面交']
-    primary: input.D_tr
-  meetup_option:
-    description: HK面交地点选项
-    fallback: .D_mK
-    primary: .D_cEg:nth-child(2) .D_kW
-  meetup_toggle_hk:
-    description: HK面交开关
+  meetup_toggle:
+    description: 面交开关
     fallback: .D_mx
     primary: .D_qV > .D_kI
   men_sneakers_option:
-    description: HK男装波鞋选项
+    description: 男装波鞋选项
     fallback: .D_aFp:nth-child(2) .D_mx
     primary: .D_aGu:nth-child(2) > .D_aGB > .D_lz
   multi_quantity_checkbox:
-    description: HK多产品销售复选框
+    description: 多产品销售复选框
     fallback: .D_axg
-    primary: '#FieldSetField-Container-field_multi_quantities > .D_IA .D_kI'
+    primary: innerText:has-text('我正出售多於一件相同的商品')
   platform_payment_close:
-    description: HK平台收款关闭按钮
+    description: 平台收款关闭按钮
     fallback: .D_aeF .D_mx
     primary: .D_aeF:nth-child(2) .D_mx
   size_option:
-    description: HK尺寸选项
+    description: 尺寸选项
     fallback: .D_aeQ .D_mx
     primary: .D_abH:nth-child(1) .D_abM > .D_abS > .D_lz
   size_search_input:
-    description: HK尺寸搜索输入框
+    description: 尺寸搜索输入框
     fallback: .D_Kr
     primary: .D_uu .D_JZ
   size_selector:
-    description: HK尺寸选择器
+    description: 尺寸选择器
     fallback: .D_sp
     primary: '#FieldSetField-Container-field_size .D_rC'
   women_sneakers_option:
-    description: HK女装波鞋选项
+    description: 女装波鞋选项
     fallback: .D_aFp:nth-child(1) .D_mx
     primary: .D_aFp:nth-child(1) > .D_aFx > .D_mx

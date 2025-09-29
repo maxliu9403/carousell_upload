@@ -73,7 +73,7 @@ class SGSneakersUploader(BaseUploader):
         self._fill_sneakers_details(enriched_info)
         
         # 处理面交设置
-        self._openmeetup()
+        self._openmeetup(enriched_info)
 
         # 关闭收款保障
         self._close_buyer_protection()

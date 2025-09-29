@@ -297,7 +297,7 @@ class BaseUploader:
             logger.error(f"{self.log_prefix}检测面交状态异常: {e}")
             logger.info(f"{self.log_prefix}跳见面交关闭操作")
 
-    def _openmeetup(self):
+    def _openmeetup(self, enriched_info=None):
         """开启面交"""
         logger.info(f"{self.log_prefix}开始检查面交状态")
         
@@ -311,6 +311,18 @@ class BaseUploader:
                     "popups_and_settings.meetup_toggle", self.region, must_exist=True,
                     operation="开启面交"
                 )
+                if enriched_info and hasattr(enriched_info, 'meetup_location'):
+                    self.safe_actions.safe_input_with_config(
+                        "popups_and_settings.meetup_input", enriched_info.meetup_location, self.region, must_exist=True,
+                        operation="输入面交地点"
+                    )
+                else:
+                    logger.warning(f"{self.log_prefix}未提供面交地点信息，跳过输入操作")
+
+                self.safe_actions.safe_click_with_config(
+                    "popups_and_settings.meetup_option", self.region, must_exist=True,
+                    operation="选择面交地点"
+                )   
             else:
                 logger.info(f"{self.log_prefix}面交已开启，跳过开启操作")
                 
@@ -486,7 +498,7 @@ class BaseUploader:
 
         if self.region == "HK":
             self.safe_actions.safe_click_with_config(
-                "basic_elements.condition_new_used", self.region, must_exist=True,
+                "sneakers_specific.condition_selector", self.region, must_exist=True,
                 operation="点击新旧程度选择"
             )
       

@@ -22,8 +22,8 @@ category_selection:
     fallback: div[class*='category']
     description: 服务类目选择器
   category_search_input:
-    primary: input.D_JZ
-    fallback: input[placeholder*='搜索']
+    primary: input[placeholder='搜尋分類']
+    fallback: input[placeholder*='搜尋']
     description: 类目搜索输入框
   service_category_option:
     primary: .D_aEk:nth-child(2) > .D_aEs > .D_la
@@ -32,7 +32,7 @@ category_selection:
 
 product_info:
   title_input:
-    primary: input#title
+    primary: label:has-text('產品名稱') + input
     fallback: input[name='title']
     description: 商品标题输入框
   price_input:
@@ -40,8 +40,8 @@ product_info:
     fallback: input[name='price']
     description: 商品价格输入框
   description_input:
-    primary: .D_azq .D_uf
-    fallback: textarea.D_tk
+    primary: textarea[name='field_description']
+    fallback: textarea[placeholder='產品描述']
     description: 商品描述输入框
 
 popups_and_settings:
@@ -57,6 +57,10 @@ popups_and_settings:
     primary: input.D_vI
     fallback: input[class*='D_vI']
     description: 面交添加地点输入框
+  meetup_input:
+    primary: xpath=//form//input[@type="text"][@aria-label="添加地點"]
+    fallback: input[aria-label='添加地點']
+    description: 面交地点输入框
   meetup_toggle:
     primary: .D_qV > .D_kI
     fallback: .D_pZ > .D_mx
@@ -128,8 +132,8 @@ sneakers_specific:
     fallback: .D_aEk:nth-child(3) .D_aEs
     description: MY女装运动鞋选项
   condition_selector:
-    primary: .D_agi:nth-child(2) .D_oo:nth-child(1)
-    fallback: .D_oo:nth-child(1)
+    primary: innerText:has-text('新')
+    fallback: button:has-text('新')
     description: MY新旧条件选择器
   brand_selector:
     primary: '#FieldSetField-Container-field_brand_enum .D_sp'
@@ -176,7 +180,7 @@ sneakers_specific:
     fallback: input[placeholder*='meetup']
     description: MY面交地点输入框
   meetup_option:
-    primary: .D_cCh:nth-child(2) .D_mK
+    primary: xpath=//div[@class='D_cCh'][1]//div[@class='D_mK']
     fallback: .D_mK
     description: MY面交地点选项
   delivery_toggle_my:

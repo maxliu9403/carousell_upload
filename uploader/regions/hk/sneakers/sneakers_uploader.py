@@ -72,6 +72,9 @@ class HKSneakersUploader(BaseUploader):
         # 填写运动鞋详细信息
         self._fill_sneakers_details(enriched_info)
         
+        # 处理面交设置
+        self._openmeetup(enriched_info)
+
         # 关闭平台收款
         self._close_buyer_protection()
     
@@ -189,7 +192,7 @@ class HKSneakersUploader(BaseUploader):
             
             # 开启面交
             self.safe_actions.safe_click_with_config(
-                "sneakers_specific.meetup_toggle_hk", self.region, must_exist=True,
+                "sneakers_specific.meetup_toggle", self.region, must_exist=True,
                 operation="开启面交"
             )
 
