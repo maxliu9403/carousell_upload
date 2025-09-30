@@ -72,10 +72,6 @@ popups_and_settings:
     description: 送货开关
     fallback: '#FieldSetField-Container-field_mailing .D_mx'
     primary: .D_agb > .D_lM
-  meetup_detection:
-    description: 面交添加地点输入框
-    fallback: input[class*='D_vI']
-    primary: input.D_vI
   meetup_input:
     description: 面交地点输入框
     fallback: input[aria-label='添加地點']
@@ -109,12 +105,12 @@ publishing:
   publish_button:
     description: 发布按钮
     fallback: button[type='submit']
-    primary: button.D_vB
+    primary: button[type='button']:has-text('更新'), button[type='button']:has-text('即刻刊登')
 sneakers_specific:
   brand_input:
     description: 品牌输入框
     fallback: input[name='brand']
-    primary: '#FieldSetField-Container-field_brand .D_JK'
+    primary: button[type='button']:has-text('品牌')
   brand_option:
     description: 其他品牌选项
     fallback: li[class*='brand']
@@ -130,11 +126,11 @@ sneakers_specific:
   brand_selector:
     description: 品牌选择器
     fallback: .D_sp
-    primary: '#FieldSetField-Container-field_brand_enum .D_rC'
+    primary: xpath=//form//button[normalize-space(.)="品牌"]
   category_search_input:
     description: 运动鞋类目搜索输入框
-    fallback: label.D_aFn
-    primary: .D_aGs > .D_JZ
+    fallback: input[placeholder='搜尋分類']
+    primary: input[placeholder='搜尋分類']
   category_search_keyword:
     description: 运动鞋搜索关键词
     fallback: 运动鞋
@@ -149,8 +145,8 @@ sneakers_specific:
     primary: innerText:has-text('新')
   confirm_platform_payment:
     description: 确认关闭平台收款
-    fallback: button[class*='confirm']
-    primary: button.D_oU
+    fallback: button:has-text('無論如何停用')
+    primary: button:has-text('無論如何停用')
   delivery_toggle:
     description: 送货开关
     fallback: .D_mK
@@ -181,12 +177,12 @@ sneakers_specific:
     primary: .D_abH:nth-child(1) .D_abM > .D_abS > .D_lz
   size_search_input:
     description: 尺寸搜索输入框
-    fallback: .D_Kr
-    primary: .D_uu .D_JZ
+    fallback: input[placeholder='搜尋']
+    primary: input[placeholder='搜尋']
   size_selector:
     description: 尺寸选择器
-    fallback: .D_sp
-    primary: '#FieldSetField-Container-field_size .D_rC'
+    fallback: button:has-text('產品大小')
+    primary: button:has-text('產品大小')
   women_sneakers_option:
     description: 女装波鞋选项
     fallback: .D_aFp:nth-child(1) .D_mx

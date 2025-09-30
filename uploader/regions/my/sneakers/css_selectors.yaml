@@ -53,10 +53,6 @@ popups_and_settings:
     primary: rect.D_axg
     fallback: button[aria-label*='close']
     description: WhatsApp弹窗关闭
-  meetup_detection:
-    primary: input.D_vI
-    fallback: input[class*='D_vI']
-    description: 面交添加地点输入框
   meetup_input:
     primary: xpath=//form//input[@type="text"][@aria-label="添加地點"]
     fallback: input[aria-label='添加地點']
@@ -84,9 +80,9 @@ popups_and_settings:
 
 publishing:
   publish_button:
-    primary: button.D_wS
-    fallback: button[type='submit']
     description: 发布按钮
+    fallback: button[type='submit']
+    primary: button[type='button']:has-text('更新'), button[type='button']:has-text('即刻刊登')
 
 editing:
   inactive_tab:
@@ -116,8 +112,8 @@ sneakers_specific:
     fallback: div[class*='category']
     description: MY运动鞋类目选择器
   category_search_input:
-    primary: .D_aEi > .D_Kv
-    fallback: .D_aEi .D_Kv
+    primary: input[placeholder='搜尋分類']
+    fallback: input[placeholder='搜尋分類']
     description: MY运动鞋类目搜索输入框
   category_search_keyword:
     primary: sneakers
@@ -132,13 +128,13 @@ sneakers_specific:
     fallback: .D_aEk:nth-child(3) .D_aEs
     description: MY女装运动鞋选项
   condition_selector:
-    primary: innerText:has-text('新')
+    primary: button:has-text('新')
     fallback: button:has-text('新')
     description: MY新旧条件选择器
   brand_selector:
-    primary: '#FieldSetField-Container-field_brand_enum .D_sp'
-    fallback: .D_sp
     description: MY品牌选择器
+    fallback: .D_sp
+    primary: xpath=//form//button[normalize-space(.)="品牌"]
   brand_search_input:
     primary: .D_vy .D_Kr
     fallback: .D_Kr
@@ -152,16 +148,16 @@ sneakers_specific:
     fallback: li[class*='brand']
     description: MY其他品牌选项
   brand_input:
-    primary: input#brand
-    fallback: input[name='brand']
     description: MY品牌输入框
+    fallback: input[name='brand']
+    primary: button[type='button']:has-text('品牌')
   size_selector:
-    primary: '#FieldSetField-Container-field_size .D_sp'
-    fallback: .D_sp
+    primary: button:has-text('產品大小')
+    fallback: button:has-text('產品大小')
     description: MY尺寸选择器
   size_search_input:
-    primary: .D_vy .D_Kr
-    fallback: .D_Kr
+    primary: input[placeholder='搜尋']
+    fallback: input[placeholder='搜尋']
     description: MY尺寸搜索输入框
   size_option:
     primary: .D_aeK > .D_aeQ > .D_mx
@@ -192,8 +188,8 @@ sneakers_specific:
     fallback: .D_aeF .D_mx
     description: MY平台收款关闭按钮
   confirm_platform_payment:
-    primary: button.D_oU
-    fallback: button[class*='confirm']
+    primary: button:has-text('無論如何停用')
+    fallback: button:has-text('無論如何停用')
     description: MY确认关闭平台收款
 
 metadata:

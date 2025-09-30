@@ -53,10 +53,6 @@ popups_and_settings:
     primary: rect.D_axg
     fallback: button[aria-label*='close']
     description: WhatsApp弹窗关闭
-  meetup_detection:
-    primary: input.D_vI
-    fallback: input[class*='D_vI']
-    description: 面交添加地点输入框
   meetup_toggle:
     primary: .D_qV > .D_kI
     fallback: .D_pZ > .D_mx
