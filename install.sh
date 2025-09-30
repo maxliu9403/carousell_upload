@@ -175,11 +175,31 @@ check_and_get_github_token() {
         print_info "发现本地Token文件: $token_file"
         print_info "文件权限: $(ls -la "$token_file" 2>/dev/null || echo "无法获取权限信息")"
         
-        github_token=$(cat "$token_file" 2>/dev/null | tr -d '\n\r')
+        # Windows兼容的Token读取，处理编码问题
+        if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+            # Windows环境下的特殊处理 - 强制使用UTF-8编码
+            github_token=$(cat "$token_file" 2>/dev/null | iconv -f UTF-8 -t UTF-8 2>/dev/null | tr -d '\n\r\0' | sed 's/[[:space:]]*$//' | sed 's/^[[:space:]]*//')
+        else
+            # 标准处理
+            github_token=$(cat "$token_file" 2>/dev/null | tr -d '\n\r' | sed 's/[[:space:]]*$//')
+        fi
         
         if [ -n "$github_token" ]; then
+            # 清理Token，移除可能的BOM和特殊字符
+            github_token=$(echo "$github_token" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr -d '\0')
+            
             print_info "从文件读取GitHub Token (长度: ${#github_token})"
             print_info "Token前缀: ${github_token:0:10}..."
+            
+            # 验证Token格式
+            if [[ ! "$github_token" =~ ^ghp_[A-Za-z0-9]{36}$ ]]; then
+                print_warning "Token格式不正确，可能是编码问题"
+                print_info "实际Token: $github_token"
+                print_info "Token长度: ${#github_token}"
+                print_info "Token十六进制: $(echo "$github_token" | hexdump -C | head -2)"
+                print_info "需要重新输入Token"
+                github_token=""
+            fi
             
             # 强制验证Token是否有效
             print_info "开始验证Token有效性..."
@@ -261,8 +281,20 @@ validate_github_token() {
     print_info "API端点: https://api.github.com/rate_limit"
     print_info "请求头: Authorization: token ${token:0:10}..."
     
-    # 使用Token测试API访问
-    local response=$(curl -s -H "Authorization: token $token" https://api.github.com/rate_limit 2>/dev/null)
+    # 使用Token测试API访问 - 处理字符编码问题
+    # Windows环境下的特殊处理
+    if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+        # 确保Token是纯ASCII
+        local clean_token=$(echo "$token" | tr -d '\0' | sed 's/[^A-Za-z0-9_]//g')
+        if [[ "$clean_token" =~ ^ghp_[A-Za-z0-9]{36}$ ]]; then
+            local response=$(curl -s -H "Authorization: token $clean_token" -H "Accept: application/json" https://api.github.com/rate_limit 2>/dev/null)
+        else
+            print_error "Token清理后格式仍然不正确: $clean_token"
+            return 1
+        fi
+    else
+        local response=$(curl -s -H "Authorization: token $token" -H "Accept: application/json" https://api.github.com/rate_limit 2>/dev/null)
+    fi
     local curl_exit_code=$?
     
     print_info "Curl退出码: $curl_exit_code"
@@ -344,7 +376,14 @@ get_project_files() {
     print_info "使用Token: ${github_token:0:10}..."
     print_info "测试URL: https://api.github.com/rate_limit"
     
-    local test_response=$(curl -s -H "Authorization: token $github_token" https://api.github.com/rate_limit 2>/dev/null)
+    # Windows环境下的Token清理
+    local clean_token="$github_token"
+    if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+        clean_token=$(echo "$github_token" | tr -d '\0' | sed 's/[^A-Za-z0-9_]//g')
+        print_info "清理后的Token: ${clean_token:0:10}..."
+    fi
+    
+    local test_response=$(curl -s -H "Authorization: token $clean_token" -H "Accept: application/json" https://api.github.com/rate_limit 2>/dev/null)
     local test_exit_code=$?
     
     print_info "测试请求退出码: $test_exit_code"
@@ -372,7 +411,14 @@ get_project_files() {
     print_info "输出文件: $temp_file"
     
     local curl_exit_code=0
-    if curl -fsSL -H "Authorization: token $github_token" -o "$temp_file" "$api_url" 2>/dev/null; then
+    # 使用清理后的Token进行主请求
+    local main_token="$github_token"
+    if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+        main_token=$(echo "$github_token" | tr -d '\0' | sed 's/[^A-Za-z0-9_]//g')
+        print_info "主请求使用清理后的Token: ${main_token:0:10}..."
+    fi
+    
+    if curl -fsSL -H "Authorization: token $main_token" -H "Accept: application/json" -o "$temp_file" "$api_url" 2>/dev/null; then
         curl_exit_code=0
     else
         curl_exit_code=$?
