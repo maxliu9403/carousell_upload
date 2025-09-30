@@ -275,6 +275,20 @@ validate_github_token() {
     print_info "API响应长度: ${#response}"
     print_info "API响应内容: $response"
     
+    # 检查响应是否为HTML（表示错误页面）
+    if echo "$response" | grep -q '<html>'; then
+        print_error "❌ API返回HTML错误页面，可能是网络或代理问题"
+        print_info "响应内容: $response"
+        return 1
+    fi
+    
+    # 检查是否为有效的JSON响应
+    if ! echo "$response" | grep -q '"limit"'; then
+        print_error "❌ API响应格式异常，不是有效的JSON"
+        print_info "响应内容: $response"
+        return 1
+    fi
+    
     if echo "$response" | grep -q '"limit": 5000'; then
         print_success "✅ Token验证成功 - 认证用户权限 (5000次/小时)"
         return 0
@@ -320,7 +334,7 @@ get_project_files() {
     
     # 测试GitHub API连接
     print_info "测试GitHub API连接..."
-    local test_response=$(curl -s -H "Authorization: token $github_token" "https://api.github.com/rate_limit" 2>/dev/null)
+    local test_response=$(curl -s -H "Authorization: token $github_token" https://api.github.com/rate_limit 2>/dev/null)
     if echo "$test_response" | grep -q '"limit": 5000'; then
         print_success "✅ GitHub API连接正常"
     else
