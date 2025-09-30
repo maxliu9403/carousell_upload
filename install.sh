@@ -326,7 +326,14 @@ get_project_files() {
     
     # 从GitHub API获取文件列表
     local api_url="https://api.github.com/repos/maxliu9403/carousell_upload/contents"
-    local temp_file="/tmp/project_files.json"
+    
+    # Windows兼容的临时文件路径
+    if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+        local temp_file="/tmp/project_files.json"
+    else
+        # Windows Git Bash 或其他环境
+        local temp_file="${TEMP:-/tmp}/project_files.json"
+    fi
     
     print_info "使用GitHub Token获取文件列表..."
     print_info "Token前缀: ${github_token:0:10}..."
@@ -344,10 +351,28 @@ get_project_files() {
     
     if curl -fsSL -H "Authorization: token $github_token" "$api_url" -o "$temp_file" 2>/dev/null; then
         print_info "GitHub API响应已保存到: $temp_file"
-        print_info "响应文件大小: $(wc -c < "$temp_file" 2>/dev/null || echo "0") 字节"
+        # Windows兼容的文件大小检查
+        if command -v wc >/dev/null 2>&1; then
+            print_info "响应文件大小: $(wc -c < "$temp_file" 2>/dev/null || echo "0") 字节"
+        else
+            # Windows下使用PowerShell或Python检查文件大小
+            local file_size=$(python -c "import os; print(os.path.getsize('$temp_file') if os.path.exists('$temp_file') else 0)" 2>/dev/null || echo "0")
+            print_info "响应文件大小: $file_size 字节"
+        fi
         
         # 使用Python解析GitHub API响应，获取文件哈希和修改时间
-        GITHUB_TOKEN="$github_token" python3 -c "
+        # Windows兼容的Python命令
+        local python_cmd="python3"
+        if ! command -v python3 >/dev/null 2>&1; then
+            if command -v python >/dev/null 2>&1; then
+                python_cmd="python"
+            else
+                print_error "❌ 未找到Python命令"
+                exit 1
+            fi
+        fi
+        
+        GITHUB_TOKEN="$github_token" $python_cmd -c "
 import json
 import sys
 import subprocess
@@ -393,8 +418,10 @@ try:
     files = get_files_from_api(data, '', github_token)
     print(f'Found {len(files)} files total')
     
-    # 输出文件信息到临时文件
-    with open('/tmp/project_files_info.json', 'w') as f:
+    # 输出文件信息到临时文件 - Windows兼容
+    import tempfile
+    temp_dir = tempfile.gettempdir()
+    with open(f'{temp_dir}/project_files_info.json', 'w') as f:
         json.dump(files, f, indent=2)
     
     # 输出文件路径列表
@@ -412,20 +439,24 @@ except Exception as e:
     except:
         print('Could not read temp file', file=sys.stderr)
     sys.exit(1)
-" > /tmp/project_files_list.txt 2>/dev/null
+" > "$temp_dir/project_files_list.txt" 2>/dev/null
         
-        if [ -s /tmp/project_files_list.txt ]; then
+        if [ -s "$temp_dir/project_files_list.txt" ]; then
             print_success "✅ 成功获取项目文件列表"
-            print_info "文件列表行数: $(wc -l < /tmp/project_files_list.txt 2>/dev/null || echo "0")"
+            if command -v wc >/dev/null 2>&1; then
+                print_info "文件列表行数: $(wc -l < "$temp_dir/project_files_list.txt" 2>/dev/null || echo "0")"
+            else
+                print_info "文件列表已生成: $temp_dir/project_files_list.txt"
+            fi
             return 0
         else
             print_error "❌ 文件列表为空"
             print_info "检查临时文件:"
-            print_info "  - /tmp/project_files.json: $(ls -la /tmp/project_files.json 2>/dev/null || echo "不存在")"
-            print_info "  - /tmp/project_files_list.txt: $(ls -la /tmp/project_files_list.txt 2>/dev/null || echo "不存在")"
-            if [ -f /tmp/project_files.json ]; then
+            print_info "  - $temp_dir/project_files.json: $(ls -la "$temp_dir/project_files.json" 2>/dev/null || echo "不存在")"
+            print_info "  - $temp_dir/project_files_list.txt: $(ls -la "$temp_dir/project_files_list.txt" 2>/dev/null || echo "不存在")"
+            if [ -f "$temp_dir/project_files.json" ]; then
                 print_info "API响应内容预览:"
-                head -5 /tmp/project_files.json 2>/dev/null || echo "无法读取文件"
+                head -5 "$temp_dir/project_files.json" 2>/dev/null || echo "无法读取文件"
             fi
         fi
     else
@@ -490,15 +521,32 @@ update_project_code() {
 update_with_dynamic_list() {
     print_info "🔄 执行智能增量更新..."
     
-    # 检查是否有文件信息
-    if [ ! -f "/tmp/project_files_info.json" ]; then
+    # 检查是否有文件信息 - Windows兼容
+    local temp_dir="/tmp"
+    if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+        temp_dir="/tmp"
+    else
+        temp_dir="${TEMP:-/tmp}"
+    fi
+    
+    if [ ! -f "$temp_dir/project_files_info.json" ]; then
         print_error "文件信息不可用，回退到静态更新"
         update_with_static_list
         return $?
     fi
     
-    # 使用Python进行智能增量更新
-    python3 -c "
+    # 使用Python进行智能增量更新 - Windows兼容
+    local python_cmd="python3"
+    if ! command -v python3 >/dev/null 2>&1; then
+        if command -v python >/dev/null 2>&1; then
+            python_cmd="python"
+        else
+            print_error "❌ 未找到Python命令"
+            return 1
+        fi
+    fi
+    
+    $python_cmd -c "
 import json
 import os
 import hashlib
@@ -532,8 +580,10 @@ def download_file(url, filepath):
         return False
 
 def main():
-    # 读取远程文件信息
-    with open('/tmp/project_files_info.json', 'r') as f:
+    # 读取远程文件信息 - Windows兼容
+    import tempfile
+    temp_dir = tempfile.gettempdir()
+    with open(f'{temp_dir}/project_files_info.json', 'r') as f:
         remote_files = json.load(f)
     
     # 统计信息
@@ -613,8 +663,15 @@ if __name__ == '__main__':
     chmod +x scripts/docker-deploy.sh 2>/dev/null || true
     chmod +x scripts/quick-deploy.sh 2>/dev/null || true
     
-    # 清理临时文件
-    rm -f /tmp/project_files.json /tmp/project_files_list.txt /tmp/project_files_info.json
+    # 清理临时文件 - Windows兼容
+    local temp_dir="/tmp"
+    if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+        temp_dir="/tmp"
+    else
+        temp_dir="${TEMP:-/tmp}"
+    fi
+    
+    rm -f "$temp_dir/project_files.json" "$temp_dir/project_files_list.txt" "$temp_dir/project_files_info.json"
     
     if [ $update_result -eq 0 ]; then
         print_success "✅ 智能增量更新完成"
