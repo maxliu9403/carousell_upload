@@ -53,14 +53,14 @@ class ExcelProductParser:
                     
                     product_info = {
                         'url': str(row['URL']) if not pd.isna(row['URL']) else '',
-                        'sku': str(row['SKU']),
+                        'sku': self._normalize_text(str(row['SKU'])),
                         'browser_id': str(row['BrowserID']),
-                        'product_name_cn': str(row['ProductNameCn']) if not pd.isna(row['ProductNameCn']) else '',
-                        'product_name_en': str(row['ProductNameEn']) if not pd.isna(row['ProductNameEn']) else '',
-                        'gender_en': str(row['GenderEn']) if not pd.isna(row['GenderEn']) else '',
-                        'price': str(row[price_column]) if not pd.isna(row[price_column]) else '0',
-                        'brand': str(row['Brand']) if not pd.isna(row['Brand']) else '',
-                        'folder': str(row['Folder']) if not pd.isna(row['Folder']) else '',
+                        'product_name_cn': self._normalize_text(str(row['ProductNameCn'])) if not pd.isna(row['ProductNameCn']) else '',
+                        'product_name_en': self._normalize_text(str(row['ProductNameEn'])) if not pd.isna(row['ProductNameEn']) else '',
+                        'gender_en': self._normalize_text(str(row['GenderEn'])) if not pd.isna(row['GenderEn']) else '',
+                        'price': self._normalize_text(str(row[price_column])) if not pd.isna(row[price_column]) else '0',
+                        'brand': self._normalize_text(str(row['Brand'])) if not pd.isna(row['Brand']) else '',
+                        'folder': self._normalize_path(str(row['Folder'])) if not pd.isna(row['Folder']) else '',
                         'region': region
                     }
                     
@@ -78,6 +78,76 @@ class ExcelProductParser:
             logger.error(f"解析 Excel 文件失败: {e}")
             raise
     
+    def _normalize_text(self, text: str) -> str:
+        """
+        标准化文本，处理全角/半角字符问题
+        
+        Args:
+            text: 原始文本字符串
+            
+        Returns:
+            str: 标准化后的文本
+        """
+        if not text:
+            return text
+            
+        try:
+            # 全角到半角字符映射
+            fullwidth_to_halfwidth = {
+                'Ｗ': 'W', 'Ａ': 'A', 'Ｂ': 'B', 'Ｃ': 'C', 'Ｄ': 'D', 'Ｅ': 'E', 'Ｆ': 'F', 'Ｇ': 'G', 'Ｈ': 'H',
+                'Ｉ': 'I', 'Ｊ': 'J', 'Ｋ': 'K', 'Ｌ': 'L', 'Ｍ': 'M', 'Ｎ': 'N', 'Ｏ': 'O', 'Ｐ': 'P', 'Ｑ': 'Q',
+                'Ｒ': 'R', 'Ｓ': 'S', 'Ｔ': 'T', 'Ｕ': 'U', 'Ｖ': 'V', 'Ｘ': 'X', 'Ｙ': 'Y', 'Ｚ': 'Z',
+                'ａ': 'a', 'ｂ': 'b', 'ｃ': 'c', 'ｄ': 'd', 'ｅ': 'e', 'ｆ': 'f', 'ｇ': 'g', 'ｈ': 'h',
+                'ｉ': 'i', 'ｊ': 'j', 'ｋ': 'k', 'ｌ': 'l', 'ｍ': 'm', 'ｎ': 'n', 'ｏ': 'o', 'ｐ': 'p', 'ｑ': 'q',
+                'ｒ': 'r', 'ｓ': 's', 'ｔ': 't', 'ｕ': 'u', 'ｖ': 'v', 'ｗ': 'w', 'ｘ': 'x', 'ｙ': 'y', 'ｚ': 'z',
+                '０': '0', '１': '1', '２': '2', '３': '3', '４': '4', '５': '5', '６': '6', '７': '7', '８': '8', '９': '9',
+                '　': ' ', '（': '(', '）': ')', '，': ',', '。': '.', '：': ':', '；': ';', '？': '?', '！': '!'
+            }
+            
+            # 替换全角字符为半角字符
+            normalized_text = text
+            for fullwidth, halfwidth in fullwidth_to_halfwidth.items():
+                normalized_text = normalized_text.replace(fullwidth, halfwidth)
+            
+            # 去除首尾空格
+            normalized_text = normalized_text.strip()
+            
+            if normalized_text != text:
+                logger.info(f"文本标准化: '{text}' -> '{normalized_text}'")
+            
+            return normalized_text
+            
+        except Exception as e:
+            logger.error(f"文本标准化失败: {text}, 错误: {e}")
+            return text
+
+    def _normalize_path(self, path: str) -> str:
+        """
+        标准化路径，处理中文路径和编码问题
+        
+        Args:
+            path: 原始路径字符串
+            
+        Returns:
+            str: 标准化后的路径
+        """
+        try:
+            # 使用pathlib处理路径，自动处理编码问题
+            normalized_path = Path(path).resolve()
+            
+            # 验证路径是否存在
+            if not normalized_path.exists():
+                logger.warning(f"路径不存在: {normalized_path}")
+                return str(normalized_path)
+            
+            # 返回标准化的路径字符串
+            return str(normalized_path)
+            
+        except Exception as e:
+            logger.error(f"路径标准化失败: {path}, 错误: {e}")
+            # 如果标准化失败，返回原始路径
+            return path
+
     def _get_price_column(self, region: str) -> str:
         """根据地域获取对应的价格列名"""
         price_mapping = {

@@ -10,11 +10,11 @@ basic_elements:
   sell_button:
     description: Sell按钮
     fallback: a[href*='sell']
-    primary: a.D_yy
+    primary: a.D__s
   upload_images_button:
     description: 上传图片按钮
     fallback: div[class*='upload']
-    primary: div.D_JH
+    primary: div.D_KR
 category_selection:
   category_search_input:
     description: 类目搜索输入框
@@ -23,16 +23,16 @@ category_selection:
   service_category_option:
     description: 点击类目输入其他
     fallback: .D_aEk:nth-child(2) > .D_aEs > .D_la
-    primary: .D_aGu:nth-child(5) .D_aGC > .D_lM
+    primary: div.D_aEM:nth-child(5)
   service_category_selector:
     description: 服务类目选择器
     fallback: div[class*='category']
-    primary: div.D_aGn
+    primary: div.D_aEF
 editing:
   activate_button:
     description: 激活按钮
     fallback: button[class*='activate']
-    primary: tr:nth-child(1) .D_nt
+    primary: xpath=//tr[@index-of-type="0"]//button[@type='button' and contains(text(), 'Mark As Active')]
   confirm_activate:
     description: 确认激活按钮
     fallback: button[class*='confirm']
@@ -40,15 +40,15 @@ editing:
   edit_button:
     description: 编辑按钮
     fallback: button[class*='edit']
-    primary: .D_bqZ:nth-child(1) > .D_lz
+    primary: span:has-text('編輯產品')
   inactive_first_item:
     description: 未活跃第一个商品
     fallback: div[class*='item']
-    primary: tr:nth-child(1) .D_bvN
+    primary: xpath=//tr[@index-of-type="0"]
   inactive_tab:
     description: 未活跃标签页
     fallback: button[class*='inactive']
-    primary: button.D_btZ:nth-child(2)
+    primary: button.D_bxr:nth-child(2)
 metadata:
   category: sneakers
   description: 运动鞋CSS选择器配置文件
@@ -71,7 +71,7 @@ popups_and_settings:
   delivery_toggle:
     description: 送货开关
     fallback: '#FieldSetField-Container-field_mailing .D_mx'
-    primary: .D_agb > .D_lM
+    primary: '#FieldSetField-Container-field_mailing .D_lc'
   meetup_input:
     description: 面交地点输入框
     fallback: input[aria-label='添加地點']
@@ -79,7 +79,7 @@ popups_and_settings:
   meetup_option:
     description: 面交地点选项
     fallback: .D_mK
-    primary: .D_cEr:nth-child(2) .D_lN
+    primary: div.D_cCi:nth-child(2)
   meetup_toggle:
     description: 面交开关
     fallback: .D_pZ > .D_mx
@@ -118,7 +118,7 @@ sneakers_specific:
   brand_option:
     description: 其他品牌选项
     fallback: li[class*='brand']
-    primary: .D_abM > .D_abS > .D_lz
+    primary: .D_aez > .D_aeB
   brand_search_input:
     description: 品牌搜索输入框
     fallback: .D_Kr
@@ -146,7 +146,7 @@ sneakers_specific:
   condition_selector:
     description: 新旧条件选择器
     fallback: button:has-text('新')
-    primary: button.D_oo:nth-child(1)
+    primary: button.D_pf:nth-child(1)
   confirm_platform_payment:
     description: 确认关闭平台收款
     fallback: button:has-text('無論如何停用')
@@ -170,7 +170,7 @@ sneakers_specific:
   size_option:
     description: 尺寸选项
     fallback: .D_aeQ .D_mx
-    primary: .D_abH:nth-child(1) .D_abM > .D_abS > .D_lz
+    primary: .D_aeC > .D_aeJ > .D_lc
   size_search_input:
     description: 尺寸搜索输入框
     fallback: input[placeholder='搜尋']
@@ -182,4 +182,4 @@ sneakers_specific:
   women_sneakers_option:
     description: 女装波鞋选项
     fallback: .D_aFp:nth-child(1) .D_mx
-    primary: .D_aFp:nth-child(1) > .D_aFx > .D_mx
+    primary: div.D_aEM:nth-child(1)

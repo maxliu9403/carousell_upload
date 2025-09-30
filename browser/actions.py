@@ -243,21 +243,72 @@ def input_with_wait(page: Page, selector: str, text: str,
         logger.warning(msg)
         return False
 
+# ========= 路径处理辅助函数 =========
+def validate_and_normalize_path(path: str) -> str:
+    """
+    验证和标准化路径，处理中文路径和编码问题
+    
+    Args:
+        path: 原始路径字符串
+        
+    Returns:
+        str: 标准化后的路径
+        
+    Raises:
+        FileNotFoundError: 路径不存在
+        ValueError: 路径格式无效
+    """
+    try:
+        # 标准化路径
+        normalized_path = os.path.normpath(path)
+        
+        # 检查路径是否存在
+        if not os.path.exists(normalized_path):
+            raise FileNotFoundError(f"路径不存在: {normalized_path}")
+        
+        # 检查是否为目录
+        if not os.path.isdir(normalized_path):
+            raise ValueError(f"路径不是目录: {normalized_path}")
+        
+        # 检查路径是否可读
+        if not os.access(normalized_path, os.R_OK):
+            raise ValueError(f"路径不可读: {normalized_path}")
+        
+        logger.info(f"路径验证成功: {normalized_path}")
+        return normalized_path
+        
+    except Exception as e:
+        logger.error(f"路径验证失败: {path}, 错误: {e}")
+        raise
+
 # ========= 文件上传 =========
 def upload_folder_with_keyboard(folder_path: str, image_exts: set):
     """
     打开系统文件对话框后：
     - 选择 folder_path 下的所有指定后缀文件
     - 通过键盘粘贴路径并回车
+    - 支持中文路径和特殊字符
     """
-    if not os.path.exists(folder_path):
-        raise FileNotFoundError(f"文件夹不存在: {folder_path}")
-
+    # 验证和标准化路径
+    normalized_path = validate_and_normalize_path(folder_path)
+    logger.info(f"准备上传文件夹: {normalized_path}")
+    
     # 进入文件夹
     time.sleep(1 + random.random() * 0.5)
     pyautogui.click(10, 10)
     time.sleep(0.4 + random.random() * 0.3)
-    pyautogui.write(folder_path, interval=0.05)
+    
+    # 使用剪贴板处理中文路径，避免编码问题
+    try:
+        pyperclip.copy(normalized_path)
+        time.sleep(0.2)
+        pyautogui.hotkey('ctrl', 'v')
+        time.sleep(0.3)
+    except Exception as e:
+        logger.warning(f"剪贴板方法失败，使用直接输入: {e}")
+        # 如果剪贴板失败，尝试直接输入
+        pyautogui.write(normalized_path, interval=0.05)
+    
     pyautogui.click(10, 10)
     time.sleep(0.3 + random.random() * 0.2)
     pyautogui.press("enter"); time.sleep(0.3); pyautogui.press("enter")
@@ -265,12 +316,12 @@ def upload_folder_with_keyboard(folder_path: str, image_exts: set):
 
     # 过滤图片文件
     files = [
-        f for f in os.listdir(folder_path)
-        if os.path.isfile(os.path.join(folder_path, f))
+        f for f in os.listdir(normalized_path)
+        if os.path.isfile(os.path.join(normalized_path, f))
         and os.path.splitext(f)[1].lower() in image_exts
     ]
     if not files:
-        raise RuntimeError(f"文件夹中没有可上传的图片: {folder_path}")
+        raise RuntimeError(f"文件夹中没有可上传的图片: {normalized_path}")
 
     # 复制文件名并粘贴
     input_str = " ".join(f'"{os.path.splitext(name)[0]}"' for name in files)

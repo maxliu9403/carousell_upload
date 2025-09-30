@@ -90,17 +90,17 @@ editing:
     fallback: button[class*='inactive']
     description: 未活跃标签页
   inactive_first_item:
-    primary: tr:nth-child(1) .D_bwY
-    fallback: div[class*='item']
     description: 未活跃第一个商品
+    fallback: div[class*='item']
+    primary: xpath=//tr[@index-of-type="0"]
   edit_button:
-    primary: .D_bmu:nth-child(1) > .D_kI
-    fallback: button[class*='edit']
     description: 编辑按钮
+    fallback: button[class*='edit']
+    primary: span:has-text('編輯產品')
   activate_button:
-    primary: button.D_mo
-    fallback: button[class*='activate']
     description: 激活按钮
+    fallback: button[class*='activate']
+    primary: xpath=//tr[@index-of-type="0"]//button[@type='button' and contains(text(), 'Mark As Active')]
   confirm_activate:
     primary: button.D_me
     fallback: button[class*='confirm']

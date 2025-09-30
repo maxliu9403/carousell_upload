@@ -178,41 +178,6 @@ class HKSneakersUploader(BaseUploader):
             "sneakers_specific.multi_quantity_checkbox", self.region, must_exist=False,
             operation="点击多产品销售复选框"
         )
-    
-    
-    def _handle_meetup_settings(self, enriched_info: ProductInfo):
-        """处理面交设置"""
-        # 检查是否存在已选好的面交地点
-        meetup_input_selector = self.safe_actions.css_manager.get_selector(
-            "sneakers_specific.meetup_input", self.region, "primary"
-        ) or "input.D_vI"
-        
-        if not self.page.query_selector(meetup_input_selector):
-            logger.info("页面中不存在已选好的面交地点，执行面交相关操作")
-            
-            # 开启面交
-            self.safe_actions.safe_click_with_config(
-                "sneakers_specific.meetup_toggle", self.region, must_exist=True,
-                operation="开启面交"
-            )
 
-            # 点击面交地点选择框
-            self.safe_actions.safe_input_with_config(
-                "sneakers_specific.meetup_input", enriched_info.meetup_location, self.region, must_exist=True,
-                operation="输入面交地点"
-            )
-            
-            self.page.wait_for_timeout(2000)
-            
-            # 选择面交地点
-            self.safe_actions.safe_click_with_config(
-                "sneakers_specific.meetup_option", self.region, must_exist=True,
-                operation="选择面交地点"
-            )
-        else:
-            logger.info("页面中存在已选好的面交地点，跳过面交相关操作")
-        
-        self.page.wait_for_timeout(2000)
-        
 
    

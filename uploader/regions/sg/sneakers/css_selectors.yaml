@@ -32,7 +32,7 @@ editing:
   activate_button:
     description: 激活按钮
     fallback: button[class*='activate']
-    primary: tr:nth-child(1) .D_nt
+    primary: xpath=//tr[@index-of-type="0"]//button[@type='button' and contains(text(), 'Mark As Active')]
   confirm_activate:
     description: 确认激活按钮
     fallback: button[class*='confirm']
@@ -40,11 +40,11 @@ editing:
   edit_button:
     description: 编辑按钮
     fallback: button[class*='edit']
-    primary: .D_bqZ:nth-child(1) > .D_lz
+    primary: span:has-text('編輯產品')
   inactive_first_item:
     description: 未活跃第一个商品
     fallback: div[class*='item']
-    primary: tr:nth-child(1) .D_bvN
+    primary: xpath=//tr[@index-of-type="0"]
   inactive_tab:
     description: 未活跃标签页
     fallback: button[class*='inactive']
