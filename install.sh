@@ -341,15 +341,46 @@ get_project_files() {
     
     # 测试GitHub API连接
     print_info "测试GitHub API连接..."
+    print_info "使用Token: ${github_token:0:10}..."
+    print_info "测试URL: https://api.github.com/rate_limit"
+    
     local test_response=$(curl -s -H "Authorization: token $github_token" https://api.github.com/rate_limit 2>/dev/null)
+    local test_exit_code=$?
+    
+    print_info "测试请求退出码: $test_exit_code"
+    print_info "测试响应长度: ${#test_response}"
+    
+    if [ $test_exit_code -ne 0 ]; then
+        print_error "❌ 测试请求失败，退出码: $test_exit_code"
+        return 1
+    fi
+    
     if echo "$test_response" | grep -q '"limit": 5000'; then
         print_success "✅ GitHub API连接正常"
     else
         print_warning "⚠️ GitHub API连接可能有问题"
         print_info "测试响应: $test_response"
+        
+        # 检查是否是HTML错误页面
+        if echo "$test_response" | grep -q '<html>'; then
+            print_error "❌ 收到HTML错误页面，可能是网络或代理问题"
+        fi
     fi
     
-    if curl -fsSL -H "Authorization: token $github_token" "$api_url" -o "$temp_file" 2>/dev/null; then
+    print_info "开始获取项目文件列表..."
+    print_info "目标URL: $api_url"
+    print_info "输出文件: $temp_file"
+    
+    local curl_exit_code=0
+    if curl -fsSL -H "Authorization: token $github_token" -o "$temp_file" "$api_url" 2>/dev/null; then
+        curl_exit_code=0
+    else
+        curl_exit_code=$?
+    fi
+    
+    print_info "Curl退出码: $curl_exit_code"
+    
+    if [ $curl_exit_code -eq 0 ] && [ -f "$temp_file" ]; then
         print_info "GitHub API响应已保存到: $temp_file"
         # Windows兼容的文件大小检查
         if command -v wc >/dev/null 2>&1; then
@@ -398,7 +429,7 @@ def get_files_from_api(data, prefix='', github_token=''):
             try:
                 auth_header = f'Authorization: token {github_token}'
                 result = subprocess.run(['curl', '-fsSL', '-H', auth_header, item['url']], 
-                                      capture_output=True, text=True, timeout=10)
+                                      capture_output=True, text=True, timeout=10, shell=False)
                 if result.returncode == 0:
                     subdata = json.loads(result.stdout)
                     files.extend(get_files_from_api(subdata, prefix + item['name'] + '/', github_token))
@@ -461,9 +492,22 @@ except Exception as e:
         fi
     else
         print_error "❌ GitHub API请求失败"
+        print_info "Curl退出码: $curl_exit_code"
         print_info "检查网络连接和Token权限"
         print_info "API URL: $api_url"
         print_info "Token前缀: ${github_token:0:10}..."
+        
+        # 检查输出文件内容
+        if [ -f "$temp_file" ]; then
+            print_info "输出文件内容预览:"
+            head -5 "$temp_file" 2>/dev/null || echo "无法读取文件"
+        else
+            print_info "输出文件不存在: $temp_file"
+        fi
+        
+        # 尝试不带重定向的请求来获取详细错误信息
+        print_info "尝试获取详细错误信息..."
+        curl -v -H "Authorization: token $github_token" "$api_url" 2>&1 | head -20
     fi
     
     # API获取失败
