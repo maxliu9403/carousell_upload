@@ -297,7 +297,10 @@ get_project_files() {
     
     # 获取有效的GitHub Token
     local github_token
-    github_token=$(check_and_get_github_token)
+    if ! github_token=$(check_and_get_github_token); then
+        print_error "❌ 无法获取有效的GitHub Token"
+        exit 1
+    fi
     
     print_info "获取到的Token长度: ${#github_token}"
     print_info "获取到的Token前缀: ${github_token:0:10}..."
