@@ -37,6 +37,10 @@ editing:
     description: 未活跃图片
     fallback: img.D_aaI
     primary: img.D_acC
+  activate_button:
+    description: 激活按钮
+    fallback: button[class*='activate']
+    primary: button[class*='activate']
 metadata:
   category: sneakers
   description: 运动鞋CSS选择器配置文件
