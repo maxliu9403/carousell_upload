@@ -52,6 +52,9 @@ class HKSneakersUploader(BaseUploader):
         
         # 第三步：发布商品
         self._publish_product()
+
+        # 等待页面加载结束
+        self.page.wait_for_load_state("networkidle", timeout=30000)
     
     def _edit_to_sneakers(self, enriched_info: ProductInfo):
         """
@@ -60,11 +63,8 @@ class HKSneakersUploader(BaseUploader):
         """
         logger.info("开始编辑跳波鞋")
         
-        # 进入管理页面
-        self._navigate_to_manage_page()
-        
-        # 进入编辑模式
-        self._enter_edit_mode()
+        # 等待当前页面加载结束，然后直接进入编辑模式
+        self._wait_for_page_load_and_enter_edit()
         
         # 修改为运动鞋类目
         self._change_to_sneakers_category(enriched_info)

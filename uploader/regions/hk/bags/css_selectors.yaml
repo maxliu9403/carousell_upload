@@ -94,9 +94,9 @@ editing:
     fallback: button[class*='edit']
     description: 编辑按钮
   activate_button:
-    primary: button.D_mo
-    fallback: button[class*='activate']
     description: 激活按钮
+    fallback: button[class*='activate']
+    primary: button.D_bqx
   confirm_activate:
     primary: button.D_me
     fallback: button[class*='confirm']

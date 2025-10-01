@@ -252,6 +252,9 @@ class BaseUploader:
             logger.warning(f"{self.log_prefix}等待dialog消失时发生异常: {e}")
             # 即使出现异常，也继续执行，因为dialog可能已经消失
             logger.info(f"{self.log_prefix}继续执行后续流程")
+            
+        # 等待页面加载结束
+        self.page.wait_for_load_state("networkidle")
     
     # HK逻辑
     def _closewhatsapp(self):
@@ -560,17 +563,13 @@ class BaseUploader:
     # ========= 公共方法：编辑模式 =========
     def _enter_edit_mode(self):
         """进入编辑模式"""
-        # 点击 未活跃
+
+        # 点击成功跳服务的产品
         self.safe_actions.safe_click_with_config(
-            "editing.inactive_tab", self.region, must_exist=True,
-            operation="点击未活跃按钮"
+            "editing.inactive_image", self.region, must_exist=True,
+            operation="点击成功跳服务的产品"
         )
 
-        # 点击 未活跃第一个元素
-        self.safe_actions.safe_click_with_config(
-            "editing.inactive_first_item", self.region, must_exist=True,
-            operation="点击未活跃第一个元素"
-        )
         self.page.wait_for_timeout(2000)
         
         # 编辑
@@ -579,30 +578,91 @@ class BaseUploader:
             operation="点击编辑按钮"
         )
         
-    def _activate_product(self):
-        """激活商品"""
-        # 导航到管理页面
-        self._navigate_to_manage_page()
+    def _wait_for_page_load_and_enter_edit(self):
+        """
+        等待当前页面加载结束，然后直接进入编辑模式
+        优化：不重新导航，直接等待页面稳定后点击编辑按钮
+        """
+        logger.info(f"{self.log_prefix}⏳ 等待页面加载并进入编辑模式")
         
-        # 点击 未活跃
+        try:
+            # 等待页面稳定
+            self._wait_for_page_stability()
+            
+            # 进入编辑模式
+            self._enter_edit_mode_directly()
+            
+            logger.info(f"{self.log_prefix}✅ 页面加载并进入编辑模式完成")
+            
+        except Exception as e:
+            logger.error(f"{self.log_prefix}❌ 进入编辑模式失败")
+            raise RuntimeError(f"进入编辑模式失败")
+
+    def _enter_edit_mode_directly(self):
+        """直接进入编辑模式"""
+        logger.info(f"{self.log_prefix}🚀 直接进入编辑模式")
+        self._enter_edit_mode()
+
+    def _wait_for_page_stability(self, timeout: int = 30000):
+        """
+        等待页面稳定
+        
+        Args:
+            timeout: 超时时间（毫秒）
+        """
+        logger.info(f"{self.log_prefix}⏳ 等待页面稳定...")
+        self.page.wait_for_load_state("networkidle", timeout=timeout)
+        logger.info(f"{self.log_prefix}✅ 页面网络活动已结束")
+        
+        # 额外等待确保页面完全稳定
+        self.page.wait_for_timeout(2000)
+        logger.info(f"{self.log_prefix}✅ 页面已稳定")
+
+    def _click_inactive_product(self):
+        """点击未激活的商品"""
+        logger.info(f"{self.log_prefix}🎯 点击未激活的商品")
         self.safe_actions.safe_click_with_config(
-            "editing.inactive_tab", self.region, must_exist=True,
-            operation="点击未活跃按钮"
+            "editing.inactive_image", self.region, must_exist=True,
+            operation="点击成功跳服务的产品"
         )
-        
-        # 点击 激活
+        self.page.wait_for_timeout(2000)
+
+    def _click_activate_button(self):
+        """点击激活按钮"""
+        logger.info(f"{self.log_prefix}🚀 点击激活按钮")
         self.safe_actions.safe_click_with_config(
             "editing.activate_button", self.region, must_exist=True,
-            operation="点击激活按钮"
+            operation="点击激活商品"
         )
+
+    def _wait_for_activation_complete(self):
+        """等待激活完成"""
+        logger.info(f"{self.log_prefix}⏳ 等待激活完成...")
+        self.page.wait_for_timeout(3000)
+        logger.info(f"{self.log_prefix}✅ 商品激活完成")
+
+    def _activate_product(self):
+        """激活商品 - 主流程"""
+        logger.info(f"{self.log_prefix}开始激活商品流程")
         
-        # 点击确认激活
-        self.safe_actions.safe_click_with_config(
-            "editing.confirm_activate", self.region, must_exist=True,
-            operation="点击确认激活按钮"
-        )
-        
-        self.page.wait_for_timeout(5000)
+        try:
+            # 等待页面稳定
+            self._wait_for_page_stability()
+            
+            # 点击未激活的商品
+            self._click_inactive_product()
+            
+            # 点击激活按钮
+            self._click_activate_button()
+            
+            # 等待激活完成
+            self._wait_for_activation_complete()
+            
+            logger.info(f"{self.log_prefix}✅ 激活商品流程完成")
+            
+        except Exception as e:
+            logger.error(f"{self.log_prefix}❌ 激活商品失败: {e}")
+            raise RuntimeError(f"激活商品失败: {e}")     
         
     # ========= 公共方法：安全点击子类目 =========
     def _safe_click_subcategory(self, selector: str, category_name: str):
