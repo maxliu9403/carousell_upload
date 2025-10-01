@@ -1,23 +1,23 @@
 # =============================================================================
-# Carousell Uploader - Windows PowerShell 安装脚本
+# Carousell Uploader - Windows PowerShell Installation Script
 # =============================================================================
-# 支持系统: Windows 10/11
-# 版本: 2.0.0
-# 作者: Carousell Uploader Team
+# Supported Systems: Windows 10/11
+# Version: 2.0.0
+# Author: Carousell Uploader Team
 # =============================================================================
 
-# 设置错误处理
+# Set error handling
 $ErrorActionPreference = "Stop"
 
 # =============================================================================
-# 全局配置
+# Global Configuration
 # =============================================================================
 $ScriptVersion = "2.0.0"
 $ProjectName = "Carousell Uploader"
 $RepoUrl = "https://github.com/maxliu9403/carousell_upload"
 $PythonMinVersion = "3.8"
 
-# 颜色定义
+# Color definitions
 $Colors = @{
     Red = "Red"
     Green = "Green"
@@ -29,13 +29,13 @@ $Colors = @{
 }
 
 # =============================================================================
-# 工具函数
+# Utility Functions
 # =============================================================================
 
 function Write-Header {
     Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor White
-    Write-Host "║ 🚀 $ProjectName 一键安装脚本 v$ScriptVersion ║" -ForegroundColor Cyan
-    Write-Host "║ 支持系统: Windows 10/11 ║" -ForegroundColor Cyan
+    Write-Host "║ 🚀 $ProjectName One-Click Installation Script v$ScriptVersion ║" -ForegroundColor Cyan
+    Write-Host "║ Supported Systems: Windows 10/11 ║" -ForegroundColor Cyan
     Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor White
     Write-Host ""
 }
@@ -70,7 +70,7 @@ function Write-Progress {
     Write-Host "⏳ $Message" -ForegroundColor Cyan
 }
 
-# 检查命令是否存在
+# Check if command exists
 function Test-Command {
     param([string]$Command)
     try {
@@ -82,26 +82,26 @@ function Test-Command {
     }
 }
 
-# 获取系统信息
+# Get system information
 function Get-SystemInfo {
-    Write-Step "检测系统环境..."
+    Write-Step "Detecting system environment..."
     
     $OS = Get-WmiObject -Class Win32_OperatingSystem
     $OSName = $OS.Caption
     $OSVersion = $OS.Version
     
-    Write-Success "检测到Windows系统"
-    Write-Info "操作系统: $OSName"
-    Write-Info "版本: $OSVersion"
+    Write-Success "Detected Windows system"
+    Write-Info "Operating System: $OSName"
+    Write-Info "Version: $OSVersion"
     
-    # 检测架构
+    # Detect architecture
     $Arch = $env:PROCESSOR_ARCHITECTURE
-    Write-Info "系统架构: $Arch"
+    Write-Info "System Architecture: $Arch"
 }
 
-# 检查网络连接
+# Check network connection
 function Test-NetworkConnection {
-    Write-Step "检查网络连接..."
+    Write-Step "Checking network connection..."
     
     $TestUrls = @(
         "https://pypi.org",
@@ -113,7 +113,7 @@ function Test-NetworkConnection {
         try {
             $response = Invoke-WebRequest -Uri $url -TimeoutSec 10 -UseBasicParsing
             if ($response.StatusCode -eq 200) {
-                Write-Success "网络连接正常: $url"
+                Write-Success "Network connection normal: $url"
                 return
             }
         }
@@ -122,48 +122,48 @@ function Test-NetworkConnection {
         }
     }
     
-    Write-Error "网络连接失败，请检查网络设置"
-    Write-Info "请确保可以访问以下网站:"
+    Write-Error "Network connection failed, please check network settings"
+    Write-Info "Please ensure you can access the following websites:"
     foreach ($url in $TestUrls) {
         Write-Info "  - $url"
     }
     exit 1
 }
 
-# 检查并安装系统依赖
+# Check and install system dependencies
 function Install-SystemDependencies {
-    Write-Step "检查系统依赖..."
+    Write-Step "Checking system dependencies..."
     
-    # 检查Python
+    # Check Python
     if (-not (Test-Command "python") -and -not (Test-Command "python3")) {
-        Write-Error "未找到Python，请先安装Python 3.8+"
-        Write-Info "安装指南:"
-        Write-Info "  1. 访问 https://python.org"
-        Write-Info "  2. 下载Python 3.8+"
-        Write-Info "  3. 安装时勾选 'Add Python to PATH'"
-        Write-Info "  4. 避免使用Microsoft Store版本"
-        Write-Info "  5. 重启PowerShell后重新运行此脚本"
+        Write-Error "Python not found, please install Python 3.8+ first"
+        Write-Info "Installation guide:"
+        Write-Info "  1. Visit https://python.org"
+        Write-Info "  2. Download Python 3.8+"
+        Write-Info "  3. Check 'Add Python to PATH' during installation"
+        Write-Info "  4. Avoid using Microsoft Store version"
+        Write-Info "  5. Restart PowerShell and run this script again"
         exit 1
     }
     
-    # 检查Git
+    # Check Git
     if (-not (Test-Command "git")) {
-        Write-Warning "未找到Git，建议安装Git for Windows"
-        Write-Info "下载地址: https://git-scm.com/download/win"
-        Write-Info "安装后重启PowerShell"
+        Write-Warning "Git not found, recommend installing Git for Windows"
+        Write-Info "Download: https://git-scm.com/download/win"
+        Write-Info "Restart PowerShell after installation"
     }
     
-    # 检查curl
+    # Check curl
     if (-not (Test-Command "curl")) {
-        Write-Warning "未找到curl，将使用PowerShell的Invoke-WebRequest"
+        Write-Warning "curl not found, will use PowerShell's Invoke-WebRequest"
     }
     
-    Write-Success "系统依赖检查完成"
+    Write-Success "System dependencies check completed"
 }
 
-# 检测Python环境
+# Detect Python environment
 function Get-PythonEnvironment {
-    Write-Step "检测Python环境..."
+    Write-Step "Detecting Python environment..."
     
     $PythonCommands = @("python", "python3", "py")
     $FoundPython = $null
@@ -173,13 +173,13 @@ function Get-PythonEnvironment {
             try {
                 $version = & $cmd --version 2>&1
                 
-                # 检查是否指向Microsoft Store
+                # Check if pointing to Microsoft Store
                 if ($version -match "Microsoft Store") {
-                    Write-Warning "跳过Microsoft Store Python: $cmd"
+                    Write-Warning "Skipping Microsoft Store Python: $cmd"
                     continue
                 }
                 
-                # 检查版本是否符合要求
+                # Check if version meets requirements
                 $pythonCode = @"
 import sys
 exit(0 if sys.version_info >= (3, 8) else 1)
@@ -189,103 +189,103 @@ exit(0 if sys.version_info >= (3, 8) else 1)
                     & $cmd -c $pythonCode
                     if ($LASTEXITCODE -eq 0) {
                         $FoundPython = $cmd
-                        Write-Success "找到Python: $cmd (版本: $version)"
+                        Write-Success "Found Python: $cmd (Version: $version)"
                         break
                     } else {
-                        Write-Warning "Python版本过低: $cmd ($version)"
+                        Write-Warning "Python version too low: $cmd ($version)"
                     }
                 }
                 catch {
-                    Write-Warning "Python版本检查失败: $cmd"
+                    Write-Warning "Python version check failed: $cmd"
                 }
             }
             catch {
-                Write-Warning "Python命令执行失败: $cmd"
+                Write-Warning "Python command execution failed: $cmd"
             }
         }
     }
     
     if (-not $FoundPython) {
-        Write-Error "未找到合适的Python安装 (需要>=3.8)"
-        Write-Info "安装指南:"
-        Write-Info "  1. 访问 https://python.org"
-        Write-Info "  2. 下载Python 3.8+"
-        Write-Info "  3. 安装时勾选 'Add Python to PATH'"
-        Write-Info "  4. 重启PowerShell后重新运行此脚本"
+        Write-Error "No suitable Python installation found (requires >=3.8)"
+        Write-Info "Installation guide:"
+        Write-Info "  1. Visit https://python.org"
+        Write-Info "  2. Download Python 3.8+"
+        Write-Info "  3. Check 'Add Python to PATH' during installation"
+        Write-Info "  4. Restart PowerShell and run this script again"
         exit 1
     }
     
-    # 检测pip
+    # Detect pip
     try {
         & $FoundPython -m pip --version | Out-Null
         if ($LASTEXITCODE -eq 0) {
             $script:PythonCmd = $FoundPython
             $script:PipCmd = "$FoundPython -m pip"
-            Write-Success "pip可用: $PipCmd"
+            Write-Success "pip available: $PipCmd"
         } else {
-            Write-Error "pip不可用，请重新安装Python"
+            Write-Error "pip not available, please reinstall Python"
             exit 1
         }
     }
     catch {
-        Write-Error "pip不可用，请重新安装Python"
+        Write-Error "pip not available, please reinstall Python"
         exit 1
     }
 }
 
-# 创建项目目录
+# Create project directory
 function Setup-ProjectDirectory {
-    Write-Step "设置项目目录..."
+    Write-Step "Setting up project directory..."
     
     $script:ProjectDir = Get-Location
-    Write-Info "项目目录: $ProjectDir"
+    Write-Info "Project directory: $ProjectDir"
     
-    # 检查是否已有项目文件
+    # Check if project files already exist
     if ((Test-Path "requirements.txt") -or (Test-Path "pyproject.toml")) {
-        Write-Success "检测到项目文件，使用当前目录"
+        Write-Success "Project files detected, using current directory"
     } else {
-        Write-Info "当前目录不包含项目文件，将下载项目代码"
+        Write-Info "Current directory does not contain project files, will download project code"
         Download-ProjectCode
     }
 }
 
-# 下载项目代码
+# Download project code
 function Download-ProjectCode {
-    Write-Step "下载项目代码..."
+    Write-Step "Downloading project code..."
     
-    # 检查Git
+    # Check Git
     if (Test-Command "git") {
-        Write-Info "使用Git克隆项目..."
+        Write-Info "Using Git to clone project..."
         try {
             git clone "$RepoUrl.git" temp_project
             if ($LASTEXITCODE -eq 0) {
-                # 移动文件到当前目录
+                # Move files to current directory
                 Copy-Item -Path "temp_project\*" -Destination "." -Recurse -Force
                 Copy-Item -Path "temp_project\.*" -Destination "." -Recurse -Force -ErrorAction SilentlyContinue
                 Remove-Item -Path "temp_project" -Recurse -Force
-                Write-Success "项目代码下载完成"
+                Write-Success "Project code download completed"
                 return
             }
         }
         catch {
-            Write-Warning "Git克隆失败，尝试其他方式"
+            Write-Warning "Git clone failed, trying other methods"
         }
     }
     
-    # 使用PowerShell下载
-    Write-Info "使用PowerShell下载项目代码..."
+    # Use PowerShell download
+    Write-Info "Using PowerShell to download project code..."
     Download-WithPowerShell
 }
 
-# 使用PowerShell下载项目代码
+# Use PowerShell to download project code
 function Download-WithPowerShell {
-    Write-Info "使用PowerShell下载项目代码..."
+    Write-Info "Using PowerShell to download project code..."
     
-    # 创建临时目录
+    # Create temporary directory
     New-Item -ItemType Directory -Path "temp_project" -Force | Out-Null
     Set-Location "temp_project"
     
-    # 下载主要文件
+    # Download main files
     $files = @(
         "requirements.txt",
         "pyproject.toml",
@@ -307,113 +307,113 @@ function Download-WithPowerShell {
         
         try {
             Invoke-WebRequest -Uri $url -OutFile $file -UseBasicParsing
-            Write-Info "下载: $file"
+            Write-Info "Downloaded: $file"
         }
         catch {
-            Write-Warning "下载失败: $file"
+            Write-Warning "Download failed: $file"
         }
     }
     
-    # 移动文件到上级目录
+    # Move files to parent directory
     Copy-Item -Path "*" -Destination ".." -Recurse -Force
     Copy-Item -Path ".*" -Destination ".." -Recurse -Force -ErrorAction SilentlyContinue
     Set-Location ".."
     Remove-Item -Path "temp_project" -Recurse -Force
     
-    Write-Success "项目代码下载完成"
+    Write-Success "Project code download completed"
 }
 
-# 创建虚拟环境
+# Create virtual environment
 function New-VirtualEnvironment {
-    Write-Step "创建Python虚拟环境..."
+    Write-Step "Creating Python virtual environment..."
     
-    # 检查是否已存在虚拟环境
+    # Check if virtual environment already exists
     if (Test-Path "venv") {
-        Write-Warning "虚拟环境已存在，将重新创建"
+        Write-Warning "Virtual environment already exists, will recreate"
         Remove-Item -Path "venv" -Recurse -Force
     }
     
-    Write-Info "创建虚拟环境..."
+    Write-Info "Creating virtual environment..."
     try {
         & $PythonCmd -m venv venv
         if ($LASTEXITCODE -eq 0) {
-            Write-Success "虚拟环境创建成功"
+            Write-Success "Virtual environment created successfully"
         } else {
-            Write-Error "虚拟环境创建失败"
-            Write-Info "故障排除:"
-            Write-Info "  1. 检查Python版本: $PythonCmd --version"
-            Write-Info "  2. 检查磁盘空间"
-            Write-Info "  3. 检查权限"
+            Write-Error "Virtual environment creation failed"
+            Write-Info "Troubleshooting:"
+            Write-Info "  1. Check Python version: $PythonCmd --version"
+            Write-Info "  2. Check disk space"
+            Write-Info "  3. Check permissions"
             exit 1
         }
     }
     catch {
-        Write-Error "虚拟环境创建失败: $_"
+        Write-Error "Virtual environment creation failed: $_"
         exit 1
     }
     
-    # 验证虚拟环境
+    # Verify virtual environment
     if ((Test-Path "venv\Scripts\activate") -or (Test-Path "venv\bin\activate")) {
-        Write-Success "虚拟环境验证通过"
+        Write-Success "Virtual environment verification passed"
     } else {
-        Write-Error "虚拟环境创建失败 - 激活脚本不存在"
+        Write-Error "Virtual environment creation failed - activation script not found"
         exit 1
     }
 }
 
-# 激活虚拟环境
+# Activate virtual environment
 function Enable-VirtualEnvironment {
-    Write-Step "激活虚拟环境..."
+    Write-Step "Activating virtual environment..."
     
     if (Test-Path "venv\Scripts\activate") {
         & "venv\Scripts\activate"
-        Write-Success "虚拟环境已激活 (Windows)"
+        Write-Success "Virtual environment activated (Windows)"
     } elseif (Test-Path "venv\bin\activate") {
         & "venv\bin\activate"
-        Write-Success "虚拟环境已激活 (WSL)"
+        Write-Success "Virtual environment activated (WSL)"
     } else {
-        Write-Error "虚拟环境激活失败"
+        Write-Error "Virtual environment activation failed"
         exit 1
     }
     
-    # 验证激活
+    # Verify activation
     if ($env:VIRTUAL_ENV -eq "$ProjectDir\venv") {
-        Write-Success "虚拟环境激活成功: $env:VIRTUAL_ENV"
+        Write-Success "Virtual environment activated successfully: $env:VIRTUAL_ENV"
     } else {
-        Write-Error "虚拟环境激活失败"
+        Write-Error "Virtual environment activation failed"
         exit 1
     }
 }
 
-# 安装Python依赖
+# Install Python dependencies
 function Install-PythonDependencies {
-    Write-Step "安装Python依赖..."
+    Write-Step "Installing Python dependencies..."
     
-    # 升级pip
-    Write-Info "升级pip..."
+    # Upgrade pip
+    Write-Info "Upgrading pip..."
     & $PipCmd install --upgrade pip
     
-    # 安装基础包
-    Write-Info "安装基础包..."
+    # Install basic packages
+    Write-Info "Installing basic packages..."
     & $PipCmd install wheel setuptools
     
-    # 安装项目依赖
+    # Install project dependencies
     if (Test-Path "requirements.txt") {
-        Write-Info "安装项目依赖..."
+        Write-Info "Installing project dependencies..."
         & $PipCmd install -r requirements.txt
-        Write-Success "项目依赖安装完成"
+        Write-Success "Project dependencies installation completed"
     } else {
-        Write-Error "未找到requirements.txt文件"
+        Write-Error "requirements.txt file not found"
         exit 1
     }
     
-    # 安装Playwright浏览器
-    Write-Info "安装Playwright浏览器..."
+    # Install Playwright browser
+    Write-Info "Installing Playwright browser..."
     & python -m playwright install chromium
-    Write-Success "Playwright浏览器安装完成"
+    Write-Success "Playwright browser installation completed"
     
-    # 验证安装
-    Write-Info "验证Python包安装..."
+    # Verify installation
+    Write-Info "Verifying Python package installation..."
     $pythonCode = @"
 import sys
 try:
@@ -424,26 +424,26 @@ try:
     import openpyxl
     import pyautogui
     import pyperclip
-    print('✅ 所有依赖包验证通过')
+    print('✅ All dependency packages verified successfully')
 except ImportError as e:
-    print(f'❌ 依赖包验证失败: {e}')
+    print(f'❌ Dependency package verification failed: {e}')
     sys.exit(1)
 "@
     
     & python -c $pythonCode
     if ($LASTEXITCODE -ne 0) {
-        Write-Error "依赖包验证失败"
+        Write-Error "Dependency package verification failed"
         exit 1
     }
     
-    Write-Success "Python环境配置完成"
+    Write-Success "Python environment configuration completed"
 }
 
-# 创建配置文件
+# Create configuration
 function New-Configuration {
-    Write-Step "创建配置文件..."
+    Write-Step "Creating configuration..."
     
-    # 创建必要目录
+    # Create necessary directories
     $directories = @("logs", "data", "screenshots", "temp", "config")
     foreach ($dir in $directories) {
         if (-not (Test-Path $dir)) {
@@ -451,217 +451,216 @@ function New-Configuration {
         }
     }
     
-    # 创建配置文件
+    # Create configuration file
     if (-not (Test-Path "config\settings.yaml")) {
         if (Test-Path "config\settings.example.yaml") {
             Copy-Item "config\settings.example.yaml" "config\settings.yaml"
-            Write-Success "配置文件创建完成: config\settings.yaml"
+            Write-Success "Configuration file created: config\settings.yaml"
         } else {
-            # 创建基本配置文件
+            # Create basic configuration file
             $configContent = @"
-# Carousell Uploader 配置文件
-# 请根据您的需求修改以下配置
+# Carousell Uploader Configuration File
+# Please modify the following configuration according to your needs
 
-# 浏览器设置
+# Browser settings
 browser:
   headless: false
   timeout: 30
   retry_count: 3
 
-# 日志设置
+# Logging settings
 logging:
   level: INFO
   file: logs/carousell.log
 
-# 上传设置
+# Upload settings
 upload:
   delay_between_actions: 2
   max_retries: 3
   screenshot_on_error: true
 "@
             $configContent | Out-File -FilePath "config\settings.yaml" -Encoding UTF8
-            Write-Success "基本配置文件创建完成: config\settings.yaml"
+            Write-Success "Basic configuration file created: config\settings.yaml"
         }
     } else {
-        Write-Warning "配置文件已存在: config\settings.yaml"
+        Write-Warning "Configuration file already exists: config\settings.yaml"
     }
 }
 
-# 创建启动脚本
+# Create startup scripts
 function New-StartupScripts {
-    Write-Step "创建启动脚本..."
+    Write-Step "Creating startup scripts..."
     
-    # 创建激活脚本
+    # Create activation script
     $activateScript = @"
-# Carousell Uploader 虚拟环境激活脚本
+# Carousell Uploader Virtual Environment Activation Script
 
 `$ProjectDir = Split-Path -Parent `$MyInvocation.MyCommand.Path
 `$VenvDir = "`$ProjectDir\venv"
 
-Write-Host "🚀 激活 Carousell Uploader 虚拟环境..." -ForegroundColor Cyan
+Write-Host "🚀 Activating Carousell Uploader virtual environment..." -ForegroundColor Cyan
 
 if (Test-Path "`$VenvDir\Scripts\activate") {
     & "`$VenvDir\Scripts\activate"
-    Write-Host "✅ 虚拟环境已激活 (Windows)" -ForegroundColor Green
+    Write-Host "✅ Virtual environment activated (Windows)" -ForegroundColor Green
 } elseif (Test-Path "`$VenvDir\bin\activate") {
     & "`$VenvDir\bin\activate"
-    Write-Host "✅ 虚拟环境已激活 (WSL)" -ForegroundColor Green
+    Write-Host "✅ Virtual environment activated (WSL)" -ForegroundColor Green
 } else {
-    Write-Host "❌ 虚拟环境未找到: `$VenvDir" -ForegroundColor Red
-    Write-Host "请先运行安装脚本: .\install.ps1" -ForegroundColor Yellow
+    Write-Host "❌ Virtual environment not found: `$VenvDir" -ForegroundColor Red
+    Write-Host "Please run the installation script first: .\install.ps1" -ForegroundColor Yellow
     exit 1
 }
 
-Write-Host "📁 项目目录: `$ProjectDir" -ForegroundColor Blue
-Write-Host "🐍 Python路径: `$(Get-Command python).Source" -ForegroundColor Blue
+Write-Host "📁 Project directory: `$ProjectDir" -ForegroundColor Blue
+Write-Host "🐍 Python path: `$(Get-Command python).Source" -ForegroundColor Blue
 Write-Host ""
-Write-Host "💡 使用说明:" -ForegroundColor Cyan
-Write-Host "  - 运行程序: python -m cli.main" -ForegroundColor White
-Write-Host "  - 退出环境: deactivate" -ForegroundColor White
-Write-Host "  - 查看帮助: python -m cli.main --help" -ForegroundColor White
+Write-Host "💡 Usage instructions:" -ForegroundColor Cyan
+Write-Host "  - Run program: python -m cli.main" -ForegroundColor White
+Write-Host "  - Exit environment: deactivate" -ForegroundColor White
+Write-Host "  - View help: python -m cli.main --help" -ForegroundColor White
 "@
     
     $activateScript | Out-File -FilePath "activate_env.ps1" -Encoding UTF8
-    Write-Success "激活脚本创建完成: activate_env.ps1"
+    Write-Success "Activation script created: activate_env.ps1"
     
-    # 创建快速启动脚本
+    # Create quick start script
     $runScript = @"
-# Carousell Uploader 快速启动脚本
+# Carousell Uploader Quick Start Script
 
 `$ProjectDir = Split-Path -Parent `$MyInvocation.MyCommand.Path
 `$VenvDir = "`$ProjectDir\venv"
 
-# 激活虚拟环境
+# Activate virtual environment
 if (Test-Path "`$VenvDir\Scripts\activate") {
     & "`$VenvDir\Scripts\activate"
 } elseif (Test-Path "`$VenvDir\bin\activate") {
     & "`$VenvDir\bin\activate"
 } else {
-    Write-Host "❌ 虚拟环境未找到，请先运行安装脚本" -ForegroundColor Red
+    Write-Host "❌ Virtual environment not found, please run installation script first" -ForegroundColor Red
     exit 1
 }
 
-Write-Host "🚀 启动 Carousell Uploader..." -ForegroundColor Cyan
+Write-Host "🚀 Starting Carousell Uploader..." -ForegroundColor Cyan
 & python -m cli.main @args
 "@
     
     $runScript | Out-File -FilePath "run.ps1" -Encoding UTF8
-    Write-Success "启动脚本创建完成: run.ps1"
+    Write-Success "Startup script created: run.ps1"
 }
 
-# 测试安装
+# Test installation
 function Test-Installation {
-    Write-Step "测试安装..."
+    Write-Step "Testing installation..."
     
-    # 测试Python导入
+    # Test Python imports
     $pythonCode = @"
 import sys
-print('Python版本:', sys.version)
-print('Python路径:', sys.executable)
+print('Python version:', sys.version)
+print('Python path:', sys.executable)
 
 try:
     import playwright
-    print('✅ Playwright导入成功')
+    print('✅ Playwright import successful')
 except ImportError as e:
-    print(f'❌ Playwright导入失败: {e}')
+    print(f'❌ Playwright import failed: {e}')
     sys.exit(1)
 
 try:
     import requests
-    print('✅ Requests导入成功')
+    print('✅ Requests import successful')
 except ImportError as e:
-    print(f'❌ Requests导入失败: {e}')
+    print(f'❌ Requests import failed: {e}')
     sys.exit(1)
 
 try:
     import yaml
-    print('✅ PyYAML导入成功')
+    print('✅ PyYAML import successful')
 except ImportError as e:
-    print(f'❌ PyYAML导入失败: {e}')
+    print(f'❌ PyYAML import failed: {e}')
     sys.exit(1)
 
 try:
     import pandas
-    print('✅ Pandas导入成功')
+    print('✅ Pandas import successful')
 except ImportError as e:
-    print(f'❌ Pandas导入失败: {e}')
+    print(f'❌ Pandas import failed: {e}')
     sys.exit(1)
 
-print('✅ 所有测试通过')
+print('✅ All tests passed')
 "@
     
     & python -c $pythonCode
     if ($LASTEXITCODE -ne 0) {
-        Write-Error "安装测试失败"
+        Write-Error "Installation test failed"
         exit 1
     }
     
-    Write-Success "安装测试通过"
+    Write-Success "Installation test passed"
 }
 
-# 显示使用说明
+# Show usage instructions
 function Show-Usage {
     Write-Host ""
-    Write-Success "🎉 安装完成！"
+    Write-Success "🎉 Installation completed!"
     Write-Host ""
-    Write-Info "📁 项目目录: $ProjectDir"
-    Write-Info "🐍 虚拟环境: $ProjectDir\venv"
-    Write-Info "⚙️  配置文件: $ProjectDir\config\settings.yaml"
+    Write-Info "📁 Project directory: $ProjectDir"
+    Write-Info "🐍 Virtual environment: $ProjectDir\venv"
+    Write-Info "⚙️  Configuration file: $ProjectDir\config\settings.yaml"
     Write-Host ""
     
-    Write-Info "🚀 快速使用:"
+    Write-Info "🚀 Quick usage:"
     Write-Host ""
-    Write-Host "1. 激活虚拟环境:"
+    Write-Host "1. Activate virtual environment:"
     Write-Host "   cd $ProjectDir"
     Write-Host "   .\activate_env.ps1"
     Write-Host ""
-    Write-Host "2. 或直接运行:"
+    Write-Host "2. Or run directly:"
     Write-Host "   cd $ProjectDir"
     Write-Host "   .\run.ps1"
     Write-Host ""
-    Write-Host "3. 配置设置:"
+    Write-Host "3. Configuration settings:"
     Write-Host "   notepad $ProjectDir\config\settings.yaml"
     Write-Host ""
     
-    Write-Info "📚 更多信息:"
-    Write-Host "- 项目文档: README.md"
-    Write-Host "- 配置说明: config\settings.example.yaml"
-    Write-Host "- 问题反馈: $RepoUrl/issues"
+    Write-Info "📚 More information:"
+    Write-Host "- Project documentation: README.md"
+    Write-Host "- Configuration guide: config\settings.example.yaml"
+    Write-Host "- Issue reporting: $RepoUrl/issues"
     Write-Host ""
-    Write-Success "安装完成！开始使用 Carousell Uploader 吧！"
+    Write-Success "Installation completed! Start using Carousell Uploader now!"
 }
 
-# 主函数
+# Main function
 function Main {
     Write-Header
     
-    # 环境检查
+    # Environment check
     Get-SystemInfo
     Test-NetworkConnection
     Install-SystemDependencies
     Get-PythonEnvironment
     
-    # 项目设置
+    # Project setup
     Setup-ProjectDirectory
     New-VirtualEnvironment
     Enable-VirtualEnvironment
     Install-PythonDependencies
     
-    # 配置完成
+    # Configuration completion
     New-Configuration
     New-StartupScripts
     Test-Installation
     
-    # 显示使用说明
+    # Show usage instructions
     Show-Usage
 }
 
-# 错误处理
+# Error handling
 trap {
-    Write-Error "安装过程中发生错误，请检查上述输出信息"
+    Write-Error "Error occurred during installation, please check the above output information"
     exit 1
 }
 
-# 运行主函数
+# Run main function
 Main
-
