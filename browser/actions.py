@@ -40,6 +40,132 @@ def human_delay(a: float = 1.0, b: float = 2.0):
     """模拟真人随机延迟"""
     time.sleep(random.uniform(a, b))
 
+def smart_wait_for_element(page, selector: str, timeout: int = 30000, state: str = "visible"):
+    """
+    智能等待元素，支持多种状态
+    
+    Args:
+        page: Playwright页面对象
+        selector: CSS选择器
+        timeout: 超时时间（毫秒）
+        state: 等待状态 ("visible", "hidden", "attached", "detached")
+    """
+    logger.info(f"智能等待元素: {selector}, 状态: {state}, 超时: {timeout}ms")
+    
+    try:
+        if state == "visible":
+            page.wait_for_selector(selector, state="visible", timeout=timeout)
+        elif state == "hidden":
+            page.wait_for_selector(selector, state="hidden", timeout=timeout)
+        elif state == "attached":
+            page.wait_for_selector(selector, state="attached", timeout=timeout)
+        elif state == "detached":
+            page.wait_for_selector(selector, state="detached", timeout=timeout)
+        else:
+            raise ValueError(f"不支持的状态: {state}")
+        
+        logger.info(f"元素等待成功: {selector} -> {state}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"元素等待失败: {selector} -> {state}, 错误: {e}")
+        raise
+
+def smart_wait_for_text(page, selector: str, expected_text: str, timeout: int = 30000):
+    """
+    智能等待元素包含指定文本
+    
+    Args:
+        page: Playwright页面对象
+        selector: CSS选择器
+        expected_text: 期望的文本内容
+        timeout: 超时时间（毫秒）
+    """
+    logger.info(f"智能等待文本: {selector} -> '{expected_text}', 超时: {timeout}ms")
+    
+    try:
+        page.wait_for_function(
+            f"""
+            el => {{
+                const text = el.textContent || el.innerText || '';
+                return text.includes('{expected_text}');
+            }}
+            """,
+            arg=page.locator(selector),
+            timeout=timeout
+        )
+        
+        logger.info(f"文本等待成功: {selector} -> '{expected_text}'")
+        return True
+        
+    except Exception as e:
+        logger.error(f"文本等待失败: {selector} -> '{expected_text}', 错误: {e}")
+        raise
+
+def smart_wait_for_url_change(page, current_url: str, timeout: int = 30000):
+    """
+    智能等待URL变化
+    
+    Args:
+        page: Playwright页面对象
+        current_url: 当前URL
+        timeout: 超时时间（毫秒）
+    """
+    logger.info(f"智能等待URL变化: {current_url}, 超时: {timeout}ms")
+    
+    try:
+        page.wait_for_function(
+            f"""
+            () => {{
+                return window.location.href !== '{current_url}';
+            }}
+            """,
+            timeout=timeout
+        )
+        
+        new_url = page.url
+        logger.info(f"URL变化成功: {current_url} -> {new_url}")
+        return new_url
+        
+    except Exception as e:
+        logger.error(f"URL变化等待失败: {current_url}, 错误: {e}")
+        raise
+
+def smart_wait_for_page_load(page, timeout: int = 30000):
+    """
+    智能等待页面加载完成
+    
+    Args:
+        page: Playwright页面对象
+        timeout: 超时时间（毫秒）
+    """
+    logger.info(f"智能等待页面加载, 超时: {timeout}ms")
+    
+    try:
+        # 等待DOM内容加载
+        page.wait_for_load_state("domcontentloaded", timeout=timeout)
+        logger.info("DOM内容已加载")
+        
+        # 等待所有资源加载
+        page.wait_for_load_state("load", timeout=timeout)
+        logger.info("所有资源已加载")
+        
+        # 等待网络活动结束
+        page.wait_for_load_state("networkidle", timeout=timeout)
+        logger.info("网络活动已结束")
+        
+        # 额外等待确保页面稳定
+        page.wait_for_timeout(1000)
+        logger.info("页面加载完成")
+        
+        return True
+        
+    except Exception as e:
+        logger.warning(f"页面加载等待超时: {e}")
+        # 即使超时也继续执行
+        page.wait_for_timeout(1000)
+        return False
+
 def click_blank_area(page: Page, x: int = None, y: int = None):
     """
     点击页面空白处

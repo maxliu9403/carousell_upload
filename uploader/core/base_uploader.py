@@ -611,12 +611,28 @@ class BaseUploader:
             timeout: 超时时间（毫秒）
         """
         logger.info(f"{self.log_prefix}⏳ 等待页面稳定...")
-        self.page.wait_for_load_state("networkidle", timeout=timeout)
-        logger.info(f"{self.log_prefix}✅ 页面网络活动已结束")
         
-        # 额外等待确保页面完全稳定
-        self.page.wait_for_timeout(2000)
-        logger.info(f"{self.log_prefix}✅ 页面已稳定")
+        try:
+            # 等待网络活动结束
+            self.page.wait_for_load_state("networkidle", timeout=timeout)
+            logger.info(f"{self.log_prefix}✅ 页面网络活动已结束")
+            
+            # 等待DOM内容加载完成
+            self.page.wait_for_load_state("domcontentloaded", timeout=timeout)
+            logger.info(f"{self.log_prefix}✅ DOM内容已加载")
+            
+            # 等待所有资源加载完成
+            self.page.wait_for_load_state("load", timeout=timeout)
+            logger.info(f"{self.log_prefix}✅ 所有资源已加载")
+            
+            # 额外等待确保页面完全稳定
+            self.page.wait_for_timeout(2000)
+            logger.info(f"{self.log_prefix}✅ 页面已稳定")
+            
+        except Exception as e:
+            logger.warning(f"{self.log_prefix}⚠️ 页面稳定等待超时: {e}")
+            # 即使超时也继续执行，但记录警告
+            self.page.wait_for_timeout(1000)  # 至少等待1秒
 
     def _click_inactive_product(self):
         """点击未激活的商品"""
@@ -638,8 +654,23 @@ class BaseUploader:
     def _wait_for_activation_complete(self):
         """等待激活完成"""
         logger.info(f"{self.log_prefix}⏳ 等待激活完成...")
-        self.page.wait_for_timeout(3000)
-        logger.info(f"{self.log_prefix}✅ 商品激活完成")
+        
+        try:
+            # 等待激活按钮消失或状态改变
+            self._wait_for_element_to_disappear(
+                self.safe_actions.get_selector("editing.activate_button", self.region),
+                timeout=15000
+            )
+            logger.info(f"{self.log_prefix}✅ 激活按钮已消失")
+            
+            # 额外等待确保状态更新
+            self.page.wait_for_timeout(2000)
+            logger.info(f"{self.log_prefix}✅ 商品激活完成")
+            
+        except Exception as e:
+            logger.warning(f"{self.log_prefix}⚠️ 激活完成等待超时: {e}")
+            # 即使超时也继续执行
+            self.page.wait_for_timeout(3000)
 
     def _activate_product(self):
         """激活商品 - 主流程"""
@@ -704,6 +735,135 @@ class BaseUploader:
             return True
         except Exception as e:
             error_msg = f"等待元素消失超时: {selector}, 超时时间: {timeout}ms"
+            if self.browser_id and self.sku:
+                error_msg = f"BrowserID: {self.browser_id}, SKU: {self.sku}, {error_msg}"
+            error_msg += f", 失败原因: {e}"
+            logger.error(error_msg)
+            raise CriticalOperationFailed(error_msg)
+    
+    def _wait_for_element_visible(self, selector: str, timeout: int = 30000):
+        """
+        等待元素可见
+        
+        Args:
+            selector: CSS选择器
+            timeout: 超时时间（毫秒），默认30秒
+        """
+        logger.info(f"{self.log_prefix}等待元素可见: {selector}, 超时时间: {timeout}ms")
+        
+        try:
+            # 等待元素可见
+            self.page.wait_for_selector(selector, state="visible", timeout=timeout)
+            logger.info(f"{self.log_prefix}元素已可见: {selector}")
+            return True
+        except Exception as e:
+            error_msg = f"等待元素可见超时: {selector}, 超时时间: {timeout}ms"
+            if self.browser_id and self.sku:
+                error_msg = f"BrowserID: {self.browser_id}, SKU: {self.sku}, {error_msg}"
+            error_msg += f", 失败原因: {e}"
+            logger.error(error_msg)
+            raise CriticalOperationFailed(error_msg)
+    
+    def _wait_for_element_clickable(self, selector: str, timeout: int = 30000):
+        """
+        等待元素可点击
+        
+        Args:
+            selector: CSS选择器
+            timeout: 超时时间（毫秒），默认30秒
+        """
+        logger.info(f"{self.log_prefix}等待元素可点击: {selector}, 超时时间: {timeout}ms")
+        
+        try:
+            # 等待元素可见且可点击
+            self.page.wait_for_selector(selector, state="visible", timeout=timeout)
+            
+            # 额外检查元素是否可点击
+            self.page.wait_for_function(
+                """
+                el => {
+                    const rect = el.getBoundingClientRect();
+                    const style = window.getComputedStyle(el);
+                    return rect.width > 0 && rect.height > 0 && 
+                           style.visibility !== 'hidden' && 
+                           style.display !== 'none' &&
+                           !el.disabled;
+                }
+                """,
+                arg=self.page.locator(selector),
+                timeout=timeout
+            )
+            
+            logger.info(f"{self.log_prefix}元素已可点击: {selector}")
+            return True
+        except Exception as e:
+            error_msg = f"等待元素可点击超时: {selector}, 超时时间: {timeout}ms"
+            if self.browser_id and self.sku:
+                error_msg = f"BrowserID: {self.browser_id}, SKU: {self.sku}, {error_msg}"
+            error_msg += f", 失败原因: {e}"
+            logger.error(error_msg)
+            raise CriticalOperationFailed(error_msg)
+    
+    def _wait_for_text_content(self, selector: str, expected_text: str, timeout: int = 30000):
+        """
+        等待元素包含指定文本
+        
+        Args:
+            selector: CSS选择器
+            expected_text: 期望的文本内容
+            timeout: 超时时间（毫秒），默认30秒
+        """
+        logger.info(f"{self.log_prefix}等待文本内容: {selector} -> '{expected_text}', 超时时间: {timeout}ms")
+        
+        try:
+            # 等待元素包含指定文本
+            self.page.wait_for_function(
+                f"""
+                el => {{
+                    const text = el.textContent || el.innerText || '';
+                    return text.includes('{expected_text}');
+                }}
+                """,
+                arg=self.page.locator(selector),
+                timeout=timeout
+            )
+            
+            logger.info(f"{self.log_prefix}文本内容已匹配: {selector} -> '{expected_text}'")
+            return True
+        except Exception as e:
+            error_msg = f"等待文本内容超时: {selector} -> '{expected_text}', 超时时间: {timeout}ms"
+            if self.browser_id and self.sku:
+                error_msg = f"BrowserID: {self.browser_id}, SKU: {self.sku}, {error_msg}"
+            error_msg += f", 失败原因: {e}"
+            logger.error(error_msg)
+            raise CriticalOperationFailed(error_msg)
+    
+    def _wait_for_url_change(self, current_url: str, timeout: int = 30000):
+        """
+        等待URL变化
+        
+        Args:
+            current_url: 当前URL
+            timeout: 超时时间（毫秒），默认30秒
+        """
+        logger.info(f"{self.log_prefix}等待URL变化: {current_url}, 超时时间: {timeout}ms")
+        
+        try:
+            # 等待URL变化
+            self.page.wait_for_function(
+                f"""
+                () => {{
+                    return window.location.href !== '{current_url}';
+                }}
+                """,
+                timeout=timeout
+            )
+            
+            new_url = self.page.url
+            logger.info(f"{self.log_prefix}URL已变化: {current_url} -> {new_url}")
+            return new_url
+        except Exception as e:
+            error_msg = f"等待URL变化超时: {current_url}, 超时时间: {timeout}ms"
             if self.browser_id and self.sku:
                 error_msg = f"BrowserID: {self.browser_id}, SKU: {self.sku}, {error_msg}"
             error_msg += f", 失败原因: {e}"

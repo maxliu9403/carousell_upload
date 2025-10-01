@@ -27,11 +27,17 @@ def get_action_functions():
         smart_goto,
         smart_checkbox_click,
         smart_toggle_click,
-        get_element_state
+        get_element_state,
+        # 新增的智能等待函数
+        smart_wait_for_element,
+        smart_wait_for_text,
+        smart_wait_for_url_change,
+        smart_wait_for_page_load
     )
     return (retry_action, click_with_wait, input_with_wait, wait_for_element, 
             upload_folder_with_keyboard, human_delay, click_blank_area, click_center,
-            smart_goto, smart_checkbox_click, smart_toggle_click, get_element_state)
+            smart_goto, smart_checkbox_click, smart_toggle_click, get_element_state,
+            smart_wait_for_element, smart_wait_for_text, smart_wait_for_url_change, smart_wait_for_page_load)
 
 # 为了向后兼容，提供直接导入（如果依赖包可用）
 try:
@@ -126,5 +132,10 @@ __all__ = [
     'smart_goto',
     'smart_checkbox_click',
     'smart_toggle_click',
-    'get_element_state'
+    'get_element_state',
+    # 新增的智能等待函数
+    'smart_wait_for_element',
+    'smart_wait_for_text',
+    'smart_wait_for_url_change',
+    'smart_wait_for_page_load'
 ]
