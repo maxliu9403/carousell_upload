@@ -196,6 +196,9 @@ class EnhancedSafeActions:
             except KeyboardInterrupt:
                 logger.info("用户中断操作")
                 raise
+            except SkipCurrentProduct:
+                # 重新抛出SkipCurrentProduct异常，让上层处理
+                raise
             except Exception as e:
                 print(f"❌ 输入错误: {e}")
                 continue
@@ -267,6 +270,9 @@ class EnhancedSafeActions:
                 
         except KeyboardInterrupt:
             logger.info("用户中断操作")
+            raise
+        except SkipCurrentProduct:
+            # 重新抛出SkipCurrentProduct异常，让上层处理
             raise
         except Exception as e:
             logger.error(f"❌ 更新选择器并重试失败: {element_key}, 错误: {e}")

@@ -303,6 +303,41 @@ class MultiAccountUploader:
                     'error': f"用户跳过: {e}"
                 })
                 # 跳过当前商品，需要立即关闭浏览器并继续下一个商品
+                logger.info(f"⏭️ 用户跳过商品 {sku}，正在关闭浏览器 {browser_id}...")
+                
+                # 关闭浏览器窗口
+                if current_browser and current_profile_id:
+                    try:
+                        close_success = close_browser_unified(current_profile_id)
+                        if close_success:
+                            logger.info(f"✅ 已关闭浏览器 {browser_id} (profile_id: {current_profile_id})")
+                        else:
+                            logger.warning(f"⚠️ 关闭浏览器失败 {browser_id} (profile_id: {current_profile_id})")
+                        
+                        # 关闭Playwright连接
+                        try:
+                            current_playwright.stop()
+                        except Exception as pw_error:
+                            logger.debug(f"关闭Playwright连接时出错: {pw_error}")
+                        
+                        # 重置浏览器相关变量
+                        current_browser = None
+                        current_playwright = None
+                        current_uploader = None
+                        current_browser_id = None
+                        current_profile_id = None
+                        
+                    except Exception as close_error:
+                        logger.error(f"关闭浏览器 {browser_id} 时出错: {close_error}")
+                        # 即使关闭失败也要重置变量
+                        current_browser = None
+                        current_playwright = None
+                        current_uploader = None
+                        current_browser_id = None
+                        current_profile_id = None
+                
+                # 继续处理下一个商品
+                continue
                 
             except Exception as e:
                 logger.error(f"上传商品 {sku} 时出错: {e}")
