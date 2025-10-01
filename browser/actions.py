@@ -323,8 +323,8 @@ def upload_folder_with_keyboard(folder_path: str, image_exts: set):
     if not files:
         raise RuntimeError(f"文件夹中没有可上传的图片: {normalized_path}")
 
-    # 复制文件名并粘贴
-    input_str = " ".join(f'"{os.path.splitext(name)[0]}"' for name in files)
+    # 复制文件名并粘贴（保留文件扩展名）
+    input_str = " ".join(f'"{name}"' for name in files)
     pyperclip.copy(input_str)
     pyautogui.click(10, 10)
     time.sleep(0.2)
