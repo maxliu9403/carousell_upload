@@ -10,6 +10,10 @@ from browser.actions import click_with_wait, input_with_wait, human_delay, DEFAU
 from core.logger import logger
 from ..config.enhanced_css_selector_manager import get_enhanced_css_manager, EnhancedCSSSelectorManager
 
+class SkipCurrentProduct(Exception):
+    """跳过当前商品，继续下一个商品的异常"""
+    pass
+
 
 class CriticalOperationFailed(Exception):
     """关键操作失败异常，需要立即停止当前流程"""
@@ -159,13 +163,17 @@ class EnhancedSafeActions:
             try:
                 if not must_exist:
                     print(f"⚠️ 这是非必要操作，如果当前页面没有此元素，可以选择跳过")
-                    new_selector = input(f"请输入新的CSS选择器 (输入'q'退出程序, 输入'skip'跳过此操作): ").strip()
+                    new_selector = input(f"请输入新的CSS选择器 (输入'q'退出程序, 输入'skip'跳过此操作, 输入'next'退出当前流程继续下一个商品): ").strip()
                 else:
-                    new_selector = input(f"请输入新的CSS选择器 (输入'q'退出程序): ").strip()
+                    new_selector = input(f"请输入新的CSS选择器 (输入'q'退出程序, 输入'next'退出当前流程继续下一个商品): ").strip()
                 
                 if new_selector.lower() == 'q':
                     logger.info("用户选择退出程序")
                     raise KeyboardInterrupt("用户主动退出程序")
+                
+                if new_selector.lower() == 'next':
+                    logger.info(f"用户选择退出当前流程，继续下一个商品: {element_key}")
+                    raise SkipCurrentProduct("用户选择退出当前流程")
                 
                 if new_selector.lower() == 'skip' and not must_exist:
                     logger.info(f"用户选择跳过非必要操作: {element_key}")

@@ -5,6 +5,7 @@ from playwright.sync_api import Page  # pyright: ignore[reportMissingImports]
 from core.models import ProductInfo, UploadConfig
 from ..core.carousell_uploader import CarousellUploader
 from ..core.base_uploader import CriticalOperationFailed
+from ..actions.enhanced_safe_actions import SkipCurrentProduct
 from browser.browser import (
     start_browser_unified, 
     get_profile_id_by_browser_id_unified, 
@@ -280,6 +281,28 @@ class MultiAccountUploader:
                     'error': f"关键操作失败: {e}"
                 })
                 # 关键操作失败，需要立即关闭浏览器并继续下一个商品
+                
+            except SkipCurrentProduct as e:
+                logger.warning(f"⏭️ 用户选择跳过当前商品，继续下一个商品: {sku} - {e}")
+                
+                # 输出美化的截断日志（跳过当前商品）
+                logger.warning("⏭️" + "=" * 50 + "⏭️")
+                logger.warning("⏭️ 跳过当前商品 - 详细信息 ⏭️")
+                logger.warning("📍 所在地域: " + f"{self.region}")
+                logger.warning("🌐 浏览器ID: " + f"{browser_id}")
+                logger.warning("📦 商品SKU: " + f"{sku}")
+                logger.warning("⏭️ 处理状态: 用户跳过")
+                logger.warning("📝 跳过原因: " + f"{e}")
+                logger.warning("⏰ 跳过时间: " + f"{self._get_current_time()}")
+                logger.warning("⏭️" + "=" * 50 + "⏭️")
+                
+                results.append({
+                    'browser_id': browser_id,
+                    'sku': sku,
+                    'success': False,
+                    'error': f"用户跳过: {e}"
+                })
+                # 跳过当前商品，需要立即关闭浏览器并继续下一个商品
                 
             except Exception as e:
                 logger.error(f"上传商品 {sku} 时出错: {e}")
