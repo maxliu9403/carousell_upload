@@ -325,6 +325,7 @@ def upload_folder_with_keyboard(folder_path: str, image_exts: set):
 
     # 复制文件名并粘贴（保留文件扩展名）
     input_str = " ".join(f'"{name}"' for name in files)
+    logger.info(f"复制文件名并粘贴: {', '.join(input_str)}")
     pyperclip.copy(input_str)
     pyautogui.click(10, 10)
     time.sleep(0.2)
