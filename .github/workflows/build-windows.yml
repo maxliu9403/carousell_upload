@@ -107,16 +107,13 @@ jobs:
         with:
           files: |
             dist/CarousellUploader-${{ github.run_number }}.exe
-            dist/config/**
-            dist/uploader/regions/**
           tag_name: v${{ github.run_number }}-onefile
           name: Carousell Uploader v${{ github.run_number }} (onefile)
           body: |
             🚀 Carousell Uploader Windows 可执行文件 (单文件版本)
-            包含配置文件和 regions，下载即可使用。
+            包含所有依赖，下载即可使用。
           draft: false
           prerelease: false
-          overwrite: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -124,14 +121,14 @@ jobs:
         if: github.ref == 'refs/heads/main' && ${{ github.event.inputs.build_mode == 'onedir' }}
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/**
+          files: |
+            dist/CarousellUploader/**
           tag_name: v${{ github.run_number }}-onedir
           name: Carousell Uploader v${{ github.run_number }} (onedir)
           body: |
             🚀 Carousell Uploader Windows 可执行文件 (多文件目录版本)
-            包含配置文件和 regions，下载即可使用。
+            包含所有依赖和配置文件，下载即可使用。
           draft: false
           prerelease: false
-          overwrite: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

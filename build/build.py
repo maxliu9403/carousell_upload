@@ -149,6 +149,59 @@ coll = COLLECT(
     return spec_content
 
 
+def copy_config_files():
+    """Copy configuration files to dist directory"""
+    import shutil
+    
+    print("Copying configuration files...")
+    
+    # Create config directory in dist
+    config_dir = Path("dist/config")
+    config_dir.mkdir(exist_ok=True)
+    
+    # Copy main config files
+    if Path("config/settings.yaml").exists():
+        shutil.copy2("config/settings.yaml", "dist/config/")
+        print("Copied: config/settings.yaml")
+    
+    if Path("config/settings.example.yaml").exists():
+        shutil.copy2("config/settings.example.yaml", "dist/config/")
+        print("Copied: config/settings.example.yaml")
+    
+    # Copy regions directory
+    if Path("uploader/regions").exists():
+        regions_dest = Path("dist/uploader/regions")
+        regions_dest.mkdir(parents=True, exist_ok=True)
+        shutil.copytree("uploader/regions", "dist/uploader/regions", dirs_exist_ok=True)
+        print("Copied: uploader/regions/")
+    
+    # Copy data directory
+    if Path("data").exists():
+        data_dest = Path("dist/data")
+        data_dest.mkdir(parents=True, exist_ok=True)
+        shutil.copytree("data", "dist/data", dirs_exist_ok=True)
+        print("Copied: data/")
+    
+    # Create README file
+    readme_content = """Carousell Uploader - Windows Executable
+
+Files included:
+- CarousellUploader.exe: Main executable
+- config/: Configuration files
+- uploader/regions/: CSS selector configurations by region
+- data/: Data processing modules
+
+Usage:
+1. Configure settings.yaml with your browser API settings
+2. Prepare your Excel file with product data
+3. Run: CarousellUploader.exe
+"""
+    
+    with open("dist/README.txt", "w", encoding="utf-8") as f:
+        f.write(readme_content)
+    print("Created: README.txt")
+
+
 def build_executable(build_mode: str = "onefile", clean: bool = True):
     """Build executable"""
     
@@ -192,6 +245,9 @@ def build_executable(build_mode: str = "onefile", clean: bool = True):
         
         print("Build successful!")
         print(f"Output directory: dist/")
+        
+        # Copy configuration files to dist directory
+        copy_config_files()
         
         # Show build results
         dist_path = Path("dist")
