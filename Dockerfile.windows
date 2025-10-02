@@ -1,0 +1,44 @@
+# 使用Windows Server Core作为基础镜像
+FROM python:3.11-windowsservercore
+
+# 设置工作目录
+WORKDIR C:\\app
+
+# 复制项目文件
+COPY . .
+
+# 安装系统依赖
+RUN powershell -Command "Install-WindowsFeature -Name Net-Framework-45-Features"
+
+# 安装Python依赖
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install pyinstaller
+
+# 安装Playwright
+RUN playwright install chromium
+
+# 构建可执行文件
+RUN pyinstaller --onefile --console --name=CarousellUploader ^
+    --add-data=config;config ^
+    --add-data=uploader/regions;uploader/regions ^
+    --add-data=data;data ^
+    --hidden-import=playwright ^
+    --hidden-import=pyautogui ^
+    --hidden-import=pyperclip ^
+    --hidden-import=openpyxl ^
+    --hidden-import=pandas ^
+    --hidden-import=yaml ^
+    --hidden-import=requests ^
+    --hidden-import=PIL ^
+    --hidden-import=selenium ^
+    --hidden-import=webdriver_manager ^
+    cli/main.py
+
+# 创建输出目录
+RUN mkdir C:\\output
+
+# 复制构建结果
+RUN copy dist\\CarousellUploader.exe C:\\output\\
+
+# 设置默认命令
+CMD ["cmd", "/c", "dir", "C:\\output"]
