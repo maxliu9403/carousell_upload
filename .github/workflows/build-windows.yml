@@ -121,12 +121,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Create zip package (onedir)
+        if: github.ref == 'refs/heads/main' && ${{ github.event.inputs.build_mode == 'onedir' }}
+        shell: pwsh
+        run: |
+          Write-Host "Creating zip package for onedir mode..."
+          $zip_name = "CarousellUploader-${{ github.run_number }}-onedir.zip"
+          Compress-Archive -Path "dist\CarousellUploader\*" -DestinationPath "dist\$zip_name" -Force
+          Write-Host "Created zip package: $zip_name"
+
       - name: Create release (onedir)
         if: github.ref == 'refs/heads/main' && ${{ github.event.inputs.build_mode == 'onedir' }}
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            dist/CarousellUploader/**
+            dist/CarousellUploader-${{ github.run_number }}-onedir.zip
           tag_name: v${{ github.run_number }}-onedir
           name: Carousell Uploader v${{ github.run_number }} (onedir)
           body: |

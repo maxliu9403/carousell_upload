@@ -1,5 +1,5 @@
 # 使用 Windows Server Core 作为基础镜像
-FROM python:3.11-windowsservercore
+FROM python:3.11-windowsservercore  
 
 # 设置工作目录
 WORKDIR C:\app

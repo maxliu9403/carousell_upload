@@ -1,8 +1,8 @@
-import pandas as pd
+import pandas as pd # type: ignore
 from typing import List, Dict, Any, Optional
 from pathlib import Path
-from core.models import ProductInfo
-from core.logger import logger
+from core.models import ProductInfo # type: ignore
+from core.logger import logger # type: ignore   
 
 class ExcelProductParser:
     """Excel 商品信息解析器"""
