@@ -47,41 +47,85 @@ jobs:
         run: |
           $build_mode = "${{ github.event.inputs.build_mode }}"
           Write-Host "Selected build mode: $build_mode"
+          
+          # 详细的项目结构检查
+          Write-Host "=== 项目结构检查 ==="
+          Write-Host "当前目录: $(Get-Location)"
+          Write-Host "目录内容:"
+          Get-ChildItem -Name | ForEach-Object { Write-Host "  $_" }
+          
+          Write-Host "`n检查关键文件:"
+          $critical_files = @("cli/main.py", "config/settings.yaml", "uploader/regions/hk/sneakers/css_selectors.yaml", "uploader/regions/sg/sneakers/css_selectors.yaml")
+          foreach ($file in $critical_files) {
+              if (Test-Path $file) {
+                  Write-Host "✅ $file"
+              } else {
+                  Write-Host "❌ $file - 文件不存在!"
+                  exit 1
+              }
+          }
+          
+          Write-Host "`n检查Python模块导入:"
+          $modules = @("core", "core.config", "core.logger", "core.models", "uploader", "uploader.actions", "uploader.config", "uploader.core", "uploader.factory", "uploader.multi", "uploader.regions", "uploader.utils", "browser", "data", "cli")
+          foreach ($module in $modules) {
+              try {
+                  python -c "import $module" 2>$null
+                  if ($LASTEXITCODE -eq 0) {
+                      Write-Host "✅ $module"
+                  } else {
+                      Write-Host "❌ $module - 导入失败"
+                  }
+              } catch {
+                  Write-Host "❌ $module - 导入失败: $_"
+              }
+          }
 
           if ($build_mode -eq "onefile") {
               Write-Host "Building onefile executable..."
-              pyinstaller --onefile --console --name=CarousellUploader --add-data="config;config" --add-data="uploader/regions;uploader/regions" --hidden-import=playwright --hidden-import=pyautogui --hidden-import=pyperclip --hidden-import=openpyxl --hidden-import=pandas --hidden-import=yaml --hidden-import=requests --hidden-import=PIL --hidden-import=selenium --hidden-import=webdriver_manager --hidden-import=core --hidden-import=core.config --hidden-import=core.logger --hidden-import=core.models --hidden-import=uploader --hidden-import=uploader.core --hidden-import=uploader.actions --hidden-import=uploader.config --hidden-import=uploader.factory --hidden-import=uploader.multi --hidden-import=uploader.regions --hidden-import=uploader.utils --hidden-import=browser --hidden-import=data --hidden-import=cli cli/main.py
+              pyinstaller --onefile --console --name=CarousellUploader --add-data="config;config" --add-data="uploader/regions;uploader/regions" --hidden-import=playwright --hidden-import=pyautogui --hidden-import=pyperclip --hidden-import=openpyxl --hidden-import=pandas --hidden-import=yaml --hidden-import=requests --hidden-import=PIL --hidden-import=selenium --hidden-import=webdriver_manager --hidden-import=core --hidden-import=core.config --hidden-import=core.logger --hidden-import=core.models --hidden-import=uploader --hidden-import=uploader.actions --hidden-import=uploader.actions.enhanced_safe_actions --hidden-import=uploader.config --hidden-import=uploader.config.enhanced_css_selector_manager --hidden-import=uploader.config.regional_config_loader --hidden-import=uploader.core --hidden-import=uploader.core.base_uploader --hidden-import=uploader.core.carousell_uploader --hidden-import=uploader.factory --hidden-import=uploader.factory.uploader_factory --hidden-import=uploader.multi --hidden-import=uploader.multi.multi_account_uploader --hidden-import=uploader.regions --hidden-import=uploader.regions.hk --hidden-import=uploader.regions.hk.sneakers --hidden-import=uploader.regions.hk.sneakers.sneakers_uploader --hidden-import=uploader.regions.sg --hidden-import=uploader.regions.sg.sneakers --hidden-import=uploader.regions.sg.sneakers.sneakers_uploader --hidden-import=uploader.utils --hidden-import=uploader.utils.utils --hidden-import=browser --hidden-import=browser.browser --hidden-import=browser.browser_factory --hidden-import=browser.browser_interface --hidden-import=browser.browser_selector --hidden-import=data --hidden-import=data.excel_parser --hidden-import=data.record_manager --hidden-import=cli --hidden-import=cli.main cli/main.py
           } else {
               Write-Host "Building onedir executable..."
-              pyinstaller --onedir --console --name=CarousellUploader --add-data="config;config" --add-data="uploader/regions;uploader/regions" --hidden-import=playwright --hidden-import=pyautogui --hidden-import=pyperclip --hidden-import=openpyxl --hidden-import=pandas --hidden-import=yaml --hidden-import=requests --hidden-import=PIL --hidden-import=selenium --hidden-import=webdriver_manager --hidden-import=core --hidden-import=core.config --hidden-import=core.logger --hidden-import=core.models --hidden-import=uploader --hidden-import=uploader.core --hidden-import=uploader.actions --hidden-import=uploader.config --hidden-import=uploader.factory --hidden-import=uploader.multi --hidden-import=uploader.regions --hidden-import=uploader.utils --hidden-import=browser --hidden-import=data --hidden-import=cli cli/main.py
+              pyinstaller --onedir --console --name=CarousellUploader --add-data="config;config" --add-data="uploader/regions;uploader/regions" --hidden-import=playwright --hidden-import=pyautogui --hidden-import=pyperclip --hidden-import=openpyxl --hidden-import=pandas --hidden-import=yaml --hidden-import=requests --hidden-import=PIL --hidden-import=selenium --hidden-import=webdriver_manager --hidden-import=core --hidden-import=core.config --hidden-import=core.logger --hidden-import=core.models --hidden-import=uploader --hidden-import=uploader.actions --hidden-import=uploader.actions.enhanced_safe_actions --hidden-import=uploader.config --hidden-import=uploader.config.enhanced_css_selector_manager --hidden-import=uploader.config.regional_config_loader --hidden-import=uploader.core --hidden-import=uploader.core.base_uploader --hidden-import=uploader.core.carousell_uploader --hidden-import=uploader.factory --hidden-import=uploader.factory.uploader_factory --hidden-import=uploader.multi --hidden-import=uploader.multi.multi_account_uploader --hidden-import=uploader.regions --hidden-import=uploader.regions.hk --hidden-import=uploader.regions.hk.sneakers --hidden-import=uploader.regions.hk.sneakers.sneakers_uploader --hidden-import=uploader.regions.sg --hidden-import=uploader.regions.sg.sneakers --hidden-import=uploader.regions.sg.sneakers.sneakers_uploader --hidden-import=uploader.utils --hidden-import=uploader.utils.utils --hidden-import=browser --hidden-import=browser.browser --hidden-import=browser.browser_factory --hidden-import=browser.browser_interface --hidden-import=browser.browser_selector --hidden-import=data --hidden-import=data.excel_parser --hidden-import=data.record_manager --hidden-import=cli --hidden-import=cli.main cli/main.py
           }
           
-          # 检查构建结果
-          Write-Host "Checking build results..."
+          # 详细检查构建结果
+          Write-Host "`n=== 构建结果检查 ==="
           if (Test-Path "dist") {
-            Get-ChildItem -Path "dist" -Recurse | ForEach-Object {
-              Write-Host "Found: $($_.FullName)"
-            }
+              Write-Host "✅ dist 目录存在"
+              Write-Host "dist 目录内容:"
+              Get-ChildItem -Path "dist" -Recurse | ForEach-Object {
+                  $size = if ($_.PSIsContainer) { "目录" } else { "$([math]::Round($_.Length / 1MB, 2)) MB" }
+                  Write-Host "  $($_.Name) ($size)"
+              }
           } else {
-            Write-Host "ERROR: dist folder not found!"
-            exit 1
+              Write-Host "❌ dist 目录不存在!"
+              Write-Host "检查当前目录内容:"
+              Get-ChildItem | ForEach-Object { Write-Host "  $($_.Name)" }
+              exit 1
           }
           
           # 检查可执行文件
           if ($build_mode -eq "onefile") {
-            if (Test-Path "dist/CarousellUploader.exe") {
-              Write-Host "✅ CarousellUploader.exe found"
-            } else {
-              Write-Host "❌ CarousellUploader.exe not found!"
-              exit 1
-            }
+              if (Test-Path "dist/CarousellUploader.exe") {
+                  $fileSize = (Get-Item "dist/CarousellUploader.exe").Length
+                  Write-Host "✅ CarousellUploader.exe 找到 - 大小: $([math]::Round($fileSize / 1MB, 2)) MB"
+              } else {
+                  Write-Host "❌ CarousellUploader.exe 未找到!"
+                  Write-Host "dist 目录中的文件:"
+                  Get-ChildItem "dist" | ForEach-Object { Write-Host "  $($_.Name)" }
+                  exit 1
+              }
           } else {
-            if (Test-Path "dist/CarousellUploader") {
-              Write-Host "✅ CarousellUploader directory found"
-            } else {
-              Write-Host "❌ CarousellUploader directory not found!"
-              exit 1
-            }
+              if (Test-Path "dist/CarousellUploader") {
+                  Write-Host "✅ CarousellUploader 目录找到"
+                  Write-Host "目录内容:"
+                  Get-ChildItem "dist/CarousellUploader" | ForEach-Object { Write-Host "  $($_.Name)" }
+              } else {
+                  Write-Host "❌ CarousellUploader 目录未找到!"
+                  Write-Host "dist 目录中的文件:"
+                  Get-ChildItem "dist" | ForEach-Object { Write-Host "  $($_.Name)" }
+                  exit 1
+              }
           }
 
       # ------------------------------
