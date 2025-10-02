@@ -95,6 +95,17 @@ jobs:
           echo "2. 直接运行 CarousellUploader.exe" >> dist\README.txt
           echo "3. 配置文件位于 config/ 目录" >> dist\README.txt
           echo "4. CSS选择器配置位于 uploader/regions/ 目录" >> dist\README.txt
+          echo "" >> dist\README.txt
+          echo "配置说明:" >> dist\README.txt
+          echo "- 程序会优先使用外部配置文件" >> dist\README.txt
+          echo "- 如果外部配置文件不存在，会使用内置配置" >> dist\README.txt
+          echo "- 修改 config/settings.yaml 来调整主配置" >> dist\README.txt
+          echo "- 修改 uploader/regions/*/css_selectors.yaml 来调整CSS选择器" >> dist\README.txt
+          echo "" >> dist\README.txt
+          echo "CSS选择器配置:" >> dist\README.txt
+          echo "- HK: uploader/regions/hk/sneakers/css_selectors.yaml" >> dist\README.txt
+          echo "- SG: uploader/regions/sg/sneakers/css_selectors.yaml" >> dist\README.txt
+          echo "- 支持热更新，修改后程序会自动重新加载" >> dist\README.txt
           # 打印目录结构
           Write-Host "Dist folder structure:"
           Get-ChildItem -Path "dist" -Recurse -Force
