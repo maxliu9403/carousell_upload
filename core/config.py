@@ -1,10 +1,29 @@
 import yaml
+import sys
+import os
 from pathlib import Path
 from typing import Dict, Any
 from .models import UploadConfig
 from .logger import logger
 
-CONFIG_PATH = Path(__file__).parent.parent / "config" / "settings.yaml"
+def get_config_path():
+    """获取配置文件路径，支持PyInstaller打包后的情况"""
+    if getattr(sys, 'frozen', False):
+        # PyInstaller打包后的情况
+        # 优先查找可执行文件同目录下的config文件夹
+        exe_dir = Path(sys.executable).parent
+        external_config = exe_dir / "config" / "settings.yaml"
+        if external_config.exists():
+            return external_config
+        
+        # 如果外部配置文件不存在，使用打包在内部的配置文件
+        internal_config = Path(sys._MEIPASS) / "config" / "settings.yaml"
+        return internal_config
+    else:
+        # 开发环境
+        return Path(__file__).parent.parent / "config" / "settings.yaml"
+
+CONFIG_PATH = get_config_path()
 
 def load_config() -> Dict[str, Any]:
     """加载配置文件"""

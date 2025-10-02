@@ -4,6 +4,7 @@
 """
 
 import yaml
+import sys
 from pathlib import Path
 from typing import Dict, Any, Optional
 from core.logger import logger
@@ -19,8 +20,52 @@ class RegionalConfigLoader:
         Args:
             base_path: 配置文件基础路径
         """
-        self.base_path = Path(base_path)
+        self.base_path = self._get_config_path(base_path)
         self._cache = {}  # 配置缓存
+    
+    def _get_config_path(self, base_path: str) -> Path:
+        """获取配置文件路径，支持PyInstaller打包后的情况"""
+        if getattr(sys, 'frozen', False):
+            # PyInstaller打包后的情况
+            # 优先查找可执行文件同目录下的uploader/regions文件夹
+            exe_dir = Path(sys.executable).parent
+            external_path = exe_dir / "uploader" / "regions"
+            if external_path.exists():
+                return external_path
+            
+            # 如果外部配置文件不存在，使用打包在内部的配置文件
+            internal_path = Path(sys._MEIPASS) / "uploader" / "regions"
+            return internal_path
+        else:
+            # 开发环境
+            return Path(base_path)
+    
+    def _get_config_file_path(self, region: str, category: str) -> Optional[Path]:
+        """获取配置文件路径，支持外部和内部配置"""
+        if getattr(sys, 'frozen', False):
+            # PyInstaller打包后的情况
+            # 优先查找可执行文件同目录下的配置文件
+            exe_dir = Path(sys.executable).parent
+            external_config = exe_dir / "uploader" / "regions" / region / category / "css_selectors.yaml"
+            if external_config.exists():
+                logger.info(f"使用外部CSS选择器配置: {external_config}")
+                return external_config
+            
+            # 如果外部配置文件不存在，使用打包在内部的配置文件
+            internal_config = Path(sys._MEIPASS) / "uploader" / "regions" / region / category / "css_selectors.yaml"
+            if internal_config.exists():
+                logger.info(f"使用内部CSS选择器配置: {internal_config}")
+                return internal_config
+            
+            logger.warning(f"未找到CSS选择器配置文件: {region}/{category}")
+            return None
+        else:
+            # 开发环境
+            config_path = self.base_path / region / category / "css_selectors.yaml"
+            if config_path.exists():
+                logger.info(f"使用开发环境CSS选择器配置: {config_path}")
+                return config_path
+            return None
         
     def load_config(self, region: str, category: str) -> Dict[str, Any]:
         """
@@ -40,10 +85,10 @@ class RegionalConfigLoader:
             logger.debug(f"从缓存加载配置: {cache_key}")
             return self._cache[cache_key]
         
-        # 构建配置文件路径
-        config_path = self.base_path / region / category / "css_selectors.yaml"
+        # 构建配置文件路径 - 支持外部和内部配置
+        config_path = self._get_config_file_path(region, category)
         
-        if not config_path.exists():
+        if not config_path or not config_path.exists():
             logger.error(f"配置文件不存在: {config_path}")
             return {}
         
