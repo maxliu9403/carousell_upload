@@ -143,15 +143,21 @@ jobs:
           Get-ChildItem -Path "dist" -Force
 
       # ------------------------------
+      - name: Create zip package (onefile)
+        if: github.ref == 'refs/heads/main' && (github.event.inputs.build_mode == 'onefile' || github.event.inputs.build_mode == '' || github.event.inputs.build_mode == null)
+        shell: pwsh
+        run: |
+          Write-Host "Creating zip package for onefile mode..."
+          $zip_name = "CarousellUploader-${{ github.run_number }}-onefile.zip"
+          Compress-Archive -Path "dist\*" -DestinationPath "dist\$zip_name" -Force
+          Write-Host "Created zip package: $zip_name"
+
       - name: Create release (onefile)
         if: github.ref == 'refs/heads/main' && (github.event.inputs.build_mode == 'onefile' || github.event.inputs.build_mode == '' || github.event.inputs.build_mode == null)
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            dist/CarousellUploader.exe
-            dist/config/**
-            dist/uploader/regions/**
-            dist/README.txt
+            dist/CarousellUploader-${{ github.run_number }}-onefile.zip
           tag_name: v${{ github.run_number }}-onefile
           name: Carousell Uploader v${{ github.run_number }} (onefile)
           body: |
@@ -163,7 +169,7 @@ jobs:
             - 操作系统: Windows
             
             ## 🎯 使用方法
-            1. 下载所有文件到同一目录
+            1. 下载并解压 zip 文件
             2. 确保目标机器已安装 Microsoft Visual C++ Redistributable
             3. 直接运行 CarousellUploader.exe
             4. 配置文件位于 config/ 目录
@@ -174,15 +180,21 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # ------------------------------
+      - name: Create zip package (onedir)
+        if: github.ref == 'refs/heads/main' && github.event.inputs.build_mode == 'onedir'
+        shell: pwsh
+        run: |
+          Write-Host "Creating zip package for onedir mode..."
+          $zip_name = "CarousellUploader-${{ github.run_number }}-onedir.zip"
+          Compress-Archive -Path "dist\*" -DestinationPath "dist\$zip_name" -Force
+          Write-Host "Created zip package: $zip_name"
+
       - name: Create release (onedir)
         if: github.ref == 'refs/heads/main' && github.event.inputs.build_mode == 'onedir'
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            dist/CarousellUploader/**
-            dist/config/**
-            dist/uploader/regions/**
-            dist/README.txt
+            dist/CarousellUploader-${{ github.run_number }}-onedir.zip
           tag_name: v${{ github.run_number }}-onedir
           name: Carousell Uploader v${{ github.run_number }} (onedir)
           body: |
@@ -194,7 +206,7 @@ jobs:
             - 操作系统: Windows
             
             ## 🎯 使用方法
-            1. 下载所有文件到同一目录
+            1. 下载并解压 zip 文件
             2. 确保目标机器已安装 Microsoft Visual C++ Redistributable
             3. 运行 CarousellUploader/ 目录中的 CarousellUploader.exe
             4. 配置文件位于 config/ 目录
