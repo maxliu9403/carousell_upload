@@ -59,12 +59,16 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "Copying config and regions into dist folder..."
-          # 创建 dist/config
-          mkdir dist\config
+          # 创建 dist/config (如果不存在)
+          if (!(Test-Path "dist\config")) {
+            New-Item -ItemType Directory -Path "dist\config" -Force
+          }
           copy config\settings.yaml dist\config\
           copy config\settings.example.yaml dist\config\
-          # 创建 dist/uploader/regions
-          mkdir dist\uploader\regions
+          # 创建 dist/uploader/regions (如果不存在)
+          if (!(Test-Path "dist\uploader\regions")) {
+            New-Item -ItemType Directory -Path "dist\uploader\regions" -Force
+          }
           xcopy uploader\regions dist\uploader\regions\ /E /I /Y
           # 打印目录结构
           Write-Host "Dist folder structure:"
