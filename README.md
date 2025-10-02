@@ -42,6 +42,43 @@
 - **内存**: 至少 4GB RAM
 - **存储**: 至少 1GB 可用空间
 
+### 🔨 构建可执行文件
+
+项目支持构建Windows可执行文件，方便在没有Python环境的机器上运行：
+
+**快速构建**:
+```bash
+# Linux/macOS
+./build.sh onefile    # 构建单文件版本
+./build.sh onedir     # 构建单目录版本
+./build.sh clean      # 清理构建文件
+
+# Windows
+build.bat onefile     # 构建单文件版本
+build.bat onedir      # 构建单目录版本
+build.bat clean       # 清理构建文件
+```
+
+**手动构建**:
+```bash
+# 进入构建目录
+cd build
+
+# 单文件版本
+python3 build.py --mode onefile
+
+# 单目录版本
+python3 build.py --mode onedir
+```
+
+**Docker构建**:
+```bash
+# 构建Windows Docker镜像
+docker build -f build/Dockerfile.windows -t carousell-uploader-windows .
+```
+
+更多构建详情请参考 [build/README.md](build/README.md)。
+
 ### 🎯 快速安装
 
 **方式一：一键安装 (推荐)**
