@@ -515,10 +515,9 @@ class BaseUploader:
         )
         
         # 输入产品描述
-        if self.region == "HK":
-            self.safe_actions.safe_input_with_config(
-                "product_info.description_input", enriched_info.description, self.region, must_exist=True,
-                operation="输入产品描述")
+        self.safe_actions.safe_input_with_config(
+            "product_info.description_input", enriched_info.description, self.region, must_exist=True,
+            operation="输入产品描述")
 
     def _handle_ai_writing_operations(self):
         """处理AI文案相关操作 - 使用文字匹配点击"""
@@ -544,7 +543,7 @@ class BaseUploader:
         """根据地域选择Location"""
         # 点击 选择 Location
         self.safe_actions.safe_click_with_config(
-            "basic_elements.location_selector", self.region, must_exist=False,
+            "basic_elements.location_selector", self.region, must_exist=True,
             operation="点击选择Location"
         )
         self.page.wait_for_timeout(2000)
