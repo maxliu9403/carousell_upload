@@ -75,7 +75,7 @@ jobs:
         if: ${{ github.event.inputs.build_mode == 'onefile' }}
         uses: actions/upload-artifact@v4
         with:
-          name: CarousellUploader-Windows-onefile
+          name: CarousellUploader-Windows-onefile-${{ github.run_number }}
           path: dist
           retention-days: 30
 
@@ -83,7 +83,7 @@ jobs:
         if: ${{ github.event.inputs.build_mode == 'onedir' }}
         uses: actions/upload-artifact@v4
         with:
-          name: CarousellUploader-Windows-onedir
+          name: CarousellUploader-Windows-onedir-${{ github.run_number }}
           path: dist
           retention-days: 30
 
@@ -100,6 +100,7 @@ jobs:
             包含配置文件和 regions，下载即可使用。
           draft: false
           prerelease: false
+          overwrite: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -115,5 +116,6 @@ jobs:
             包含配置文件和 regions，下载即可使用。
           draft: false
           prerelease: false
+          overwrite: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
