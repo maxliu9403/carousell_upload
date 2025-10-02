@@ -49,9 +49,9 @@ jobs:
           Write-Host "Selected build mode: $build_mode"
 
           if ($build_mode -eq "onefile") {
-              python build/build.py --mode onefile --distpath dist --workpath build/temp
+              python build/build.py --mode onefile
           } else {
-              python build/build.py --mode onedir --distpath dist --workpath build/temp
+              python build/build.py --mode onedir
           }
 
       # ------------------------------
@@ -97,7 +97,7 @@ jobs:
           name: Carousell Uploader v${{ github.run_number }} (onefile)
           body: |
             🚀 Carousell Uploader Windows 可执行文件 (单文件版本)
-            包含配置文件和 regions，解压即可使用。
+            包含配置文件和 regions，下载即可使用。
           draft: false
           prerelease: false
         env:
@@ -112,7 +112,7 @@ jobs:
           name: Carousell Uploader v${{ github.run_number }} (onedir)
           body: |
             🚀 Carousell Uploader Windows 可执行文件 (多文件目录版本)
-            包含配置文件和 regions，解压即可使用。
+            包含配置文件和 regions，下载即可使用。
           draft: false
           prerelease: false
         env:
