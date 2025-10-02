@@ -68,7 +68,7 @@ jobs:
           xcopy uploader\regions dist\uploader\regions\ /E /I /Y
           # 打印目录结构
           Write-Host "Dist folder structure:"
-          dir dist /s
+          Get-ChildItem -Path "dist" -Recurse -Force
 
       # ------------------------------
       - name: Upload artifact (onefile)
