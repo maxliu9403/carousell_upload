@@ -16,6 +16,10 @@ on:
         - onefile
         - onedir
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -62,31 +66,65 @@ jobs:
         path: dist/CarousellUploader/
         retention-days: 30
     
-    - name: Create release
+    - name: Check files before release
       if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+      run: |
+        echo "Checking build artifacts..."
+        if [ -f "dist/CarousellUploader.exe" ]; then
+          echo "✅ CarousellUploader.exe found"
+        else
+          echo "❌ CarousellUploader.exe not found"
+        fi
+        if [ -d "dist/CarousellUploader" ]; then
+          echo "✅ CarousellUploader directory found"
+        else
+          echo "❌ CarousellUploader directory not found"
+        fi
+        ls -la dist/
+    
+    - name: Create release (onefile)
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && (github.event.inputs.build_mode == 'onefile' || github.event.inputs.build_mode == '' || github.event.inputs.build_mode == null)
       uses: softprops/action-gh-release@v1
       with:
-        files: |
-          dist/CarousellUploader.exe
-          dist/CarousellUploader/
-        tag_name: v${{ github.run_number }}
-        name: Carousell Uploader v${{ github.run_number }}
+        files: dist/CarousellUploader.exe
+        tag_name: v${{ github.run_number }}-onefile
+        name: Carousell Uploader v${{ github.run_number }} (onefile)
         body: |
-          🚀 Carousell Uploader Windows 可执行文件
+          🚀 Carousell Uploader Windows 可执行文件 (单文件版本)
           
           ## 📦 构建信息
           - 构建时间: ${{ github.run_number }}
-          - 构建模式: ${{ github.event.inputs.build_mode || 'onefile' }}
+          - 构建模式: onefile
           - 操作系统: Windows
           
-          ## 📁 文件说明
-          - `CarousellUploader.exe`: 单文件可执行程序
-          - `CarousellUploader/`: 单目录可执行程序
-          
           ## 🎯 使用方法
-          1. 下载对应的文件
+          1. 下载 `CarousellUploader.exe`
           2. 确保目标机器已安装 Microsoft Visual C++ Redistributable
           3. 直接运行即可
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Create release (onedir)
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event.inputs.build_mode == 'onedir'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: dist/CarousellUploader/
+        tag_name: v${{ github.run_number }}-onedir
+        name: Carousell Uploader v${{ github.run_number }} (onedir)
+        body: |
+          🚀 Carousell Uploader Windows 可执行文件 (单目录版本)
+          
+          ## 📦 构建信息
+          - 构建时间: ${{ github.run_number }}
+          - 构建模式: onedir
+          - 操作系统: Windows
+          
+          ## 🎯 使用方法
+          1. 下载 `CarousellUploader/` 目录
+          2. 确保目标机器已安装 Microsoft Visual C++ Redistributable
+          3. 运行目录中的 `CarousellUploader.exe`
         draft: false
         prerelease: false
       env:
