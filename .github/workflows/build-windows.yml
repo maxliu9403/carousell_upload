@@ -84,6 +84,10 @@ jobs:
           if (!(Test-Path "dist\uploader\regions\sg\sneakers")) {
             New-Item -ItemType Directory -Path "dist\uploader\regions\sg\sneakers" -Force
           }
+          # 创建 logs 目录
+          if (!(Test-Path "dist\logs")) {
+            New-Item -ItemType Directory -Path "dist\logs" -Force
+          }
           # 只复制css_selectors.yaml文件
           copy uploader\regions\hk\sneakers\css_selectors.yaml dist\uploader\regions\hk\sneakers\
           copy uploader\regions\sg\sneakers\css_selectors.yaml dist\uploader\regions\sg\sneakers\
@@ -106,6 +110,11 @@ jobs:
           echo "- HK: uploader/regions/hk/sneakers/css_selectors.yaml" >> dist\README.txt
           echo "- SG: uploader/regions/sg/sneakers/css_selectors.yaml" >> dist\README.txt
           echo "- 支持热更新，修改后程序会自动重新加载" >> dist\README.txt
+          echo "" >> dist\README.txt
+          echo "日志文件:" >> dist\README.txt
+          echo "- 日志文件保存在 logs/ 目录" >> dist\README.txt
+          echo "- 按日期自动分割: carousell_YYYYMMDD.log" >> dist\README.txt
+          echo "- 支持外部查看和管理日志文件" >> dist\README.txt
           # 打印目录结构
           Write-Host "Dist folder structure:"
           Get-ChildItem -Path "dist" -Recurse -Force
@@ -116,11 +125,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: CarousellUploader-Windows-onefile
-          path: |
-            dist/CarousellUploader.exe
-            dist/config/**
-            dist/uploader/regions/**
-            dist/README.txt
+        path: |
+          dist/CarousellUploader.exe
+          dist/config/**
+          dist/uploader/regions/**
+          dist/logs/**
+          dist/README.txt
           retention-days: 30
 
       # ------------------------------
@@ -133,6 +143,7 @@ jobs:
             dist/CarousellUploader/**
             dist/config/**
             dist/uploader/regions/**
+            dist/logs/**
             dist/README.txt
           retention-days: 30
 
@@ -185,6 +196,7 @@ jobs:
             3. 直接运行 CarousellUploader.exe
             4. 配置文件位于 config/ 目录
             5. CSS选择器配置位于 uploader/regions/ 目录
+            6. 日志文件保存在 logs/ 目录
           draft: false
           prerelease: false
         env:
@@ -222,6 +234,7 @@ jobs:
             3. 运行 CarousellUploader/ 目录中的 CarousellUploader.exe
             4. 配置文件位于 config/ 目录
             5. CSS选择器配置位于 uploader/regions/ 目录
+            6. 日志文件保存在 logs/ 目录
           draft: false
           prerelease: false
         env:
