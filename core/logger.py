@@ -4,6 +4,18 @@ import os
 from datetime import datetime
 from pathlib import Path
 
+def get_log_directory():
+    """获取日志目录，支持PyInstaller打包后的情况"""
+    if getattr(sys, 'frozen', False):
+        # PyInstaller打包后的情况
+        # 优先使用可执行文件同目录下的logs文件夹
+        exe_dir = Path(sys.executable).parent
+        external_log_dir = exe_dir / "logs"
+        return external_log_dir
+    else:
+        # 开发环境
+        return Path(__file__).parent.parent / "logs"
+
 class ColoredFormatter(logging.Formatter):
     """彩色日志格式化器"""
     
@@ -74,8 +86,8 @@ def setup_logger(name: str = "carousell_uploader", level: int = logging.INFO) ->
     console_handler.setFormatter(colored_formatter)
     logger.addHandler(console_handler)
     
-    # 文件处理器
-    log_dir = Path(__file__).parent.parent / "logs"
+    # 文件处理器 - 支持外部日志目录
+    log_dir = get_log_directory()
     log_dir.mkdir(exist_ok=True)
     
     file_handler = logging.FileHandler(
