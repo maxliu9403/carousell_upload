@@ -42,11 +42,23 @@ jobs:
       if: github.event.inputs.build_mode == 'onefile' || github.event.inputs.build_mode == '' || github.event.inputs.build_mode == null
       run: |
         python build/build.py --mode onefile
+        echo "Build completed, checking output..."
+        if (Test-Path "dist/CarousellUploader.exe") {
+          echo "Executable created successfully"
+        } else {
+          echo "Executable not found"
+        }
     
     - name: Build executable (onedir)
       if: github.event.inputs.build_mode == 'onedir'
       run: |
         python build/build.py --mode onedir
+        echo "Build completed, checking output..."
+        if (Test-Path "dist/CarousellUploader") {
+          echo "Directory created successfully"
+        } else {
+          echo "Directory not found"
+        }
     
     - name: Upload onefile artifact
       if: github.event.inputs.build_mode == 'onefile' || github.event.inputs.build_mode == '' || github.event.inputs.build_mode == null
@@ -68,17 +80,17 @@ jobs:
       if: github.ref == 'refs/heads/main'
       run: |
         echo "Checking build artifacts..."
-        if [ -f "dist/CarousellUploader.exe" ]; then
-          echo "✅ CarousellUploader.exe found"
-        else
-          echo "❌ CarousellUploader.exe not found"
-        fi
-        if [ -d "dist/CarousellUploader" ]; then
-          echo "✅ CarousellUploader directory found"
-        else
-          echo "❌ CarousellUploader directory not found"
-        fi
-        ls -la dist/
+        if (Test-Path "dist/CarousellUploader.exe") {
+          echo "CarousellUploader.exe found"
+        } else {
+          echo "CarousellUploader.exe not found"
+        }
+        if (Test-Path "dist/CarousellUploader") {
+          echo "CarousellUploader directory found"
+        } else {
+          echo "CarousellUploader directory not found"
+        }
+        Get-ChildItem -Path "dist" -Force
     
     - name: Create release (onefile)
       if: github.ref == 'refs/heads/main' && (github.event.inputs.build_mode == 'onefile' || github.event.inputs.build_mode == '' || github.event.inputs.build_mode == null)
