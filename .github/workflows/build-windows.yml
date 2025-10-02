@@ -49,9 +49,11 @@ jobs:
           Write-Host "Selected build mode: $build_mode"
 
           if ($build_mode -eq "onefile") {
-              python build/build.py --mode onefile
+              Write-Host "Building onefile executable..."
+              pyinstaller --onefile --console --name=CarousellUploader --add-data="config;config" --add-data="uploader/regions;uploader/regions" --hidden-import=playwright --hidden-import=pyautogui --hidden-import=pyperclip --hidden-import=openpyxl --hidden-import=pandas --hidden-import=yaml --hidden-import=requests --hidden-import=PIL --hidden-import=selenium --hidden-import=webdriver_manager --hidden-import=core --hidden-import=core.config --hidden-import=core.logger --hidden-import=core.models --hidden-import=uploader --hidden-import=uploader.core --hidden-import=uploader.actions --hidden-import=uploader.config --hidden-import=uploader.factory --hidden-import=uploader.multi --hidden-import=uploader.regions --hidden-import=uploader.utils --hidden-import=browser --hidden-import=data --hidden-import=cli cli/main.py
           } else {
-              python build/build.py --mode onedir
+              Write-Host "Building onedir executable..."
+              pyinstaller --onedir --console --name=CarousellUploader --add-data="config;config" --add-data="uploader/regions;uploader/regions" --hidden-import=playwright --hidden-import=pyautogui --hidden-import=pyperclip --hidden-import=openpyxl --hidden-import=pandas --hidden-import=yaml --hidden-import=requests --hidden-import=PIL --hidden-import=selenium --hidden-import=webdriver_manager --hidden-import=core --hidden-import=core.config --hidden-import=core.logger --hidden-import=core.models --hidden-import=uploader --hidden-import=uploader.core --hidden-import=uploader.actions --hidden-import=uploader.config --hidden-import=uploader.factory --hidden-import=uploader.multi --hidden-import=uploader.regions --hidden-import=uploader.utils --hidden-import=browser --hidden-import=data --hidden-import=cli cli/main.py
           }
           
           # 检查构建结果
