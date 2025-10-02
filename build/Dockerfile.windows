@@ -33,7 +33,6 @@ RUN echo "- CarousellUploader.exe: Main executable" >> C:\\output\\README.txt
 RUN echo "- config/: Configuration files" >> C:\\output\\README.txt
 RUN echo "- uploader/regions/: CSS selector configurations by region" >> C:\\output\\README.txt
 RUN echo "- data/: Data processing modules" >> C:\\output\\README.txt
-RUN echo "- examples/: Sample Excel files" >> C:\\output\\README.txt
 RUN echo "" >> C:\\output\\README.txt
 RUN echo "Usage:" >> C:\\output\\README.txt
 RUN echo "1. Configure settings.yaml with your browser API settings" >> C:\\output\\README.txt
