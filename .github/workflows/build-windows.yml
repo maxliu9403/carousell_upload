@@ -71,12 +71,25 @@ jobs:
           Get-ChildItem -Path "dist" -Recurse -Force
 
       # ------------------------------
+      - name: Rename executable to unique name
+        shell: pwsh
+        run: |
+          $build_mode = "${{ github.event.inputs.build_mode }}"
+          if ($build_mode -eq "onefile") {
+              $exe_name = "CarousellUploader-${{ github.run_number }}.exe"
+              Copy-Item "dist/CarousellUploader.exe" -Destination "dist/$exe_name"
+          }
+
+      # ------------------------------
       - name: Upload artifact (onefile)
         if: ${{ github.event.inputs.build_mode == 'onefile' }}
         uses: actions/upload-artifact@v4
         with:
           name: CarousellUploader-Windows-onefile-${{ github.run_number }}
-          path: dist
+          path: |
+            dist/CarousellUploader-${{ github.run_number }}.exe
+            dist/config/**
+            dist/uploader/regions/**
           retention-days: 30
 
       - name: Upload artifact (onedir)
@@ -84,7 +97,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: CarousellUploader-Windows-onedir-${{ github.run_number }}
-          path: dist
+          path: dist/**
           retention-days: 30
 
       # ------------------------------
@@ -92,7 +105,10 @@ jobs:
         if: github.ref == 'refs/heads/main' && ${{ github.event.inputs.build_mode == 'onefile' }}
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/**
+          files: |
+            dist/CarousellUploader-${{ github.run_number }}.exe
+            dist/config/**
+            dist/uploader/regions/**
           tag_name: v${{ github.run_number }}-onefile
           name: Carousell Uploader v${{ github.run_number }} (onefile)
           body: |
