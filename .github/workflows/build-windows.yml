@@ -8,7 +8,7 @@ on:
       build_mode:
         description: 'Build mode'
         required: true
-        default: 'onefile'
+        default: 'onedir'
         type: choice
         options:
           - onefile
@@ -42,202 +42,110 @@ jobs:
           playwright install chromium
 
       # ------------------------------
-      - name: Build executable
+      - name: Build executable (onefile)
+        if: github.event.inputs.build_mode == 'onefile' || github.event.inputs.build_mode == '' || github.event.inputs.build_mode == null
         shell: pwsh
         run: |
-          $build_mode = "${{ github.event.inputs.build_mode }}"
-          Write-Host "Selected build mode: $build_mode"
-          
-          # 详细的项目结构检查
-          Write-Host "=== 项目结构检查 ==="
-          Write-Host "当前目录: $(Get-Location)"
-          Write-Host "目录内容:"
-          Get-ChildItem -Name | ForEach-Object { Write-Host "  $_" }
-          
-          Write-Host "`n检查关键文件:"
-          $critical_files = @("cli/main.py", "config/settings.yaml", "uploader/regions/hk/sneakers/css_selectors.yaml", "uploader/regions/sg/sneakers/css_selectors.yaml")
-          foreach ($file in $critical_files) {
-              if (Test-Path $file) {
-                  Write-Host "✅ $file"
-              } else {
-                  Write-Host "❌ $file - 文件不存在!"
-                  exit 1
-              }
-          }
-          
-          Write-Host "`n检查Python模块导入:"
-          $modules = @("core", "core.config", "core.logger", "core.models", "uploader", "uploader.actions", "uploader.config", "uploader.core", "uploader.factory", "uploader.multi", "uploader.regions", "uploader.utils", "browser", "data", "cli")
-          foreach ($module in $modules) {
-              try {
-                  python -c "import $module" 2>$null
-                  if ($LASTEXITCODE -eq 0) {
-                      Write-Host "✅ $module"
-                  } else {
-                      Write-Host "❌ $module - 导入失败"
-                  }
-              } catch {
-                  Write-Host "❌ $module - 导入失败: $_"
-              }
+          pyinstaller --onefile --console --name=CarousellUploader --add-data="config;config" --add-data="uploader/regions;uploader/regions" --hidden-import=playwright --hidden-import=pyautogui --hidden-import=pyperclip --hidden-import=openpyxl --hidden-import=pandas --hidden-import=yaml --hidden-import=requests --hidden-import=PIL --hidden-import=selenium --hidden-import=webdriver_manager --hidden-import=core --hidden-import=core.config --hidden-import=core.logger --hidden-import=core.models --hidden-import=uploader --hidden-import=uploader.actions --hidden-import=uploader.config --hidden-import=uploader.core --hidden-import=uploader.factory --hidden-import=uploader.multi --hidden-import=uploader.regions --hidden-import=uploader.utils --hidden-import=browser --hidden-import=data --hidden-import=cli cli/main.py
+          echo "Build completed, checking output..."
+          if (Test-Path "dist/CarousellUploader.exe") {
+            echo "Executable created successfully"
+          } else {
+            echo "Executable not found"
           }
 
-          if ($build_mode -eq "onefile") {
-              Write-Host "Building onefile executable..."
-              pyinstaller --onefile --console --name=CarousellUploader --add-data="config;config" --add-data="uploader/regions;uploader/regions" --hidden-import=playwright --hidden-import=pyautogui --hidden-import=pyperclip --hidden-import=openpyxl --hidden-import=pandas --hidden-import=yaml --hidden-import=requests --hidden-import=PIL --hidden-import=selenium --hidden-import=webdriver_manager --hidden-import=core --hidden-import=core.config --hidden-import=core.logger --hidden-import=core.models --hidden-import=uploader --hidden-import=uploader.actions --hidden-import=uploader.actions.enhanced_safe_actions --hidden-import=uploader.config --hidden-import=uploader.config.enhanced_css_selector_manager --hidden-import=uploader.config.regional_config_loader --hidden-import=uploader.core --hidden-import=uploader.core.base_uploader --hidden-import=uploader.core.carousell_uploader --hidden-import=uploader.factory --hidden-import=uploader.factory.uploader_factory --hidden-import=uploader.multi --hidden-import=uploader.multi.multi_account_uploader --hidden-import=uploader.regions --hidden-import=uploader.regions.hk --hidden-import=uploader.regions.hk.sneakers --hidden-import=uploader.regions.hk.sneakers.sneakers_uploader --hidden-import=uploader.regions.sg --hidden-import=uploader.regions.sg.sneakers --hidden-import=uploader.regions.sg.sneakers.sneakers_uploader --hidden-import=uploader.utils --hidden-import=uploader.utils.utils --hidden-import=browser --hidden-import=browser.browser --hidden-import=browser.browser_factory --hidden-import=browser.browser_interface --hidden-import=browser.browser_selector --hidden-import=data --hidden-import=data.excel_parser --hidden-import=data.record_manager --hidden-import=cli --hidden-import=cli.main cli/main.py
+      - name: Build executable (onedir)
+        if: github.event.inputs.build_mode == 'onedir'
+        shell: pwsh
+        run: |
+          pyinstaller --onedir --console --name=CarousellUploader --add-data="config;config" --add-data="uploader/regions;uploader/regions" --hidden-import=playwright --hidden-import=pyautogui --hidden-import=pyperclip --hidden-import=openpyxl --hidden-import=pandas --hidden-import=yaml --hidden-import=requests --hidden-import=PIL --hidden-import=selenium --hidden-import=webdriver_manager --hidden-import=core --hidden-import=core.config --hidden-import=core.logger --hidden-import=core.models --hidden-import=uploader --hidden-import=uploader.actions --hidden-import=uploader.config --hidden-import=uploader.core --hidden-import=uploader.factory --hidden-import=uploader.multi --hidden-import=uploader.regions --hidden-import=uploader.utils --hidden-import=browser --hidden-import=data --hidden-import=cli cli/main.py
+          echo "Build completed, checking output..."
+          if (Test-Path "dist/CarousellUploader") {
+            echo "Directory created successfully"
           } else {
-              Write-Host "Building onedir executable..."
-              pyinstaller --onedir --console --name=CarousellUploader --add-data="config;config" --add-data="uploader/regions;uploader/regions" --hidden-import=playwright --hidden-import=pyautogui --hidden-import=pyperclip --hidden-import=openpyxl --hidden-import=pandas --hidden-import=yaml --hidden-import=requests --hidden-import=PIL --hidden-import=selenium --hidden-import=webdriver_manager --hidden-import=core --hidden-import=core.config --hidden-import=core.logger --hidden-import=core.models --hidden-import=uploader --hidden-import=uploader.actions --hidden-import=uploader.actions.enhanced_safe_actions --hidden-import=uploader.config --hidden-import=uploader.config.enhanced_css_selector_manager --hidden-import=uploader.config.regional_config_loader --hidden-import=uploader.core --hidden-import=uploader.core.base_uploader --hidden-import=uploader.core.carousell_uploader --hidden-import=uploader.factory --hidden-import=uploader.factory.uploader_factory --hidden-import=uploader.multi --hidden-import=uploader.multi.multi_account_uploader --hidden-import=uploader.regions --hidden-import=uploader.regions.hk --hidden-import=uploader.regions.hk.sneakers --hidden-import=uploader.regions.hk.sneakers.sneakers_uploader --hidden-import=uploader.regions.sg --hidden-import=uploader.regions.sg.sneakers --hidden-import=uploader.regions.sg.sneakers.sneakers_uploader --hidden-import=uploader.utils --hidden-import=uploader.utils.utils --hidden-import=browser --hidden-import=browser.browser --hidden-import=browser.browser_factory --hidden-import=browser.browser_interface --hidden-import=browser.browser_selector --hidden-import=data --hidden-import=data.excel_parser --hidden-import=data.record_manager --hidden-import=cli --hidden-import=cli.main cli/main.py
-          }
-          
-          # 详细检查构建结果
-          Write-Host "`n=== 构建结果检查 ==="
-          if (Test-Path "dist") {
-              Write-Host "✅ dist 目录存在"
-              Write-Host "dist 目录内容:"
-              Get-ChildItem -Path "dist" -Recurse | ForEach-Object {
-                  $size = if ($_.PSIsContainer) { "目录" } else { "$([math]::Round($_.Length / 1MB, 2)) MB" }
-                  Write-Host "  $($_.Name) ($size)"
-              }
-          } else {
-              Write-Host "❌ dist 目录不存在!"
-              Write-Host "检查当前目录内容:"
-              Get-ChildItem | ForEach-Object { Write-Host "  $($_.Name)" }
-              exit 1
-          }
-          
-          # 检查可执行文件
-          if ($build_mode -eq "onefile") {
-              if (Test-Path "dist/CarousellUploader.exe") {
-                  $fileSize = (Get-Item "dist/CarousellUploader.exe").Length
-                  Write-Host "✅ CarousellUploader.exe 找到 - 大小: $([math]::Round($fileSize / 1MB, 2)) MB"
-              } else {
-                  Write-Host "❌ CarousellUploader.exe 未找到!"
-                  Write-Host "dist 目录中的文件:"
-                  Get-ChildItem "dist" | ForEach-Object { Write-Host "  $($_.Name)" }
-                  exit 1
-              }
-          } else {
-              if (Test-Path "dist/CarousellUploader") {
-                  Write-Host "✅ CarousellUploader 目录找到"
-                  Write-Host "目录内容:"
-                  Get-ChildItem "dist/CarousellUploader" | ForEach-Object { Write-Host "  $($_.Name)" }
-              } else {
-                  Write-Host "❌ CarousellUploader 目录未找到!"
-                  Write-Host "dist 目录中的文件:"
-                  Get-ChildItem "dist" | ForEach-Object { Write-Host "  $($_.Name)" }
-                  exit 1
-              }
+            echo "Directory not found"
           }
 
       # ------------------------------
-      - name: Copy config and regions to dist
-        shell: pwsh
-        run: |
-          Write-Host "Copying config and regions into dist folder..."
-          # 创建 dist/config (如果不存在)
-          if (!(Test-Path "dist\config")) {
-            New-Item -ItemType Directory -Path "dist\config" -Force
-          }
-          copy config\settings.yaml dist\config\
-          copy config\settings.example.yaml dist\config\
-          # 创建 dist/uploader/regions 目录结构并只复制css_selectors.yaml文件
-          if (!(Test-Path "dist\uploader\regions\hk\sneakers")) {
-            New-Item -ItemType Directory -Path "dist\uploader\regions\hk\sneakers" -Force
-          }
-          if (!(Test-Path "dist\uploader\regions\sg\sneakers")) {
-            New-Item -ItemType Directory -Path "dist\uploader\regions\sg\sneakers" -Force
-          }
-          # 只复制css_selectors.yaml文件
-          copy uploader\regions\hk\sneakers\css_selectors.yaml dist\uploader\regions\hk\sneakers\
-          copy uploader\regions\sg\sneakers\css_selectors.yaml dist\uploader\regions\sg\sneakers\
-          # 打印目录结构
-          Write-Host "Dist folder structure:"
-          Get-ChildItem -Path "dist" -Recurse -Force
-
-      # ------------------------------
-      - name: Rename executable to unique name
-        shell: pwsh
-        run: |
-          $build_mode = "${{ github.event.inputs.build_mode }}"
-          if ($build_mode -eq "onefile") {
-              $exe_name = "CarousellUploader-${{ github.run_number }}.exe"
-              Copy-Item "dist/CarousellUploader.exe" -Destination "dist/$exe_name"
-          }
-
-      # ------------------------------
-      - name: Check dist folder contents
-        shell: pwsh
-        run: |
-          Write-Host "Checking dist folder contents..."
-          if (Test-Path "dist") {
-            Get-ChildItem -Path "dist" -Recurse -Force | ForEach-Object {
-              Write-Host "Found: $($_.FullName)"
-            }
-          } else {
-            Write-Host "dist folder does not exist!"
-          }
-
-      # ------------------------------
-      - name: Upload artifact (onefile)
-        if: github.event.inputs.build_mode == 'onefile' || (github.event.inputs.build_mode == null && github.event_name == 'push')
+      - name: Upload onefile artifact
+        if: github.event.inputs.build_mode == 'onefile' || github.event.inputs.build_mode == '' || github.event.inputs.build_mode == null
         uses: actions/upload-artifact@v4
         with:
-          name: CarousellUploader-Windows-onefile-${{ github.run_number }}
-          path: |
-            dist/CarousellUploader-${{ github.run_number }}.exe
-            dist/config/**
-            dist/uploader/regions/**
-            dist/README.txt
+          name: CarousellUploader-Windows-onefile
+          path: dist/CarousellUploader.exe
           retention-days: 30
 
-      - name: Upload artifact (onedir)
+      # ------------------------------
+      - name: Upload onedir artifact
         if: github.event.inputs.build_mode == 'onedir'
         uses: actions/upload-artifact@v4
         with:
-          name: CarousellUploader-Windows-onedir-${{ github.run_number }}
-          path: |
-            dist/CarousellUploader/**
-            dist/config/**
-            dist/uploader/regions/**
-            dist/README.txt
+          name: CarousellUploader-Windows-onedir
+          path: dist/CarousellUploader/
           retention-days: 30
 
       # ------------------------------
+      - name: Check files before release
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "Checking build artifacts..."
+          if (Test-Path "dist/CarousellUploader.exe") {
+            echo "CarousellUploader.exe found"
+          } else {
+            echo "CarousellUploader.exe not found"
+          }
+          if (Test-Path "dist/CarousellUploader") {
+            echo "CarousellUploader directory found"
+          } else {
+            echo "CarousellUploader directory not found"
+          }
+          Get-ChildItem -Path "dist" -Force
+
+      # ------------------------------
       - name: Create release (onefile)
-        if: github.ref == 'refs/heads/main' && ${{ github.event.inputs.build_mode == 'onefile' }}
+        if: github.ref == 'refs/heads/main' && (github.event.inputs.build_mode == 'onefile' || github.event.inputs.build_mode == '' || github.event.inputs.build_mode == null)
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            dist/CarousellUploader-${{ github.run_number }}.exe
+          files: dist/CarousellUploader.exe
           tag_name: v${{ github.run_number }}-onefile
           name: Carousell Uploader v${{ github.run_number }} (onefile)
           body: |
             🚀 Carousell Uploader Windows 可执行文件 (单文件版本)
-            包含所有依赖，下载即可使用。
+            
+            ## 📦 构建信息
+            - 构建时间: ${{ github.run_number }}
+            - 构建模式: onefile
+            - 操作系统: Windows
+            
+            ## 🎯 使用方法
+            1. 下载 CarousellUploader.exe
+            2. 确保目标机器已安装 Microsoft Visual C++ Redistributable
+            3. 直接运行即可
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create zip package (onedir)
-        if: github.ref == 'refs/heads/main' && ${{ github.event.inputs.build_mode == 'onedir' }}
-        shell: pwsh
-        run: |
-          Write-Host "Creating zip package for onedir mode..."
-          $zip_name = "CarousellUploader-${{ github.run_number }}-onedir.zip"
-          Compress-Archive -Path "dist\CarousellUploader\*" -DestinationPath "dist\$zip_name" -Force
-          Write-Host "Created zip package: $zip_name"
-
+      # ------------------------------
       - name: Create release (onedir)
-        if: github.ref == 'refs/heads/main' && ${{ github.event.inputs.build_mode == 'onedir' }}
+        if: github.ref == 'refs/heads/main' && github.event.inputs.build_mode == 'onedir'
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            dist/CarousellUploader-${{ github.run_number }}-onedir.zip
+          files: dist/CarousellUploader/
           tag_name: v${{ github.run_number }}-onedir
           name: Carousell Uploader v${{ github.run_number }} (onedir)
           body: |
-            🚀 Carousell Uploader Windows 可执行文件 (多文件目录版本)
-            包含所有依赖和配置文件，下载即可使用。
+            🚀 Carousell Uploader Windows 可执行文件 (单目录版本)
+            
+            ## 📦 构建信息
+            - 构建时间: ${{ github.run_number }}
+            - 构建模式: onedir
+            - 操作系统: Windows
+            
+            ## 🎯 使用方法
+            1. 下载 CarousellUploader/ 目录
+            2. 确保目标机器已安装 Microsoft Visual C++ Redistributable
+            3. 运行目录中的 CarousellUploader.exe
           draft: false
           prerelease: false
         env:
