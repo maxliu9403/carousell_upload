@@ -168,12 +168,22 @@ def copy_config_files():
         shutil.copy2("config/settings.example.yaml", "dist/config/")
         print("Copied: config/settings.example.yaml")
     
-    # Copy regions directory
+    # Copy regions directory - only css_selectors.yaml files
     if Path("uploader/regions").exists():
-        regions_dest = Path("dist/uploader/regions")
-        regions_dest.mkdir(parents=True, exist_ok=True)
-        shutil.copytree("uploader/regions", "dist/uploader/regions", dirs_exist_ok=True)
-        print("Copied: uploader/regions/")
+        # Create directory structure
+        hk_sneakers_dest = Path("dist/uploader/regions/hk/sneakers")
+        sg_sneakers_dest = Path("dist/uploader/regions/sg/sneakers")
+        hk_sneakers_dest.mkdir(parents=True, exist_ok=True)
+        sg_sneakers_dest.mkdir(parents=True, exist_ok=True)
+        
+        # Copy only css_selectors.yaml files
+        if Path("uploader/regions/hk/sneakers/css_selectors.yaml").exists():
+            shutil.copy2("uploader/regions/hk/sneakers/css_selectors.yaml", "dist/uploader/regions/hk/sneakers/")
+            print("Copied: uploader/regions/hk/sneakers/css_selectors.yaml")
+        
+        if Path("uploader/regions/sg/sneakers/css_selectors.yaml").exists():
+            shutil.copy2("uploader/regions/sg/sneakers/css_selectors.yaml", "dist/uploader/regions/sg/sneakers/")
+            print("Copied: uploader/regions/sg/sneakers/css_selectors.yaml")
     
     # Copy data directory
     if Path("data").exists():

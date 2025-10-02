@@ -65,11 +65,16 @@ jobs:
           }
           copy config\settings.yaml dist\config\
           copy config\settings.example.yaml dist\config\
-          # 创建 dist/uploader/regions (如果不存在)
-          if (!(Test-Path "dist\uploader\regions")) {
-            New-Item -ItemType Directory -Path "dist\uploader\regions" -Force
+          # 创建 dist/uploader/regions 目录结构并只复制css_selectors.yaml文件
+          if (!(Test-Path "dist\uploader\regions\hk\sneakers")) {
+            New-Item -ItemType Directory -Path "dist\uploader\regions\hk\sneakers" -Force
           }
-          xcopy uploader\regions dist\uploader\regions\ /E /I /Y
+          if (!(Test-Path "dist\uploader\regions\sg\sneakers")) {
+            New-Item -ItemType Directory -Path "dist\uploader\regions\sg\sneakers" -Force
+          }
+          # 只复制css_selectors.yaml文件
+          copy uploader\regions\hk\sneakers\css_selectors.yaml dist\uploader\regions\hk\sneakers\
+          copy uploader\regions\sg\sneakers\css_selectors.yaml dist\uploader\regions\sg\sneakers\
           # 打印目录结构
           Write-Host "Dist folder structure:"
           Get-ChildItem -Path "dist" -Recurse -Force
