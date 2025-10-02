@@ -85,8 +85,21 @@ jobs:
           }
 
       # ------------------------------
+      - name: Check dist folder contents
+        shell: pwsh
+        run: |
+          Write-Host "Checking dist folder contents..."
+          if (Test-Path "dist") {
+            Get-ChildItem -Path "dist" -Recurse -Force | ForEach-Object {
+              Write-Host "Found: $($_.FullName)"
+            }
+          } else {
+            Write-Host "dist folder does not exist!"
+          }
+
+      # ------------------------------
       - name: Upload artifact (onefile)
-        if: ${{ github.event.inputs.build_mode == 'onefile' }}
+        if: github.event.inputs.build_mode == 'onefile' || (github.event.inputs.build_mode == null && github.event_name == 'push')
         uses: actions/upload-artifact@v4
         with:
           name: CarousellUploader-Windows-onefile-${{ github.run_number }}
@@ -94,14 +107,21 @@ jobs:
             dist/CarousellUploader-${{ github.run_number }}.exe
             dist/config/**
             dist/uploader/regions/**
+            dist/data/**
+            dist/README.txt
           retention-days: 30
 
       - name: Upload artifact (onedir)
-        if: ${{ github.event.inputs.build_mode == 'onedir' }}
+        if: github.event.inputs.build_mode == 'onedir'
         uses: actions/upload-artifact@v4
         with:
           name: CarousellUploader-Windows-onedir-${{ github.run_number }}
-          path: dist/**
+          path: |
+            dist/CarousellUploader/**
+            dist/config/**
+            dist/uploader/regions/**
+            dist/data/**
+            dist/README.txt
           retention-days: 30
 
       # ------------------------------
