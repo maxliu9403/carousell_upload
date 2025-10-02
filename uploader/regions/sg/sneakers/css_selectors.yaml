@@ -31,7 +31,7 @@ category_selection:
   service_category_option:
     description: 点击类目输入其他
     fallback: .D_aEk:nth-child(2) > .D_aEs > .D_la
-    primary: div.D_aFv:nth-child(13)
+    primary: .D_aFv:nth-child(2) > .D_aFC
   service_category_selector:
     description: 服务类目选择器
     fallback: div[class*='category']
@@ -100,7 +100,7 @@ product_info:
   title_input:
     description: 商品标题输入框
     fallback: input[name='title']
-    primary: label:has-text('Listing title')
+    primary: xpath=//form//input[@type="text"][@name="field_title"]
   
 publishing:
   publish_button:
