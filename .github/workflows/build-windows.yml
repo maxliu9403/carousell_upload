@@ -39,40 +39,12 @@ jobs:
     - name: Build executable (onefile)
       if: github.event.inputs.build_mode == 'onefile' || github.event.inputs.build_mode == '' || github.event.inputs.build_mode == null
       run: |
-        pyinstaller --onefile --console --name=CarousellUploader ^
-          --add-data=config;config ^
-          --add-data=uploader/regions;uploader/regions ^
-          --add-data=data;data ^
-          --hidden-import=playwright ^
-          --hidden-import=pyautogui ^
-          --hidden-import=pyperclip ^
-          --hidden-import=openpyxl ^
-          --hidden-import=pandas ^
-          --hidden-import=yaml ^
-          --hidden-import=requests ^
-          --hidden-import=PIL ^
-          --hidden-import=selenium ^
-          --hidden-import=webdriver_manager ^
-          cli/main.py
+        pyinstaller --onefile --console --name=CarousellUploader --add-data=config;config --add-data=uploader/regions;uploader/regions --add-data=data;data --hidden-import=playwright --hidden-import=pyautogui --hidden-import=pyperclip --hidden-import=openpyxl --hidden-import=pandas --hidden-import=yaml --hidden-import=requests --hidden-import=PIL --hidden-import=selenium --hidden-import=webdriver_manager cli/main.py
     
     - name: Build executable (onedir)
       if: github.event.inputs.build_mode == 'onedir'
       run: |
-        pyinstaller --onedir --console --name=CarousellUploader ^
-          --add-data=config;config ^
-          --add-data=uploader/regions;uploader/regions ^
-          --add-data=data;data ^
-          --hidden-import=playwright ^
-          --hidden-import=pyautogui ^
-          --hidden-import=pyperclip ^
-          --hidden-import=openpyxl ^
-          --hidden-import=pandas ^
-          --hidden-import=yaml ^
-          --hidden-import=requests ^
-          --hidden-import=PIL ^
-          --hidden-import=selenium ^
-          --hidden-import=webdriver_manager ^
-          cli/main.py
+        pyinstaller --onedir --console --name=CarousellUploader --add-data=config;config --add-data=uploader/regions;uploader/regions --add-data=data;data --hidden-import=playwright --hidden-import=pyautogui --hidden-import=pyperclip --hidden-import=openpyxl --hidden-import=pandas --hidden-import=yaml --hidden-import=requests --hidden-import=PIL --hidden-import=selenium --hidden-import=webdriver_manager cli/main.py
     
     - name: Upload onefile artifact
       if: github.event.inputs.build_mode == 'onefile' || github.event.inputs.build_mode == '' || github.event.inputs.build_mode == null
