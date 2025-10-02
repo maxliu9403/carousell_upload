@@ -115,6 +115,8 @@ jobs:
           echo "- 日志文件保存在 logs/ 目录" >> dist\README.txt
           echo "- 按日期自动分割: carousell_YYYYMMDD.log" >> dist\README.txt
           echo "- 支持外部查看和管理日志文件" >> dist\README.txt
+          echo "- 自动清理: 只保留最近5天的日志文件" >> dist\README.txt
+          echo "- 时间轮转: 每天午夜自动创建新的日志文件" >> dist\README.txt
           # 打印目录结构
           Write-Host "Dist folder structure:"
           Get-ChildItem -Path "dist" -Recurse -Force

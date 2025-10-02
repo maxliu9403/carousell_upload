@@ -1,7 +1,8 @@
 import logging
+import logging.handlers
 import sys
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 def get_log_directory():
@@ -15,6 +16,33 @@ def get_log_directory():
     else:
         # 开发环境
         return Path(__file__).parent.parent / "logs"
+
+def cleanup_old_logs(log_dir: Path, days_to_keep: int = 5):
+    """
+    清理旧的日志文件，只保留指定天数的日志
+    
+    Args:
+        log_dir: 日志目录
+        days_to_keep: 保留的天数，默认5天
+    """
+    if not log_dir.exists():
+        return
+    
+    cutoff_date = datetime.now() - timedelta(days=days_to_keep)
+    
+    for log_file in log_dir.glob("carousell_*.log*"):
+        try:
+            # 从文件名提取日期
+            if log_file.stem.startswith("carousell_"):
+                date_str = log_file.stem.replace("carousell_", "")
+                if len(date_str) == 8:  # YYYYMMDD格式
+                    file_date = datetime.strptime(date_str, "%Y%m%d")
+                    if file_date < cutoff_date:
+                        log_file.unlink()
+                        print(f"🗑️ 删除过期日志文件: {log_file.name}")
+        except (ValueError, OSError) as e:
+            # 如果无法解析日期或删除文件失败，跳过
+            continue
 
 class ColoredFormatter(logging.Formatter):
     """彩色日志格式化器"""
@@ -86,13 +114,21 @@ def setup_logger(name: str = "carousell_uploader", level: int = logging.INFO) ->
     console_handler.setFormatter(colored_formatter)
     logger.addHandler(console_handler)
     
-    # 文件处理器 - 支持外部日志目录
+    # 文件处理器 - 支持外部日志目录和时间轮转
     log_dir = get_log_directory()
     log_dir.mkdir(exist_ok=True)
     
-    file_handler = logging.FileHandler(
-        log_dir / f"carousell_{datetime.now().strftime('%Y%m%d')}.log",
-        encoding='utf-8'
+    # 清理旧日志文件（保留5天）
+    cleanup_old_logs(log_dir, days_to_keep=5)
+    
+    # 使用时间轮转文件处理器
+    file_handler = logging.handlers.TimedRotatingFileHandler(
+        filename=log_dir / "carousell.log",
+        when='midnight',  # 每天午夜轮转
+        interval=1,        # 每1天轮转一次
+        backupCount=5,     # 保留5个备份文件
+        encoding='utf-8',
+        utc=False          # 使用本地时间
     )
     file_handler.setLevel(level)
     file_handler.setFormatter(formatter)
