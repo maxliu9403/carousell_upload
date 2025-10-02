@@ -68,15 +68,15 @@ def setup_logger(name: str = "carousell_uploader", level: int = logging.INFO) ->
     if logger.handlers:
         return logger
     
-    # 创建格式器
+    # 创建格式器 - 包含文件名、行号和函数名
     formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        '%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d:%(funcName)s] - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
     
-    # 彩色格式器
+    # 彩色格式器 - 包含文件名、行号和函数名
     colored_formatter = ColoredFormatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        '%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d:%(funcName)s] - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
     
@@ -99,6 +99,47 @@ def setup_logger(name: str = "carousell_uploader", level: int = logging.INFO) ->
     logger.addHandler(file_handler)
     
     return logger
+
+def log_error_with_traceback(logger, message: str, exc_info=None):
+    """
+    记录详细的错误信息，包含堆栈跟踪
+    
+    Args:
+        logger: 日志记录器
+        message: 错误消息
+        exc_info: 异常信息，如果为None则自动获取当前异常
+    """
+    logger.error(f"❌ {message}", exc_info=exc_info)
+
+def log_warning_with_context(logger, message: str, context: dict = None):
+    """
+    记录带上下文的警告信息
+    
+    Args:
+        logger: 日志记录器
+        message: 警告消息
+        context: 上下文信息字典
+    """
+    if context:
+        context_str = " | ".join([f"{k}={v}" for k, v in context.items()])
+        logger.warning(f"⚠️ {message} | 上下文: {context_str}")
+    else:
+        logger.warning(f"⚠️ {message}")
+
+def log_info_with_context(logger, message: str, context: dict = None):
+    """
+    记录带上下文的信息
+    
+    Args:
+        logger: 日志记录器
+        message: 信息消息
+        context: 上下文信息字典
+    """
+    if context:
+        context_str = " | ".join([f"{k}={v}" for k, v in context.items()])
+        logger.info(f"ℹ️ {message} | 上下文: {context_str}")
+    else:
+        logger.info(f"ℹ️ {message}")
 
 # 创建默认日志记录器
 logger = setup_logger()

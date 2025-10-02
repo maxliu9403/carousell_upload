@@ -125,12 +125,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: CarousellUploader-Windows-onefile
-        path: |
-          dist/CarousellUploader.exe
-          dist/config/**
-          dist/uploader/regions/**
-          dist/logs/**
-          dist/README.txt
+          path: |
+            dist/CarousellUploader.exe
+            dist/config/**
+            dist/uploader/regions/**
+            dist/logs/**
+            dist/README.txt
           retention-days: 30
 
       # ------------------------------
