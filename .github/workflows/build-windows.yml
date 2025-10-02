@@ -8,7 +8,7 @@ on:
       build_mode:
         description: 'Build mode'
         required: true
-        default: 'onefile'
+        default: 'onedir'
         type: choice
         options:
         - onefile
