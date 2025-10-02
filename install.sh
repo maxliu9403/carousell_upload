@@ -598,8 +598,45 @@ create_virtual_environment() {
     
     # 检查是否已存在虚拟环境
     if [ -d "venv" ]; then
-        print_warning "虚拟环境已存在，将重新创建"
-        rm -rf venv
+        print_info "虚拟环境已存在，检查是否可以复用..."
+        
+        # 检查虚拟环境是否有效
+        if [ -f "venv/bin/activate" ] || [ -f "venv/Scripts/activate" ]; then
+            print_success "虚拟环境有效，将复用现有环境"
+            
+            # 检查Python版本是否匹配
+            if [ -f "venv/bin/python" ] || [ -f "venv/Scripts/python.exe" ]; then
+                local venv_python=""
+                if [ -f "venv/bin/python" ]; then
+                    venv_python="venv/bin/python"
+                elif [ -f "venv/Scripts/python.exe" ]; then
+                    venv_python="venv/Scripts/python.exe"
+                fi
+                
+                if [ -n "$venv_python" ]; then
+                    local venv_version=$("$venv_python" --version 2>&1 | cut -d' ' -f2)
+                    local current_version=$("$PYTHON_CMD" --version 2>&1 | cut -d' ' -f2)
+                    
+                    if [ "$venv_version" = "$current_version" ]; then
+                        print_success "Python版本匹配，复用虚拟环境"
+                        return 0
+                    else
+                        print_warning "Python版本不匹配 (虚拟环境: $venv_version, 当前: $current_version)"
+                        print_info "将重新创建虚拟环境以确保兼容性"
+                        rm -rf venv
+                    fi
+                else
+                    print_warning "虚拟环境Python可执行文件不存在，将重新创建"
+                    rm -rf venv
+                fi
+            else
+                print_warning "虚拟环境Python可执行文件不存在，将重新创建"
+                rm -rf venv
+            fi
+        else
+            print_warning "虚拟环境无效，将重新创建"
+            rm -rf venv
+        fi
     fi
     
     print_info "创建虚拟环境..."
@@ -892,14 +929,14 @@ show_usage() {
     echo "- 备份位置: backup_css_selectors/ 目录"
     echo "- 覆盖机制: 每次执行都会覆盖上次备份，节省磁盘空间"
     echo "- 恢复CSS选择器方法:"
-    echo "  # 恢复单个文件"
+    echo "  恢复单个文件"
     echo "  cp backup_css_selectors/uploader/regions/hk/sneakers/css_selectors.yaml \\"
     echo "      uploader/regions/hk/sneakers/css_selectors.yaml"
     echo ""
-    echo "  # 恢复所有文件"
+    echo "  恢复所有文件"
     echo "  cp -r backup_css_selectors/uploader/regions/* uploader/regions/"
     echo ""
-    echo "  # 恢复特定地域"
+    echo "  恢复特定地域"
     echo "  cp -r backup_css_selectors/uploader/regions/hk/* uploader/regions/hk/"
     echo ""
     echo "- 长期保存: 如需长期保存，请手动复制到其他位置"
