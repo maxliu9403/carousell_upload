@@ -577,10 +577,22 @@ update_project_code() {
                     git status --porcelain | grep "^UU" | cut -c4-
                 fi
                 
+                # 强制覆盖CSS选择器文件，确保使用最新版本
+                print_info "强制覆盖CSS选择器文件..."
+                git checkout origin/main -- uploader/regions/*/sneakers/css_selectors.yaml 2>/dev/null || true
+                git checkout origin/main -- uploader/regions/*/bags/css_selectors.yaml 2>/dev/null || true
+                git checkout origin/main -- uploader/regions/*/clothes/css_selectors.yaml 2>/dev/null || true
+                print_success "CSS选择器文件已强制更新"
+                
                 return 0
             else
-                print_warning "Git拉取失败，尝试重新下载"
-                download_project_code
+                print_warning "Git拉取失败，尝试强制更新"
+                # 强制重置到远程分支，覆盖所有本地更改
+                print_info "强制重置到远程分支..."
+                git fetch origin main
+                git reset --hard origin/main
+                print_success "代码强制更新成功"
+                return 0
             fi
         else
             print_warning "未配置远程仓库，重新下载代码"
