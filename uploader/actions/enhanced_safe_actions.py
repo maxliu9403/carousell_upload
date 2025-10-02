@@ -487,6 +487,23 @@ class EnhancedSafeActions:
         except Exception as e:
             logger.warning(f"⚠️ 元素检测异常: {selector}, 错误: {e}")
             return False
+    
+    def get_selector(self, element_key: str, region: str = None, selector_type: str = "primary") -> Optional[str]:
+        """
+        获取选择器值
+        
+        Args:
+            element_key: 元素键名
+            region: 地域代码
+            selector_type: 选择器类型 (primary, fallback)
+            
+        Returns:
+            Optional[str]: 选择器值
+        """
+        if not region:
+            region = self.region
+        
+        return self.css_manager.get_selector(element_key, region, selector_type, self.category)
 
 # 便捷函数
 def create_enhanced_safe_actions(page: Page, browser_id: str = None, sku: str = None, region: str = "HK", category: str = "sneakers") -> EnhancedSafeActions:
