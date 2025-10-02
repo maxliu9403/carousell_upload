@@ -40,7 +40,7 @@ editing:
   edit_button:
     description: 编辑按钮
     fallback: button[class*='edit']
-    primary: span:has-text('編輯產品')
+    primary: span:has-text('Edit Listing')
   inactive_image:
     description: 未活跃图片
     fallback: img.D_acC
@@ -115,11 +115,11 @@ sneakers_specific:
   brand_option:
     description: 其他品牌选项
     fallback: li[class*='brand']
-    primary: innerText:has-text('Others')
+    primary: innerText:has-text('Other Brands')
   brand_search_input:
     description: 品牌搜索输入框
     fallback: .D_Kr
-    primary: input[placeholder=Search']
+    primary: input[type='search'][placeholder='Search']
   brand_search_keyword:
     description: 品牌搜索关键词
     fallback: Others
@@ -131,7 +131,7 @@ sneakers_specific:
   category_search_input:
     description: 运动鞋类目搜索输入框
     fallback: input[placeholder='搜尋分類']
-    primary: input[placeholder='搜尋分類']
+    primary: input[placeholder='Search for a category...']
   category_search_keyword:
     description: 运动鞋搜索关键词
     fallback: sneakers
@@ -143,7 +143,7 @@ sneakers_specific:
   condition_selector:
     description: 新旧条件选择器
     fallback: button:has-text('Brand new')
-    primary: button[innerText='Brand new']
+    primary: .D_ahS:nth-child(2) .D_up:nth-child(1)
   confirm_platform_payment:
     description: 确认关闭平台收款
     fallback: button:has-text('Disable anyway')
@@ -179,4 +179,4 @@ sneakers_specific:
   women_sneakers_option:
     description: 女装波鞋选项
     fallback: .D_aFp:nth-child(1) .D_mx
-    primary: .D_aFv:nth-child(3) > .D_aFC
+    primary: .D_aFv:nth-child(3) > .D_aFC > .D_le
