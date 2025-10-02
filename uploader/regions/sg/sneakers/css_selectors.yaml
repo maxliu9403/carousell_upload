@@ -1,8 +1,8 @@
 basic_elements:
   ai_writing_cancel_button:
     description: AI文案取消按钮
-    fallback: button:has-text('改為手動填寫')
-    primary: button:has-text('改為手動填寫')
+    fallback: button:has-text('Fill in manually instead')
+    primary: button:has-text('Fill in manually instead')
   new_account_popup_close:
     description: 关闭图片上传提示
     fallback: .D_oN .D_oZ
@@ -22,7 +22,7 @@ basic_elements:
   location_option:
     description: 服务区域选项
     fallback: .D_mK
-    primary: innerText:has-text('Singapore')
+    primary: xpath=//form//p[normalize-space(.)="All of Singapore"]
 category_selection:
   category_search_input:
     description: 类目搜索输入框
