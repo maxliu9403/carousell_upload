@@ -179,6 +179,60 @@ cp config/settings.example.yaml config/settings.yaml
 python -m cli.main
 ```
 
+### 📁 CSS选择器备份功能
+
+项目支持智能的CSS选择器备份功能，在代码更新时自动保护重要的CSS选择器配置：
+
+#### 🔧 备份特性
+
+- **精准备份**: 只备份`css_selectors.yaml`文件，避免备份不必要的文件
+- **地域支持**: 支持HK、SG、MY三个地域
+- **类目支持**: 支持sneakers、bags、clothes三个类目
+- **单一备份**: 使用固定备份目录`backup_css_selectors`，每次更新都覆盖
+- **自动备份**: 检测到未提交更改时自动备份CSS选择器文件
+
+#### 📊 备份结构
+
+```
+backup_css_selectors/
+├── uploader/
+│   └── regions/
+│       ├── hk/
+│       │   ├── sneakers/css_selectors.yaml
+│       │   ├── bags/css_selectors.yaml
+│       │   └── clothes/css_selectors.yaml
+│       ├── sg/
+│       │   ├── sneakers/css_selectors.yaml
+│       │   ├── bags/css_selectors.yaml
+│       │   └── clothes/css_selectors.yaml
+│       └── my/
+│           ├── sneakers/css_selectors.yaml
+│           ├── bags/css_selectors.yaml
+│           └── clothes/css_selectors.yaml
+└── README.md
+```
+
+#### 🔄 恢复方法
+
+```bash
+# 恢复单个文件
+cp backup_css_selectors/uploader/regions/hk/sneakers/css_selectors.yaml \
+    uploader/regions/hk/sneakers/css_selectors.yaml
+
+# 恢复所有文件
+cp -r backup_css_selectors/uploader/regions/* uploader/regions/
+
+# 恢复特定地域
+cp -r backup_css_selectors/uploader/regions/hk/* uploader/regions/hk/
+```
+
+#### 💡 使用说明
+
+- **自动备份**: 运行`./install.sh`时自动检测并备份
+- **覆盖机制**: 每次执行都会覆盖上次备份，节省磁盘空间
+- **长期保存**: 如需长期保存，请手动复制到其他位置
+- **备份说明**: 备份目录包含详细的README.md说明文件
+
 ### ☁️ 云服务器部署
 
 ```bash

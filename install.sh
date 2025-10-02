@@ -443,6 +443,94 @@ download_with_curl() {
     print_success "项目代码下载完成 ($success_count/$total_count 文件)"
 }
 
+# 备份CSS选择器文件
+backup_css_selectors() {
+    local backup_dir="$1"
+    print_info "备份CSS选择器文件..."
+    
+    # 定义地域和类目组合
+    local regions=("hk" "sg" "my")
+    local categories=("sneakers" "bags" "clothes")
+    
+    local backup_count=0
+    
+    # 遍历所有地域和类目组合
+    for region in "${regions[@]}"; do
+        for category in "${categories[@]}"; do
+            local css_file="uploader/regions/$region/$category/css_selectors.yaml"
+            
+            # 检查文件是否存在
+            if [ -f "$css_file" ]; then
+                # 创建备份目录结构
+                local backup_path="$backup_dir/uploader/regions/$region/$category"
+                mkdir -p "$backup_path"
+                
+                # 备份文件
+                if cp "$css_file" "$backup_path/css_selectors.yaml"; then
+                    print_info "备份: $css_file"
+                    backup_count=$((backup_count + 1))
+                else
+                    print_warning "备份失败: $css_file"
+                fi
+            fi
+        done
+    done
+    
+    # 创建备份说明文件
+    cat > "$backup_dir/README.md" << EOF
+# CSS选择器备份
+
+## 备份信息
+- 备份文件数量: $backup_count
+- 备份目录: $backup_dir
+- 注意: 此备份目录会在每次更新时被覆盖
+
+## 文件结构
+\`\`\`
+$backup_dir/
+├── uploader/
+│   └── regions/
+│       ├── hk/
+│       │   ├── sneakers/
+│       │   │   └── css_selectors.yaml
+│       │   ├── bags/
+│       │   │   └── css_selectors.yaml
+│       │   └── clothes/
+│       │       └── css_selectors.yaml
+│       ├── sg/
+│       │   ├── sneakers/
+│       │   │   └── css_selectors.yaml
+│       │   ├── bags/
+│       │   │   └── css_selectors.yaml
+│       │   └── clothes/
+│       │       └── css_selectors.yaml
+│       └── my/
+│           ├── sneakers/
+│           │   └── css_selectors.yaml
+│           ├── bags/
+│           │   └── css_selectors.yaml
+│           └── clothes/
+│               └── css_selectors.yaml
+└── README.md
+\`\`\`
+
+## 恢复方法
+如需恢复某个文件，请将对应的 \`css_selectors.yaml\` 文件复制回原位置。
+
+例如恢复香港运动鞋的CSS选择器：
+\`\`\`bash
+cp $backup_dir/uploader/regions/hk/sneakers/css_selectors.yaml uploader/regions/hk/sneakers/css_selectors.yaml
+\`\`\`
+
+## 注意事项
+- 此备份目录会在每次执行 \`./install.sh\` 时被覆盖
+- 如需长期保存，请手动复制到其他位置
+- 备份只包含CSS选择器文件，不包含其他项目文件
+EOF
+    
+    print_success "CSS选择器备份完成 ($backup_count 个文件)"
+}
+
 # 更新项目代码
 update_project_code() {
     print_step "更新项目代码..."
@@ -457,21 +545,24 @@ update_project_code() {
             
             # 检查是否有未提交的更改
             if ! git diff --quiet || ! git diff --cached --quiet; then
-                print_warning "检测到未提交的更改，将备份当前更改"
+                print_warning "检测到未提交的更改，将备份CSS选择器文件"
                 
-                # 创建备份
-                local backup_dir="backup_$(date +%Y%m%d_%H%M%S)"
+                # 使用固定的备份目录名称
+                local backup_dir="backup_css_selectors"
+                
+                # 如果备份目录已存在，先删除
+                if [ -d "$backup_dir" ]; then
+                    print_info "删除旧备份目录: $backup_dir"
+                    rm -rf "$backup_dir"
+                fi
+                
+                # 创建新的备份目录
                 mkdir -p "$backup_dir"
                 
-                # 备份修改的文件
-                git diff --name-only | while read -r file; do
-                    if [ -f "$file" ]; then
-                        mkdir -p "$backup_dir/$(dirname "$file")"
-                        cp "$file" "$backup_dir/$file"
-                    fi
-                done
+                # 备份CSS选择器文件
+                backup_css_selectors "$backup_dir"
                 
-                print_info "备份已创建: $backup_dir"
+                print_info "CSS选择器备份已创建: $backup_dir"
             fi
             
             # 拉取最新代码
@@ -796,6 +887,24 @@ show_usage() {
     esac
     
     echo ""
+    print_info "📁 CSS选择器备份功能:"
+    echo "- 自动备份: 运行 ./install.sh 时自动检测并备份CSS选择器文件"
+    echo "- 备份位置: backup_css_selectors/ 目录"
+    echo "- 覆盖机制: 每次执行都会覆盖上次备份，节省磁盘空间"
+    echo "- 恢复CSS选择器方法:"
+    echo "  # 恢复单个文件"
+    echo "  cp backup_css_selectors/uploader/regions/hk/sneakers/css_selectors.yaml \\"
+    echo "      uploader/regions/hk/sneakers/css_selectors.yaml"
+    echo ""
+    echo "  # 恢复所有文件"
+    echo "  cp -r backup_css_selectors/uploader/regions/* uploader/regions/"
+    echo ""
+    echo "  # 恢复特定地域"
+    echo "  cp -r backup_css_selectors/uploader/regions/hk/* uploader/regions/hk/"
+    echo ""
+    echo "- 长期保存: 如需长期保存，请手动复制到其他位置"
+    echo ""
+    
     print_info "📚 更多信息:"
     echo "- 项目文档: README.md"
     echo "- 配置说明: config/settings.example.yaml"
