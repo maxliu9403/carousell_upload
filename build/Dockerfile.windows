@@ -1,42 +1,41 @@
-# 使用Windows Server Core作为基础镜像
+# 使用 Windows Server Core 作为基础镜像
 FROM python:3.11-windowsservercore
+
 # 设置工作目录
-WORKDIR C:\\app
+WORKDIR C:\app
+
 # 复制项目文件
 COPY . .
+
 # 安装系统依赖
 RUN powershell -Command "Install-WindowsFeature -Name Net-Framework-45-Features"
-# 安装Python依赖
+
+# 安装 Python 依赖
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install pyinstaller
-# 安装Playwright
+
+# 安装 Playwright（仅 Chromium）
 RUN playwright install chromium
-# 构建可执行文件 - 使用智能构建脚本
-RUN python build/build.py --mode onefile
+
 # 创建输出目录
-RUN mkdir C:\\output
-# 复制构建结果
-RUN copy dist\\CarousellUploader.exe C:\\output\\
+RUN mkdir C:\output
+
+# 使用 PyInstaller 构建 exe
+RUN pyinstaller cli/main.py --onefile --console --name=CarousellUploader --add-data="config;config" --add-data="uploader/regions;uploader/regions" --add-data="data;data" --hidden-import=playwright --hidden-import=pyautogui --hidden-import=pyperclip --hidden-import=openpyxl --hidden-import=pandas --hidden-import=yaml --hidden-import=requests --hidden-import=PIL --hidden-import=selenium --hidden-import=webdriver_manager --distpath C:\output
+
 # 复制配置文件到输出目录
-RUN mkdir C:\\output\\config
-RUN copy config\\settings.yaml C:\\output\\config\\
-RUN copy config\\settings.example.yaml C:\\output\\config\\
-# 复制CSS选择器配置文件，保留地域文件夹结构
-RUN xcopy uploader\\regions C:\\output\\uploader\\regions\\ /E /I /Y
+RUN mkdir C:\output\config
+RUN copy config\settings.yaml C:\output\config\
+RUN copy config\settings.example.yaml C:\output\config\
+
+# 复制 CSS 选择器配置文件（保持地域结构）
+RUN xcopy uploader\regions C:\output\uploader\regions\ /E /I /Y
+
 # 复制数据目录
-RUN xcopy data C:\\output\\data\\ /E /I /Y
-# 创建README文件
-RUN echo "Carousell Uploader - Windows Executable" > C:\\output\\README.txt
-RUN echo "" >> C:\\output\\README.txt
-RUN echo "Files included:" >> C:\\output\\README.txt
-RUN echo "- CarousellUploader.exe: Main executable" >> C:\\output\\README.txt
-RUN echo "- config/: Configuration files" >> C:\\output\\README.txt
-RUN echo "- uploader/regions/: CSS selector configurations by region" >> C:\\output\\README.txt
-RUN echo "- data/: Data processing modules" >> C:\\output\\README.txt
-RUN echo "" >> C:\\output\\README.txt
-RUN echo "Usage:" >> C:\\output\\README.txt
-RUN echo "1. Configure settings.yaml with your browser API settings" >> C:\\output\\README.txt
-RUN echo "2. Prepare your Excel file with product data" >> C:\\output\\README.txt
-RUN echo "3. Run: CarousellUploader.exe" >> C:\\output\\README.txt
-# 设置默认命令
+RUN xcopy data C:\output\data\ /E /I /Y
+
+# 生成 README 文件
+RUN echo Carousell Uploader - Windows Executable > C:\output\README.txt && echo. >> C:\output\README.txt && echo Files included: >> C:\output\README.txt && echo - CarousellUploader.exe: Main executable >> C:\output\README.txt && echo - config/: Configuration files >> C:\output\README.txt && echo - uploader/regions/: CSS selector configurations by region >> C:\output\README.txt && echo - data/: Data processing modules >> C:\output\README.txt && echo. >> C:\output\README.txt && echo Usage: >> C:\output\README.txt && echo 1. Configure settings.yaml with your browser API settings >> C:\output\README.txt && echo 2. Prepare your Excel file with product data >> C:\output\README.txt && echo 3. Run: CarousellUploader.exe >> C:\output\README.txt
+
+# 默认显示输出目录内容
 CMD ["cmd", "/c", "dir", "C:\\output"]
