@@ -185,12 +185,7 @@ def copy_config_files():
             shutil.copy2("uploader/regions/sg/sneakers/css_selectors.yaml", "dist/uploader/regions/sg/sneakers/")
             print("Copied: uploader/regions/sg/sneakers/css_selectors.yaml")
     
-    # Copy data directory
-    if Path("data").exists():
-        data_dest = Path("dist/data")
-        data_dest.mkdir(parents=True, exist_ok=True)
-        shutil.copytree("data", "dist/data", dirs_exist_ok=True)
-        print("Copied: data/")
+    # Skip data directory - not needed for distribution
     
     # Create README file
     readme_content = """Carousell Uploader - Windows Executable
@@ -199,7 +194,6 @@ Files included:
 - CarousellUploader.exe: Main executable
 - config/: Configuration files
 - uploader/regions/: CSS selector configurations by region
-- data/: Data processing modules
 
 Usage:
 1. Configure settings.yaml with your browser API settings

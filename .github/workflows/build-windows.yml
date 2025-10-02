@@ -53,6 +53,34 @@ jobs:
           } else {
               python build/build.py --mode onedir
           }
+          
+          # 检查构建结果
+          Write-Host "Checking build results..."
+          if (Test-Path "dist") {
+            Get-ChildItem -Path "dist" -Recurse | ForEach-Object {
+              Write-Host "Found: $($_.FullName)"
+            }
+          } else {
+            Write-Host "ERROR: dist folder not found!"
+            exit 1
+          }
+          
+          # 检查可执行文件
+          if ($build_mode -eq "onefile") {
+            if (Test-Path "dist/CarousellUploader.exe") {
+              Write-Host "✅ CarousellUploader.exe found"
+            } else {
+              Write-Host "❌ CarousellUploader.exe not found!"
+              exit 1
+            }
+          } else {
+            if (Test-Path "dist/CarousellUploader") {
+              Write-Host "✅ CarousellUploader directory found"
+            } else {
+              Write-Host "❌ CarousellUploader directory not found!"
+              exit 1
+            }
+          }
 
       # ------------------------------
       - name: Copy config and regions to dist
@@ -112,7 +140,6 @@ jobs:
             dist/CarousellUploader-${{ github.run_number }}.exe
             dist/config/**
             dist/uploader/regions/**
-            dist/data/**
             dist/README.txt
           retention-days: 30
 
@@ -125,7 +152,6 @@ jobs:
             dist/CarousellUploader/**
             dist/config/**
             dist/uploader/regions/**
-            dist/data/**
             dist/README.txt
           retention-days: 30
 
