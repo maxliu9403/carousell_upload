@@ -152,11 +152,11 @@ coll = COLLECT(
 def build_executable(build_mode: str = "onefile", clean: bool = True):
     """构建可执行文件"""
     
-    print("🔍 正在分析项目结构...")
+    print("正在分析项目结构...")
     
     # 加载配置
     config = load_config()
-    print(f"📁 配置文件: build_config.yaml")
+    print(f"配置文件: build_config.yaml")
     
     # 生成spec文件
     spec_content = generate_spec_file(config, build_mode)
@@ -168,25 +168,25 @@ def build_executable(build_mode: str = "onefile", clean: bool = True):
     with open(spec_filename, 'w', encoding='utf-8') as f:
         f.write(spec_content)
     
-    print(f"✅ 已生成spec文件: {spec_filename}")
+    print(f"已生成spec文件: {spec_filename}")
     
     # 清理之前的构建
     if clean:
         for dir_name in ['build', 'dist', '__pycache__']:
             if os.path.exists(dir_name):
                 shutil.rmtree(dir_name)
-                print(f"🧹 已清理: {dir_name}")
+                print(f"已清理: {dir_name}")
     
     # 执行构建
-    print(f"🚀 开始构建可执行文件 ({build_mode})...")
+    print(f"开始构建可执行文件 ({build_mode})...")
     try:
         result = subprocess.run([
             sys.executable, "-m", "PyInstaller", 
             "--clean", spec_filename
         ], check=True, capture_output=True, text=True)
         
-        print("✅ 构建成功!")
-        print(f"📁 输出目录: dist/")
+        print("构建成功!")
+        print(f"输出目录: dist/")
         
         # 显示构建结果
         dist_path = Path("dist")
@@ -194,14 +194,14 @@ def build_executable(build_mode: str = "onefile", clean: bool = True):
             for item in dist_path.iterdir():
                 if item.is_file():
                     size_mb = item.stat().st_size / (1024 * 1024)
-                    print(f"📦 {item.name} ({size_mb:.1f} MB)")
+                    print(f"文件: {item.name} ({size_mb:.1f} MB)")
                 elif item.is_dir():
-                    print(f"📁 {item.name}/")
+                    print(f"目录: {item.name}/")
         
         return True
         
     except subprocess.CalledProcessError as e:
-        print(f"❌ 构建失败: {e}")
+        print(f"构建失败: {e}")
         print(f"错误输出: {e.stderr}")
         return False
 
