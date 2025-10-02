@@ -42,8 +42,15 @@
 - **内存**: 至少 4GB RAM
 - **存储**: 至少 1GB 可用空间
 
-### 🎯 一键部署 (推荐)
+### 🎯 快速安装
 
+**方式一：一键安装 (推荐)**
+```bash
+# 一键安装 (自动检测系统并安装)
+curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/install.sh | bash
+```
+
+**方式二：克隆部署**
 ```bash
 # 克隆项目
 git clone https://github.com/maxliu9403/carousell_upload.git
@@ -51,68 +58,22 @@ cd carousell_upload
 
 # 运行统一部署脚本 (自动检测最佳方式)
 ./deploy.sh
-
-# 或指定部署模式
-./deploy.sh --mode=local     # 本地开发部署
-./deploy.sh --mode=system    # 系统级部署
-./deploy.sh --mode=docker    # Docker部署
 ```
 
-### 📦 其他安装方式
-
-#### 方式一：一键安装脚本 (推荐)
-
-```bash
-# 一键安装 (自动检测系统并安装)
-curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/install.sh | bash
-
-# 或者分步执行
-curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/install.sh -o install.sh
-chmod +x install.sh
-sudo ./install.sh
-```
-
-#### 方式二：使用 pip 安装
-
+**方式三：手动安装**
 ```bash
 # 克隆项目
 git clone https://github.com/maxliu9403/carousell_upload.git
 cd carousell_upload
 
-# 创建虚拟环境 (推荐)
+# 创建虚拟环境
 python -m venv venv
 source venv/bin/activate  # Linux/macOS
-# 或
-venv\Scripts\activate     # Windows
+# 或 venv\Scripts\activate  # Windows
 
 # 安装依赖
 pip install -r requirements.txt
-
-# 安装 Playwright 浏览器
 playwright install chromium
-```
-
-#### 方式三：使用 setup.py 安装
-
-```bash
-# 开发模式安装
-pip install -e .
-
-# 或直接安装
-python setup.py install
-```
-
-#### 方式三：使用 pyproject.toml 安装
-
-```bash
-# 安装基础版本
-pip install -e .
-
-# 安装开发版本 (包含测试工具)
-pip install -e ".[dev]"
-
-# 安装完整版本 (包含文档工具)
-pip install -e ".[dev,docs,types]"
 ```
 
 ### 🔧 开发环境设置
@@ -142,41 +103,22 @@ pytest
 
 ## 🚀 快速部署指南
 
-### 🐳 Docker 部署 (推荐)
+### 🎯 推荐部署方式
 
+**一键部署 (最简单)**
 ```bash
-# 构建镜像
-docker build -t carousell_upload .
-
-# 运行容器
-docker run -it --rm \
-  -v $(pwd)/config:/app/config \
-  -v $(pwd)/data:/app/data \
-  carousell_upload
-```
-
-### 🖥️ 本地快速部署
-
-```bash
-# 1. 克隆项目
+# 克隆项目
 git clone https://github.com/maxliu9403/carousell_upload.git
 cd carousell_upload
 
-# 2. 创建虚拟环境
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-# 或 venv\Scripts\activate  # Windows
+# 运行统一部署脚本 (自动检测最佳方式)
+./deploy.sh
+```
 
-# 3. 安装依赖
-pip install -r requirements.txt
-playwright install chromium
-
-# 4. 配置设置
-cp config/settings.example.yaml config/settings.yaml
-# 编辑 config/settings.yaml 文件
-
-# 5. 运行程序
-python -m cli.main
+**一键安装脚本 (无需克隆)**
+```bash
+# 一键安装 (自动检测系统并安装)
+curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/install.sh | bash
 ```
 
 ### 📁 CSS选择器备份功能
@@ -530,38 +472,28 @@ carousell_upload/
 - **sphinx>=6.0.0** - 文档生成
 - **sphinx-rtd-theme>=1.2.0** - 主题
 
-## 🚀 部署方式
+## 🚀 高级部署选项
 
-### 统一部署脚本 (推荐)
+### 🐳 Docker 部署
+
 ```bash
-# 自动检测最佳部署方式
-./deploy.sh
+# 构建镜像
+docker build -t carousell_upload .
 
-# 指定部署模式
-./deploy.sh --mode=local     # 本地开发部署
-./deploy.sh --mode=system    # 本地部署 (推荐)
-./deploy.sh --mode=docker    # Docker部署
+# 运行容器
+docker run -it --rm \
+  -v $(pwd)/config:/app/config \
+  -v $(pwd)/data:/app/data \
+  carousell_upload
 ```
 
-### 本地部署 (推荐)
-```bash
-# 1. 克隆项目
-git clone https://github.com/maxliu9403/carousell_upload.git
-cd carousell_upload
+### 🔧 开发环境部署
 
-# 2. 运行本地安装脚本
-./install.sh
-```
-
-### 本地开发部署
 ```bash
-# 快速部署
+# 快速开发部署
 ./scripts/quick-deploy.sh
-```
 
-### Docker部署
-```bash
-# Docker部署
+# Docker开发部署
 ./scripts/docker-deploy.sh
 ```
 
