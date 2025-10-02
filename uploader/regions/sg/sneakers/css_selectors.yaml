@@ -4,30 +4,38 @@ basic_elements:
     fallback: button:has-text('改為手動填寫')
     primary: button:has-text('改為手動填寫')
   new_account_popup_close:
-    description: 新账号弹窗关闭按钮
+    description: 关闭图片上传提示
     fallback: .D_oN .D_oZ
-    primary: .D_ayk > .D_oN > .D_oZ
+    primary: xpath=//button[normalize-space(.)="Save & close"]
   sell_button:
     description: Sell按钮
     fallback: a[href*='sell']
-    primary: a.D__s
+    primary: innerText:has-text('Sell')
   upload_images_button:
     description: 上传图片按钮
     fallback: div[class*='upload']
     primary: div.D_KR
+  location_selector:
+    description: 服务区域输入框
+    fallback: input[aria-label*='Service area']
+    primary: input[aria-label='Service area(s)']
+  location_option:
+    description: 服务区域选项
+    fallback: .D_mK
+    primary: innerText:has-text('Singapore')
 category_selection:
   category_search_input:
     description: 类目搜索输入框
     fallback: input[placeholder*='搜尋']
-    primary: input[placeholder='搜尋分類']
+    primary: input[placeholder='Search for a category...']
   service_category_option:
     description: 点击类目输入其他
     fallback: .D_aEk:nth-child(2) > .D_aEs > .D_la
-    primary: div.D_aEM:nth-child(5)
+    primary: div.D_aFv:nth-child(13)
   service_category_selector:
     description: 服务类目选择器
     fallback: div[class*='category']
-    primary: div.D_aEF
+    primary: div.D_aFo
 editing:
   edit_button:
     description: 编辑按钮
@@ -58,20 +66,20 @@ popups_and_settings:
     primary: '#FieldSetField-Container-field_mailing_details .D_tk'
   delivery_toggle:
     description: 送货开关
-    fallback: '#FieldSetField-Container-field_mailing .D_mx'
-    primary: '#FieldSetField-Container-field_mailing .D_lc'
+    fallback: xpath=//form//p[normalize-space(.)="Delivery"]
+    primary: xpath=//form//p[normalize-space(.)="Delivery"]
   meetup_input:
     description: 面交地点输入框
     fallback: input[aria-label='添加地點']
-    primary: xpath=//form//input[@type="text"][@aria-label="添加地點"]
+    primary: xpath=//form//input[@type="text"][@aria-label="Add location"]
   meetup_option:
     description: 面交地点选项
     fallback: .D_mK
-    primary: div.D_cCi:nth-child(2)
+    primary: .D_cFk .D_ls
   meetup_toggle:
     description: 面交开关
     fallback: .D_pZ > .D_mx
-    primary: xpath=//form//p[normalize-space(.)="面交"]
+    primary: xpath=//form//p[normalize-space(.)="Meet-up"]
   whatsapp_close:
     description: WhatsApp弹窗关闭
     fallback: button[aria-label*='close']
@@ -92,53 +100,54 @@ product_info:
   title_input:
     description: 商品标题输入框
     fallback: input[name='title']
-    primary: label:has-text('產品名稱')
+    primary: label:has-text('Listing title')
+  
 publishing:
   publish_button:
     description: 发布按钮
     fallback: button[type='submit']
-    primary: button[type='button']:has-text('更新'), button[type='button']:has-text('即刻刊登')
+    primary: button[type='button']:has-text('更新'), button[type='button']:has-text('即刻刊登'), button[type='button']:has-text('List now'), button[type='button']:has-text('Update')
 sneakers_specific:
   brand_input:
     description: 品牌输入框
     fallback: input[name='brand']
-    primary: xpath=//form//label[normalize-space(.)="品牌"]
+    primary: xpath=//form//label[normalize-space(.)="Brand"]
   brand_option:
     description: 其他品牌选项
     fallback: li[class*='brand']
-    primary: .D_aez > .D_aeB
+    primary: innerText:has-text('Others')
   brand_search_input:
     description: 品牌搜索输入框
     fallback: .D_Kr
-    primary: input[placeholder='搜尋']
+    primary: input[placeholder=Search']
   brand_search_keyword:
     description: 品牌搜索关键词
-    fallback: Other
-    primary: 其他
+    fallback: Others
+    primary: Others
   brand_selector:
     description: 品牌选择器
     fallback: .D_sp
-    primary: xpath=//form//button[normalize-space(.)="品牌"]
+    primary: xpath=//form//button[normalize-space(.)="Brand"]
   category_search_input:
     description: 运动鞋类目搜索输入框
     fallback: input[placeholder='搜尋分類']
     primary: input[placeholder='搜尋分類']
   category_search_keyword:
     description: 运动鞋搜索关键词
-    fallback: 运动鞋
-    primary: 波鞋
+    fallback: sneakers
+    primary: sneakers
   category_selector:
     description: 运动鞋类目选择器
     fallback: div[class*='category']
     primary: div.D_aEN
   condition_selector:
     description: 新旧条件选择器
-    fallback: button:has-text('新')
-    primary: button.D_pf:nth-child(1)
+    fallback: button:has-text('Brand new')
+    primary: button[innerText='Brand new']
   confirm_platform_payment:
     description: 确认关闭平台收款
-    fallback: button:has-text('無論如何停用')
-    primary: button:has-text('無論如何停用')
+    fallback: button:has-text('Disable anyway')
+    primary: button:has-text('Disable anyway')
   delivery_toggle:
     description: 送货开关
     fallback: .D_mK
@@ -146,28 +155,28 @@ sneakers_specific:
   men_sneakers_option:
     description: 男装波鞋选项
     fallback: .D_aFp:nth-child(2) .D_mx
-    primary: .D_aGu:nth-child(2) > .D_aGB > .D_lz
+    primary: .D_aFv:nth-child(2) > .D_aFC
   multi_quantity_checkbox:
     description: 多产品销售复选框
     fallback: .D_axg
-    primary: innerText:has-text('我正出售多於一件相同的商品')
+    primary: innerText:has-text("Disable 'Buy' button")
   platform_payment_close:
     description: 平台收款关闭按钮
     fallback: .D_aeF .D_mx
-    primary: .D_aeF:nth-child(2) .D_mx
+    primary: innerText:has-text('')
   size_option:
     description: 尺寸选项
     fallback: .D_aeQ .D_mx
-    primary: .D_aeC > .D_aeJ > .D_lc
+    primary: .D_acR:nth-child(1) .D_acW > .D_aec > .D_le
   size_search_input:
     description: 尺寸搜索输入框
-    fallback: input[placeholder='搜尋']
-    primary: input[placeholder='搜尋']
+    fallback: input[placeholder='Search']
+    primary: input[placeholder='Search']
   size_selector:
     description: 尺寸选择器
-    fallback: button:has-text('產品大小')
-    primary: button:has-text('產品大小')
+    fallback: button:has-text('Size')
+    primary: button:has-text('Size')
   women_sneakers_option:
     description: 女装波鞋选项
     fallback: .D_aFp:nth-child(1) .D_mx
-    primary: div.D_aEM:nth-child(1)
+    primary: .D_aFv:nth-child(3) > .D_aFC

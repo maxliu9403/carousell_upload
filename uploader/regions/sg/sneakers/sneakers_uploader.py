@@ -52,6 +52,9 @@ class SGSneakersUploader(BaseUploader):
         
         # 第三步：发布商品
         self._publish_product()
+
+         # 等待页面加载结束
+        self.page.wait_for_load_state("networkidle", timeout=30000)
     
     def _edit_to_sneakers(self, enriched_info: ProductInfo):
         """
@@ -72,9 +75,12 @@ class SGSneakersUploader(BaseUploader):
         # 处理面交设置
         self._openmeetup(enriched_info)
 
-        # 关闭收款保障
+        # 关闭平台收款
         self._close_buyer_protection()
-    
+
+        # 关闭送货
+        self._close_delivery()
+
     def _change_to_sneakers_category(self, enriched_info: ProductInfo):
         """修改为运动鞋类目"""
         # 修改产品类目
@@ -171,10 +177,10 @@ class SGSneakersUploader(BaseUploader):
         )
 
         # 点击 多产品销售复选框
-        self.safe_actions.safe_click_with_config(
-            "sneakers_specific.multi_quantity_checkbox", self.region, must_exist=False,
-            operation="点击多产品销售复选框"
-        )
+        # self.safe_actions.safe_click_with_config(
+        #     "sneakers_specific.multi_quantity_checkbox", self.region, must_exist=False,
+        #     operation="点击多产品销售复选框"
+        # )
     
     
 

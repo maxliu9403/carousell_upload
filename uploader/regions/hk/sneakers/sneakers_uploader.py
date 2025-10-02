@@ -77,6 +77,9 @@ class HKSneakersUploader(BaseUploader):
 
         # 关闭平台收款
         self._close_buyer_protection()
+
+        # 关闭送货
+        self._close_delivery()
     
     def _change_to_sneakers_category(self, enriched_info: ProductInfo):
         """修改为运动鞋类目"""
@@ -174,10 +177,10 @@ class HKSneakersUploader(BaseUploader):
         )
 
         # 点击 多产品销售复选框
-        self.safe_actions.safe_click_with_config(
-            "sneakers_specific.multi_quantity_checkbox", self.region, must_exist=False,
-            operation="点击多产品销售复选框"
-        )
+        # self.safe_actions.safe_click_with_config(
+        #     "sneakers_specific.multi_quantity_checkbox", self.region, must_exist=False,
+        #     operation="点击多产品销售复选框"
+        # )
 
 
    

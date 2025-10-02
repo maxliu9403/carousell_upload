@@ -305,8 +305,9 @@ class BaseUploader:
         logger.info(f"{self.log_prefix}开始检查面交状态")
         
         try:
-            # 直接检测面交状态文字
-            meetup_enabled = self.page.locator("text=添加地點").is_visible()
+            # 检测面交状态文字（支持中英文）
+            meetup_enabled = (self.page.locator("text=添加地點").is_visible() or 
+                             self.page.locator("text=Add location").is_visible())
             
             if not meetup_enabled:
                 logger.info(f"{self.log_prefix}检测到面交未开启，准备开启")
@@ -338,8 +339,9 @@ class BaseUploader:
         logger.info(f"{self.log_prefix}开始检查送货状态")
         
         try:
-            # 直接检测送货状态文字
-            delivery_enabled = self.page.locator("text=仲有冇額外郵寄資料同埋更多選擇").is_visible()
+            # 检测送货状态文字（支持中英文）
+            delivery_enabled = (self.page.locator("text=仲有冇額外郵寄資料同埋更多選擇").is_visible() or 
+                               self.page.locator("text=Carousell Official Delivery").is_visible())
             
             if delivery_enabled:
                 logger.info(f"{self.log_prefix}检测到送货已开启，准备关闭")
@@ -382,8 +384,9 @@ class BaseUploader:
         logger.info(f"{self.log_prefix}开始检查收款保障状态")
         
         try:
-            # 直接检测收款保障状态文字
-            buyer_protection_enabled = self.page.locator("text=所有透過「平台收款功能」成功交易的訂單將豁免所有費用").is_visible()
+            # 检测收款保障状态文字（支持中英文）
+            buyer_protection_enabled = (self.page.locator("text=所有透過「平台收款功能」成功交易的訂單將豁免所有費用").is_visible() or 
+                                       self.page.locator("text=We're waiving the platform fee for a limited time！").is_visible())
             
             if buyer_protection_enabled:
                 logger.info(f"{self.log_prefix}检测到收款保障已开启，准备关闭")
