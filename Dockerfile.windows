@@ -18,7 +18,7 @@ RUN pip install pyinstaller
 RUN playwright install chromium
 
 # 构建可执行文件
-RUN pyinstaller --onefile --console --name=CarousellUploader --add-data=config;config --add-data=uploader/regions;uploader/regions --add-data=data;data --hidden-import=playwright --hidden-import=pyautogui --hidden-import=pyperclip --hidden-import=openpyxl --hidden-import=pandas --hidden-import=yaml --hidden-import=requests --hidden-import=PIL --hidden-import=selenium --hidden-import=webdriver_manager cli/main.py
+RUN pyinstaller --onefile --console --name=CarousellUploader --add-data="config;config" --add-data="uploader/regions;uploader/regions" --add-data="data;data" --hidden-import=playwright --hidden-import=pyautogui --hidden-import=pyperclip --hidden-import=openpyxl --hidden-import=pandas --hidden-import=yaml --hidden-import=requests --hidden-import=PIL --hidden-import=selenium --hidden-import=webdriver_manager cli/main.py
 
 # 创建输出目录
 RUN mkdir C:\\output
