@@ -322,7 +322,8 @@ setup_project_directory() {
     
     # 检查是否已有项目文件
     if [ -f "requirements.txt" ] || [ -f "pyproject.toml" ]; then
-        print_success "检测到项目文件，使用当前目录"
+        print_success "检测到项目文件，检查是否需要更新"
+        update_project_code
     else
         print_info "当前目录不包含项目文件，将下载项目代码"
         download_project_code
@@ -367,10 +368,55 @@ download_with_curl() {
         "setup.py"
         "README.md"
         "cli/main.py"
+        "cli/__init__.py"
         "core/config.py"
         "core/logger.py"
         "core/models.py"
+        "core/__init__.py"
+        "browser/__init__.py"
+        "browser/actions.py"
+        "browser/browser.py"
+        "browser/browser_interface.py"
+        "browser/browser_factory.py"
+        "browser/bit_browser_interface.py"
+        "browser/ix_browser_interface.py"
+        "browser/browser_selector.py"
+        "uploader/__init__.py"
+        "uploader/core/__init__.py"
+        "uploader/core/base_uploader.py"
+        "uploader/core/carousell_uploader.py"
+        "uploader/multi/__init__.py"
+        "uploader/multi/multi_account_uploader.py"
+        "uploader/regions/__init__.py"
+        "uploader/regions/hk/__init__.py"
+        "uploader/regions/hk/sneakers/__init__.py"
+        "uploader/regions/hk/sneakers/sneakers_uploader.py"
+        "uploader/regions/hk/sneakers/css_selectors.yaml"
+        "uploader/regions/sg/__init__.py"
+        "uploader/regions/sg/sneakers/__init__.py"
+        "uploader/regions/sg/sneakers/sneakers_uploader.py"
+        "uploader/regions/sg/sneakers/css_selectors.yaml"
+        "uploader/regions/my/__init__.py"
+        "uploader/regions/my/sneakers/__init__.py"
+        "uploader/regions/my/sneakers/sneakers_uploader.py"
+        "uploader/regions/my/sneakers/css_selectors.yaml"
+        "data/__init__.py"
+        "data/excel_parser.py"
+        "config/settings.example.yaml"
+        "scripts/windows-install.bat"
+        "scripts/windows-install.ps1"
+        "scripts/windows-simple-install.bat"
+        "scripts/windows-python-fix.sh"
+        "scripts/quick-deploy.sh"
+        "scripts/docker-deploy.sh"
+        "deploy.sh"
+        "run.sh"
+        "activate_env.sh"
+        ".gitignore"
     )
+    
+    local success_count=0
+    local total_count=${#files[@]}
     
     for file in "${files[@]}"; do
         local url="$REPO_URL/raw/main/$file"
@@ -380,19 +426,79 @@ download_with_curl() {
             mkdir -p "$dir"
         fi
         
-        if curl -fsSL "$url" -o "$file"; then
+        if curl -fsSL "$url" -o "$file" 2>/dev/null; then
             print_info "下载: $file"
+            success_count=$((success_count + 1))
         else
             print_warning "下载失败: $file"
         fi
     done
     
     # 移动文件到上级目录
-    cp -r * ../
+    cp -r * ../ 2>/dev/null || true
+    cp -r .* ../ 2>/dev/null || true
     cd ..
     rm -rf temp_project
     
-    print_success "项目代码下载完成"
+    print_success "项目代码下载完成 ($success_count/$total_count 文件)"
+}
+
+# 更新项目代码
+update_project_code() {
+    print_step "更新项目代码..."
+    
+    # 检查是否在Git仓库中
+    if [ -d ".git" ]; then
+        print_info "检测到Git仓库，尝试拉取最新代码..."
+        
+        # 检查远程仓库
+        if git remote get-url origin >/dev/null 2>&1; then
+            print_info "当前远程仓库: $(git remote get-url origin)"
+            
+            # 检查是否有未提交的更改
+            if ! git diff --quiet || ! git diff --cached --quiet; then
+                print_warning "检测到未提交的更改，将备份当前更改"
+                
+                # 创建备份
+                local backup_dir="backup_$(date +%Y%m%d_%H%M%S)"
+                mkdir -p "$backup_dir"
+                
+                # 备份修改的文件
+                git diff --name-only | while read -r file; do
+                    if [ -f "$file" ]; then
+                        mkdir -p "$backup_dir/$(dirname "$file")"
+                        cp "$file" "$backup_dir/$file"
+                    fi
+                done
+                
+                print_info "备份已创建: $backup_dir"
+            fi
+            
+            # 拉取最新代码
+            print_info "拉取最新代码..."
+            if git pull origin main; then
+                print_success "代码更新成功"
+                
+                # 检查是否有冲突
+                if git status --porcelain | grep -q "^UU"; then
+                    print_warning "检测到合并冲突，请手动解决"
+                    print_info "冲突文件:"
+                    git status --porcelain | grep "^UU" | cut -c4-
+                fi
+                
+                return 0
+            else
+                print_warning "Git拉取失败，尝试重新下载"
+                download_project_code
+            fi
+        else
+            print_warning "未配置远程仓库，重新下载代码"
+            download_project_code
+        fi
+    else
+        print_info "未检测到Git仓库，重新下载代码"
+        download_project_code
+    fi
 }
 
 # 创建虚拟环境
