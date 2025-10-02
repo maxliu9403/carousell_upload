@@ -35,7 +35,7 @@ editing:
     primary: span:has-text('編輯產品')
   inactive_image:
     description: 未活跃图片
-    fallback: img.D_aaI
+    fallback: img.D_acC
     primary: img.D_acC
   activate_button:
     description: 激活按钮

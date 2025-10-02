@@ -3,6 +3,14 @@ basic_elements:
     description: AI文案取消按钮
     fallback: button:has-text('Fill in manually instead')
     primary: button:has-text('Fill in manually instead')
+  location_option:
+    description: 服务区域选项
+    fallback: .D_mK
+    primary: xpath=//form//p[normalize-space(.)="All of Singapore"]
+  location_selector:
+    description: 服务区域输入框
+    fallback: input[aria-label*='Service area']
+    primary: input[aria-label='Service area(s)']
   new_account_popup_close:
     description: 关闭图片上传提示
     fallback: .D_oN .D_oZ
@@ -10,19 +18,11 @@ basic_elements:
   sell_button:
     description: Sell按钮
     fallback: a[href*='sell']
-    primary: innerText:has-text('Sell')
+    primary: a.D_Bn
   upload_images_button:
     description: 上传图片按钮
     fallback: div[class*='upload']
-    primary: div.D_KR
-  location_selector:
-    description: 服务区域输入框
-    fallback: input[aria-label*='Service area']
-    primary: input[aria-label='Service area(s)']
-  location_option:
-    description: 服务区域选项
-    fallback: .D_mK
-    primary: xpath=//form//p[normalize-space(.)="All of Singapore"]
+    primary: div.D_Ky
 category_selection:
   category_search_input:
     description: 类目搜索输入框
@@ -43,8 +43,8 @@ editing:
     primary: span:has-text('編輯產品')
   inactive_image:
     description: 未活跃图片
-    fallback: img.D_aaI
-    primary: img.D_aaI
+    fallback: img.D_acC
+    primary: img.D_acC
 metadata:
   category: sneakers
   description: 运动鞋CSS选择器配置文件
@@ -101,12 +101,12 @@ product_info:
     description: 商品标题输入框
     fallback: input[name='title']
     primary: xpath=//form//input[@type="text"][@name="field_title"]
-  
 publishing:
   publish_button:
     description: 发布按钮
     fallback: button[type='submit']
-    primary: button[type='button']:has-text('更新'), button[type='button']:has-text('即刻刊登'), button[type='button']:has-text('List now'), button[type='button']:has-text('Update')
+    primary: button[type='button']:has-text('更新'), button[type='button']:has-text('即刻刊登'),
+      button[type='button']:has-text('List now'), button[type='button']:has-text('Update')
 sneakers_specific:
   brand_input:
     description: 品牌输入框
