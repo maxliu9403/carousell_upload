@@ -37,6 +37,10 @@ category_selection:
     fallback: div[class*='category']
     primary: div.D_aFo
 editing:
+  activate_button:
+    description: 激活按钮
+    fallback: innerText:has-text("Mark as active")
+    primary: button.D_bsJ
   edit_button:
     description: 编辑按钮
     fallback: button[class*='edit']
@@ -49,7 +53,7 @@ metadata:
   category: sneakers
   description: 运动鞋CSS选择器配置文件
   last_updated: '2025-09-29T16:02:00.000000'
-  region: HK
+  region: SG
   version: 2.0.0
 popups_and_settings:
   buyer_protection_confirm:
@@ -75,7 +79,7 @@ popups_and_settings:
   meetup_option:
     description: 面交地点选项
     fallback: .D_mK
-    primary: .D_cFk .D_ls
+    primary: div.D_cFi:nth-child(2)
   meetup_toggle:
     description: 面交开关
     fallback: .D_pZ > .D_mx
@@ -115,15 +119,15 @@ sneakers_specific:
   brand_option:
     description: 其他品牌选项
     fallback: li[class*='brand']
-    primary: innerText:has-text('Other Brands')
+    primary: xpath=//form//ul/li//p[normalize-space(.)="Other Brands"]
   brand_search_input:
     description: 品牌搜索输入框
     fallback: .D_Kr
     primary: input[type='search'][placeholder='Search']
   brand_search_keyword:
     description: 品牌搜索关键词
-    fallback: Others
-    primary: Others
+    fallback: Other
+    primary: Other
   brand_selector:
     description: 品牌选择器
     fallback: .D_sp
@@ -160,18 +164,14 @@ sneakers_specific:
     description: 多产品销售复选框
     fallback: .D_axg
     primary: innerText:has-text("Disable 'Buy' button")
-  platform_payment_close:
-    description: 平台收款关闭按钮
-    fallback: .D_aeF .D_mx
-    primary: innerText:has-text('')
   size_option:
     description: 尺寸选项
     fallback: .D_aeQ .D_mx
     primary: .D_acR:nth-child(1) .D_acW > .D_aec > .D_le
   size_search_input:
     description: 尺寸搜索输入框
-    fallback: input[placeholder='Search']
-    primary: input[placeholder='Search']
+    fallback: input[type='search'][placeholder='Search']
+    primary: input[type='search'][placeholder='Search']
   size_selector:
     description: 尺寸选择器
     fallback: button:has-text('Size')
