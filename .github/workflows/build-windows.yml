@@ -11,8 +11,8 @@ on:
         default: 'onefile'
         type: choice
         options:
-        - onefile
-        - onedir
+          - onefile
+          - onedir
 
 permissions:
   contents: write
@@ -23,85 +23,97 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      # ------------------------------
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      # ------------------------------
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pyinstaller
-        playwright install chromium
+      # ------------------------------
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+          playwright install chromium
 
-    - name: Build executable
-      run: |
-        echo "Selected build mode: ${{ github.event.inputs.build_mode }}"
-        if (${{ github.event.inputs.build_mode }} -eq "onefile") {
-            python build/build.py --mode onefile --distpath dist --workpath build/temp
-        } else {
-            python build/build.py --mode onedir --distpath dist --workpath build/temp
-        }
+      # ------------------------------
+      - name: Build executable
+        shell: pwsh
+        run: |
+          $build_mode = "${{ github.event.inputs.build_mode }}"
+          Write-Host "Selected build mode: $build_mode"
 
-    - name: Copy config and regions to dist
-      run: |
-        echo "Copying config and regions into dist folder..."
-        # 创建 dist/config
-        mkdir dist\config
-        copy config\settings.yaml dist\config\
-        copy config\settings.example.yaml dist\config\
-        # 创建 dist/uploader/regions
-        mkdir dist\uploader\regions
-        xcopy uploader\regions dist\uploader\regions\ /E /I /Y
-        # 打印目录结构
-        dir dist /s
+          if ($build_mode -eq "onefile") {
+              python build/build.py --mode onefile --distpath dist --workpath build/temp
+          } else {
+              python build/build.py --mode onedir --distpath dist --workpath build/temp
+          }
 
-    - name: Upload artifact (onefile)
-      if: ${{ github.event.inputs.build_mode == 'onefile' }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: CarousellUploader-Windows-onefile
-        path: dist
-        retention-days: 30
+      # ------------------------------
+      - name: Copy config and regions to dist
+        shell: pwsh
+        run: |
+          Write-Host "Copying config and regions into dist folder..."
+          # 创建 dist/config
+          mkdir dist\config
+          copy config\settings.yaml dist\config\
+          copy config\settings.example.yaml dist\config\
+          # 创建 dist/uploader/regions
+          mkdir dist\uploader\regions
+          xcopy uploader\regions dist\uploader\regions\ /E /I /Y
+          # 打印目录结构
+          Write-Host "Dist folder structure:"
+          dir dist /s
 
-    - name: Upload artifact (onedir)
-      if: ${{ github.event.inputs.build_mode == 'onedir' }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: CarousellUploader-Windows-onedir
-        path: dist
-        retention-days: 30
+      # ------------------------------
+      - name: Upload artifact (onefile)
+        if: ${{ github.event.inputs.build_mode == 'onefile' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: CarousellUploader-Windows-onefile
+          path: dist
+          retention-days: 30
 
-    - name: Create release (onefile)
-      if: github.ref == 'refs/heads/main' && ${{ github.event.inputs.build_mode == 'onefile' }}
-      uses: softprops/action-gh-release@v1
-      with:
-        files: dist/**
-        tag_name: v${{ github.run_number }}-onefile
-        name: Carousell Uploader v${{ github.run_number }} (onefile)
-        body: |
-          🚀 Carousell Uploader Windows 可执行文件 (单文件版本)
-          包含配置文件和 regions，解压即可使用。
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifact (onedir)
+        if: ${{ github.event.inputs.build_mode == 'onedir' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: CarousellUploader-Windows-onedir
+          path: dist
+          retention-days: 30
 
-    - name: Create release (onedir)
-      if: github.ref == 'refs/heads/main' && ${{ github.event.inputs.build_mode == 'onedir' }}
-      uses: softprops/action-gh-release@v1
-      with:
-        files: dist/**
-        tag_name: v${{ github.run_number }}-onedir
-        name: Carousell Uploader v${{ github.run_number }} (onedir)
-        body: |
-          🚀 Carousell Uploader Windows 可执行文件 (多文件目录版本)
-          包含配置文件和 regions，解压即可使用。
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # ------------------------------
+      - name: Create release (onefile)
+        if: github.ref == 'refs/heads/main' && ${{ github.event.inputs.build_mode == 'onefile' }}
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/**
+          tag_name: v${{ github.run_number }}-onefile
+          name: Carousell Uploader v${{ github.run_number }} (onefile)
+          body: |
+            🚀 Carousell Uploader Windows 可执行文件 (单文件版本)
+            包含配置文件和 regions，解压即可使用。
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create release (onedir)
+        if: github.ref == 'refs/heads/main' && ${{ github.event.inputs.build_mode == 'onedir' }}
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/**
+          tag_name: v${{ github.run_number }}-onedir
+          name: Carousell Uploader v${{ github.run_number }} (onedir)
+          body: |
+            🚀 Carousell Uploader Windows 可执行文件 (多文件目录版本)
+            包含配置文件和 regions，解压即可使用。
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
