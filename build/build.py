@@ -154,6 +154,11 @@ def build_executable(build_mode: str = "onefile", clean: bool = True):
     
     print("Analyzing project structure...")
     
+    # 确保在项目根目录运行
+    project_root = Path(__file__).parent.parent
+    os.chdir(project_root)
+    print(f"Working directory: {os.getcwd()}")
+    
     # 加载配置
     config = load_config()
     print(f"Config file: build_config.yaml")
