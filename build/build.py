@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-简化的智能构建脚本
-自动检测项目模块，生成PyInstaller配置并构建
+Smart PyInstaller Build Script
+Auto-detect project modules, generate PyInstaller config and build
 """
 
 import os
@@ -13,8 +13,8 @@ from typing import List, Set, Dict, Any
 
 
 def load_config() -> Dict[str, Any]:
-    """加载构建配置"""
-    # 默认配置
+    """Load build configuration"""
+    # Default configuration
     return {
         'build': {
             'entry_point': 'cli/main.py',
@@ -36,24 +36,24 @@ def load_config() -> Dict[str, Any]:
 
 
 def discover_modules() -> Set[str]:
-    """自动发现项目模块"""
+    """Auto-discover project modules"""
     modules = set()
     project_root = Path(".")
     
-    # 扫描Python文件
+    # Scan Python files
     for py_file in project_root.rglob("*.py"):
         if py_file.name == "__init__.py":
             continue
         
-        # 计算模块路径
+        # Calculate module path
         rel_path = py_file.relative_to(project_root)
-        parts = list(rel_path.parts[:-1])  # 去掉文件名
+        parts = list(rel_path.parts[:-1])  # Remove filename
         
         if parts:
             module_name = ".".join(parts)
             modules.add(module_name)
     
-    # 添加顶级模块
+    # Add top-level modules
     for item in project_root.iterdir():
         if item.is_dir() and (item / "__init__.py").exists():
             modules.add(item.name)
@@ -62,18 +62,18 @@ def discover_modules() -> Set[str]:
 
 
 def generate_spec_file(config: Dict[str, Any], build_mode: str = "onefile") -> str:
-    """生成PyInstaller spec文件"""
+    """Generate PyInstaller spec file"""
     
-    # 发现模块
+    # Discover modules
     discovered_modules = discover_modules()
     important_modules = set(config.get('important_modules', []))
     exclude_modules = set(config.get('exclude_modules', []))
     
-    # 合并模块
+    # Merge modules
     all_modules = discovered_modules | important_modules
     all_modules = all_modules - exclude_modules
     
-    # 数据文件
+    # Data files
     data_files = config.get('data_files', [])
     existing_datas = []
     for data_file in data_files:
@@ -81,14 +81,14 @@ def generate_spec_file(config: Dict[str, Any], build_mode: str = "onefile") -> s
         if src_path.exists():
             existing_datas.append(f"('{data_file['src']}', '{data_file['dst']}')")
     
-    # 构建配置
+    # Build configuration
     build_config = config['build']
     entry_point = build_config['entry_point']
     output_name = build_config['output_name']
     
-    # 生成spec内容
+    # Generate spec content
     spec_content = f'''# -*- mode: python ; coding: utf-8 -*-
-# 自动生成的PyInstaller配置文件
+# Auto-generated PyInstaller config file
 
 block_cipher = None
 
@@ -150,23 +150,23 @@ coll = COLLECT(
 
 
 def build_executable(build_mode: str = "onefile", clean: bool = True):
-    """构建可执行文件"""
+    """Build executable"""
     
     print("Analyzing project structure...")
     
-    # 确保在项目根目录运行
+    # Ensure running from project root
     project_root = Path(__file__).parent.parent
     os.chdir(project_root)
     print(f"Working directory: {os.getcwd()}")
     
-    # 加载配置
+    # Load configuration
     config = load_config()
     print(f"Config file: build_config.yaml")
     
-    # 生成spec文件
+    # Generate spec file
     spec_content = generate_spec_file(config, build_mode)
     
-    # 保存spec文件
+    # Save spec file
     output_name = config['build']['output_name']
     spec_filename = f"{output_name}.spec"
     
@@ -175,25 +175,25 @@ def build_executable(build_mode: str = "onefile", clean: bool = True):
     
     print(f"Generated spec file: {spec_filename}")
     
-    # 清理之前的构建
+    # Clean previous build
     if clean:
         for dir_name in ['build', 'dist', '__pycache__']:
             if os.path.exists(dir_name):
                 shutil.rmtree(dir_name)
                 print(f"Cleaned: {dir_name}")
     
-    # 执行构建
+    # Execute build
     print(f"Building executable ({build_mode})...")
     try:
         result = subprocess.run([
             sys.executable, "-m", "PyInstaller", 
             "--clean", spec_filename
-        ], check=True, capture_output=True, text=True)
+        ], check=True, capture_output=True, text=True, encoding='utf-8', errors='ignore')
         
         print("Build successful!")
         print(f"Output directory: dist/")
         
-        # 显示构建结果
+        # Show build results
         dist_path = Path("dist")
         if dist_path.exists():
             for item in dist_path.iterdir():
@@ -212,14 +212,14 @@ def build_executable(build_mode: str = "onefile", clean: bool = True):
 
 
 def main():
-    """主函数"""
+    """Main function"""
     import argparse
     
-    parser = argparse.ArgumentParser(description="智能PyInstaller构建工具")
+    parser = argparse.ArgumentParser(description="Smart PyInstaller Build Tool")
     parser.add_argument("--mode", choices=["onefile", "onedir"], 
-                       default="onefile", help="构建模式")
+                       default="onefile", help="Build mode")
     parser.add_argument("--no-clean", action="store_true", 
-                       help="不清理之前的构建")
+                       help="Do not clean previous build")
     
     args = parser.parse_args()
     

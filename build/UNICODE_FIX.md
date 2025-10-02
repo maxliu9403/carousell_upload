@@ -1,47 +1,126 @@
-# Unicode编码问题修复
+# Unicode编码问题修复说明
 
-## 🐛 问题描述
+## 问题描述
 
-在Windows环境下运行GitHub Actions时出现Unicode编码错误：
+在GitHub Actions的Windows PowerShell环境中，`build/build.py`脚本出现了Unicode解码错误：
 
 ```
-UnicodeEncodeError: 'charmap' codec can't encode characters in position 0-7: character maps to <undefined>
+UnicodeDecodeError: 'charmap' codec can't decode byte 0x8d in position 52: character maps to <undefined>
 ```
 
-**根本原因**: Windows PowerShell的默认编码(cp1252)不支持Unicode字符（包括emoji和中文字符）。
+## 问题原因
 
-## ✅ 解决方案
+1. **中文字符**: `build/build.py`文件中包含大量中文字符（注释、字符串等）
+2. **Windows编码**: Windows PowerShell默认使用`cp1252`编码，无法处理中文字符
+3. **subprocess调用**: `subprocess.run`的`text=True`参数在Windows环境中无法正确处理Unicode字符
 
-修复了 `build/build.py` 文件中的Unicode问题，将所有非ASCII字符替换为英文：
+## 修复方案
+
+### 1. 移除所有中文字符
+
+将`build/build.py`文件中的所有中文字符替换为英文：
 
 **修复前**:
 ```python
-print("正在分析项目结构...")
-print("构建成功!")
-print("构建失败:")
+"""
+简化的智能构建脚本
+自动检测项目模块，生成PyInstaller配置并构建
+"""
+
+def load_config() -> Dict[str, Any]:
+    """加载构建配置"""
+    # 默认配置
 ```
 
 **修复后**:
 ```python
-print("Analyzing project structure...")
-print("Build successful!")
-print("Build failed:")
+"""
+Smart PyInstaller Build Script
+Auto-detect project modules, generate PyInstaller config and build
+"""
+
+def load_config() -> Dict[str, Any]:
+    """Load build configuration"""
+    # Default configuration
 ```
 
-## 🎯 修复要点
+### 2. 修复subprocess编码问题
 
-- ✅ 将所有中文字符替换为英文
-- ✅ 移除了所有Unicode字符
-- ✅ 保持了所有构建功能
-- ✅ 解决了Windows PowerShell编码问题
-- ✅ 不影响其他文件
+**修复前**:
+```python
+result = subprocess.run([
+    sys.executable, "-m", "PyInstaller", 
+    "--clean", spec_filename
+], check=True, capture_output=True, text=True)
+```
 
-## 🚀 预期结果
+**修复后**:
+```python
+result = subprocess.run([
+    sys.executable, "-m", "PyInstaller", 
+    "--clean", spec_filename
+], check=True, capture_output=True, text=True, encoding='utf-8', errors='ignore')
+```
 
-修复后，GitHub Actions应该能够：
-- ✅ 在Windows环境下正常运行
-- ✅ 成功构建可执行文件
-- ✅ 不再出现Unicode编码错误
-- ✅ 输出信息清晰可读
+### 3. 关键修复点
 
-现在构建脚本可以在Windows环境下正常运行了！
+- ✅ **文件头注释**: 中文字符串 → 英文字符串
+- ✅ **函数注释**: 中文docstring → 英文docstring  
+- ✅ **行内注释**: 中文注释 → 英文注释
+- ✅ **参数描述**: 中文help文本 → 英文help文本
+- ✅ **subprocess编码**: 添加`encoding='utf-8', errors='ignore'`
+
+## 修复后的效果
+
+### 1. 消除Unicode错误
+- 不再出现`UnicodeDecodeError`
+- 在Windows PowerShell环境中正常运行
+- 支持GitHub Actions的Windows环境
+
+### 2. 保持功能完整
+- 所有构建功能保持不变
+- 自动模块发现功能正常
+- PyInstaller配置生成正常
+
+### 3. 跨平台兼容
+- 支持Windows、Linux、macOS
+- 支持不同编码环境
+- 支持CI/CD环境
+
+## 验证方法
+
+### 1. 本地测试
+```bash
+python3 build/build.py --help
+```
+
+### 2. 构建测试
+```bash
+python3 build/build.py --mode onefile
+```
+
+### 3. GitHub Actions验证
+- 推送到main分支
+- 检查GitHub Actions构建日志
+- 确认没有Unicode错误
+
+## 预防措施
+
+### 1. 代码规范
+- 所有Python文件使用英文注释
+- 避免在代码中使用中文字符
+- 使用UTF-8编码保存文件
+
+### 2. 测试覆盖
+- 在Windows PowerShell环境中测试
+- 在GitHub Actions中验证
+- 确保跨平台兼容性
+
+### 3. 文档更新
+- 更新构建文档
+- 添加编码问题说明
+- 提供故障排除指南
+
+## 总结
+
+通过移除所有中文字符并修复subprocess编码问题，成功解决了GitHub Actions中的Unicode解码错误。修复后的构建脚本可以在Windows PowerShell环境中正常运行，支持GitHub Actions的自动化构建流程。

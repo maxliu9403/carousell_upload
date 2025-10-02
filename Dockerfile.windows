@@ -25,10 +25,6 @@ RUN copy config\\settings.example.yaml C:\\output\\config\\
 RUN xcopy uploader\\regions C:\\output\\uploader\\regions\\ /E /I /Y
 # 复制数据目录
 RUN xcopy data C:\\output\\data\\ /E /I /Y
-# 创建示例Excel文件目录
-RUN mkdir C:\\output\\examples
-RUN echo "SKU,Title,Price,Description,Images" > C:\\output\\examples\\sample.csv
-RUN echo "F36980,Test Product,100,Test Description,image1.jpg" >> C:\\output\\examples\\sample.csv
 # 创建README文件
 RUN echo "Carousell Uploader - Windows Executable" > C:\\output\\README.txt
 RUN echo "" >> C:\\output\\README.txt
@@ -37,7 +33,6 @@ RUN echo "- CarousellUploader.exe: Main executable" >> C:\\output\\README.txt
 RUN echo "- config/: Configuration files" >> C:\\output\\README.txt
 RUN echo "- uploader/regions/: CSS selector configurations by region" >> C:\\output\\README.txt
 RUN echo "- data/: Data processing modules" >> C:\\output\\README.txt
-RUN echo "- examples/: Sample Excel files" >> C:\\output\\README.txt
 RUN echo "" >> C:\\output\\README.txt
 RUN echo "Usage:" >> C:\\output\\README.txt
 RUN echo "1. Configure settings.yaml with your browser API settings" >> C:\\output\\README.txt
