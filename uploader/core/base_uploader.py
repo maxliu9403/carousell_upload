@@ -554,10 +554,7 @@ class BaseUploader:
             try:
                 # 发布商品
                 self._publish_product()
-                
-                # 等待一段时间让dialog出现
-                self.page.wait_for_timeout(3000)
-                
+                                
                 # 检测dialog是否存在
                 dialog_element = self.page.locator('[role="dialog"]')
                 dialog_count = dialog_element.count()
@@ -573,7 +570,6 @@ class BaseUploader:
                     
                 if attempt < max_retries - 1:
                     logger.info(f"{self.log_prefix}🔄 准备重试发布商品...")
-                    self.page.wait_for_timeout(2000)
                     # 继续循环，下次会再次执行 _publish_product()
                 else:
                     # 最后一次重试失败
@@ -588,7 +584,6 @@ class BaseUploader:
                 
                 if attempt < max_retries - 1:
                     logger.info(f"{self.log_prefix}🔄 准备重试发布商品...")
-                    self.page.wait_for_timeout(2000)
                     # 继续循环，下次会再次执行 _publish_product()
                 else:
                     # 最后一次重试失败
