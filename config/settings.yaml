@@ -98,9 +98,9 @@ actions:
 
 # 日志配置
 logging:
-  level: "INFO"            # 日志等级: DEBUG, INFO, WARNING, ERROR, CRITICAL
-  console_level: "INFO"   # 控制台日志等级
-  file_level: "DEBUG"     # 文件日志等级
+  level: "INFO"          # 日志等级: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  console_level: "INFO"  # 控制台日志等级
+  file_level: "INFO"     # 文件日志等级
   enable_colors: true      # 是否启用彩色输出
   enable_file_logging: true # 是否启用文件日志
   log_rotation:

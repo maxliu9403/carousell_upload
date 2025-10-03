@@ -267,3 +267,16 @@ def log_info_with_context(logger, message: str, context: dict = None):
 # 创建默认日志记录器
 logger = setup_logger()
 
+def reinitialize_logger():
+    """重新初始化日志记录器，应用新的配置"""
+    global logger
+    
+    # 清除现有的处理器
+    if logger.handlers:
+        for handler in logger.handlers[:]:
+            logger.removeHandler(handler)
+    
+    # 重新创建日志记录器
+    logger = setup_logger()
+    return logger
+
