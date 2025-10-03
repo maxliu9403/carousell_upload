@@ -2,8 +2,67 @@ import logging
 import logging.handlers
 import sys
 import os
+import yaml
 from datetime import datetime, timedelta
 from pathlib import Path
+
+def load_logging_config():
+    """从配置文件加载日志配置"""
+    try:
+        # 获取配置文件路径
+        config_path = Path(__file__).parent.parent / "config" / "settings.yaml"
+        
+        if not config_path.exists():
+            # 如果配置文件不存在，使用默认配置
+            return {
+                "level": "INFO",
+                "console_level": "INFO", 
+                "file_level": "DEBUG",
+                "enable_colors": True,
+                "enable_file_logging": True,
+                "log_rotation": {
+                    "when": "midnight",
+                    "interval": 1,
+                    "backup_count": 5,
+                    "days_to_keep": 5
+                }
+            }
+        
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f)
+        
+        # 获取日志配置，如果不存在则使用默认值
+        logging_config = config.get('logging', {})
+        
+        return {
+            "level": logging_config.get('level', 'INFO'),
+            "console_level": logging_config.get('console_level', 'INFO'),
+            "file_level": logging_config.get('file_level', 'DEBUG'),
+            "enable_colors": logging_config.get('enable_colors', True),
+            "enable_file_logging": logging_config.get('enable_file_logging', True),
+            "log_rotation": logging_config.get('log_rotation', {
+                "when": "midnight",
+                "interval": 1,
+                "backup_count": 5,
+                "days_to_keep": 5
+            })
+        }
+        
+    except Exception as e:
+        print(f"⚠️ 加载日志配置失败，使用默认配置: {e}")
+        return {
+            "level": "INFO",
+            "console_level": "INFO",
+            "file_level": "DEBUG", 
+            "enable_colors": True,
+            "enable_file_logging": True,
+            "log_rotation": {
+                "when": "midnight",
+                "interval": 1,
+                "backup_count": 5,
+                "days_to_keep": 5
+            }
+        }
 
 def get_log_directory():
     """获取日志目录，支持PyInstaller打包后的情况"""
@@ -85,10 +144,33 @@ class ColoredFormatter(logging.Formatter):
         
         return False
 
-def setup_logger(name: str = "carousell_uploader", level: int = logging.INFO) -> logging.Logger:
+def setup_logger(name: str = "carousell_uploader", level: int = None) -> logging.Logger:
     """
-    设置日志记录器
+    设置日志记录器，支持从配置文件读取日志等级
+    
+    Args:
+        name: 日志记录器名称
+        level: 日志等级，如果为None则从配置文件读取
     """
+    # 加载日志配置
+    config = load_logging_config()
+    
+    # 如果未指定level，从配置文件读取
+    if level is None:
+        level_str = config.get('level', 'INFO')
+        level = getattr(logging, level_str.upper(), logging.INFO)
+    
+    # 获取控制台和文件日志等级
+    console_level_str = config.get('console_level', 'INFO')
+    file_level_str = config.get('file_level', 'DEBUG')
+    console_level = getattr(logging, console_level_str.upper(), logging.INFO)
+    file_level = getattr(logging, file_level_str.upper(), logging.DEBUG)
+    
+    # 获取其他配置
+    enable_colors = config.get('enable_colors', True)
+    enable_file_logging = config.get('enable_file_logging', True)
+    log_rotation = config.get('log_rotation', {})
+    
     logger = logging.getLogger(name)
     logger.setLevel(level)
     
@@ -110,29 +192,34 @@ def setup_logger(name: str = "carousell_uploader", level: int = logging.INFO) ->
     
     # 控制台处理器
     console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(level)
-    console_handler.setFormatter(colored_formatter)
+    console_handler.setLevel(console_level)
+    if enable_colors:
+        console_handler.setFormatter(colored_formatter)
+    else:
+        console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
     
     # 文件处理器 - 支持外部日志目录和时间轮转
-    log_dir = get_log_directory()
-    log_dir.mkdir(exist_ok=True)
-    
-    # 清理旧日志文件（保留5天）
-    cleanup_old_logs(log_dir, days_to_keep=5)
-    
-    # 使用时间轮转文件处理器
-    file_handler = logging.handlers.TimedRotatingFileHandler(
-        filename=log_dir / "carousell.log",
-        when='midnight',  # 每天午夜轮转
-        interval=1,        # 每1天轮转一次
-        backupCount=5,     # 保留5个备份文件
-        encoding='utf-8',
-        utc=False          # 使用本地时间
-    )
-    file_handler.setLevel(level)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
+    if enable_file_logging:
+        log_dir = get_log_directory()
+        log_dir.mkdir(exist_ok=True)
+        
+        # 清理旧日志文件
+        days_to_keep = log_rotation.get('days_to_keep', 5)
+        cleanup_old_logs(log_dir, days_to_keep=days_to_keep)
+        
+        # 使用时间轮转文件处理器
+        file_handler = logging.handlers.TimedRotatingFileHandler(
+            filename=log_dir / "carousell.log",
+            when=log_rotation.get('when', 'midnight'),
+            interval=log_rotation.get('interval', 1),
+            backupCount=log_rotation.get('backup_count', 5),
+            encoding='utf-8',
+            utc=False
+        )
+        file_handler.setLevel(file_level)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
     
     return logger
 
