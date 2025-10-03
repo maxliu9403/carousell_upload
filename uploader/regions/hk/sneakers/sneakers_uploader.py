@@ -54,7 +54,13 @@ class HKSneakersUploader(BaseUploader):
         self._publish_product()
 
         # 等待页面加载结束
-        self.page.wait_for_load_state("networkidle", timeout=30000)
+        try:
+            self.page.wait_for_load_state("networkidle", timeout=5000)
+            logger.info("✅ 页面网络活动已结束")
+        except Exception as e:
+            logger.warning(f"⚠️ 等待页面网络活动结束超时: {e}")
+            # 即使超时也继续执行，因为发布操作已经完成
+            logger.info("✅ 继续执行后续流程")
     
     def _edit_to_sneakers(self, enriched_info: ProductInfo):
         """

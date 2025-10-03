@@ -237,7 +237,7 @@ class BaseUploader:
             
         # 等待页面加载结束（使用较短的超时时间）
         try:
-            self.page.wait_for_load_state("networkidle", timeout=50000)
+            self.page.wait_for_load_state("networkidle", timeout=5000)
             logger.info(f"{self.log_prefix}✅ 页面网络活动已结束")
         except Exception as e:
             logger.warning(f"{self.log_prefix}⚠️ 等待页面网络活动结束超时: {e}")
