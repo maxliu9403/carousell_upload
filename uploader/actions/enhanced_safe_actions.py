@@ -5,7 +5,7 @@
 import time
 import random
 from typing import Optional, Tuple, List
-from playwright.sync_api import Page
+from playwright.sync_api import Page # pyright: ignore[reportMissingImports]    
 from browser.actions import click_with_wait, input_with_wait, human_delay, DEFAULT_TIMEOUT
 from core.logger import logger
 from ..config.enhanced_css_selector_manager import get_enhanced_css_manager, EnhancedCSSSelectorManager

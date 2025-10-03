@@ -1,4 +1,4 @@
-# Carousell 自动上传工具
+# 自动上传工具
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -49,32 +49,15 @@
 **快速构建**:
 ```bash
 # Linux/macOS
-./build.sh onefile    # 构建单文件版本
-./build.sh onedir     # 构建单目录版本
-./build.sh clean      # 清理构建文件
+./build.sh --mode onefile    # 构建单文件版本
+./build.sh --mode onedir     # 构建单目录版本
+./build.sh --clean           # 清理构建文件
+./build.sh --help            # 显示帮助信息
 
-# Windows
-build.bat onefile     # 构建单文件版本
-build.bat onedir      # 构建单目录版本
-build.bat clean       # 清理构建文件
-```
-
-**手动构建**:
-```bash
-# 进入构建目录
-cd build
-
-# 单文件版本
-python3 build.py --mode onefile
-
-# 单目录版本
-python3 build.py --mode onedir
-```
-
-**Docker构建**:
-```bash
-# 构建Windows Docker镜像
-docker build -f build/Dockerfile.windows -t carousell-uploader-windows .
+# 简化用法（推荐）
+./build.sh onefile           # 构建单文件版本
+./build.sh onedir            # 构建单目录版本
+./build.sh clean             # 清理构建文件
 ```
 
 更多构建详情请参考 [build/README.md](build/README.md)。
