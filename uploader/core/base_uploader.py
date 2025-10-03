@@ -571,17 +571,17 @@ class BaseUploader:
                 else:
                     logger.warning(f"{self.log_prefix}⚠️ 第 {attempt + 1} 次尝试未检测到dialog元素")
                     
-                    if attempt < max_retries - 1:
-                        logger.info(f"{self.log_prefix}🔄 准备重试发布商品...")
-                        self.page.wait_for_timeout(2000)
-
-                    else:
-                        # 最后一次重试失败
-                        error_msg = f"经过 {max_retries} 次重试后仍未检测到dialog元素，发布可能失败"
-                        if self.browser_id and self.sku:
-                            error_msg = f"BrowserID: {self.browser_id}, SKU: {self.sku}, {error_msg}"
-                        logger.error(error_msg)
-                        raise CriticalOperationFailed(error_msg)
+                if attempt < max_retries - 1:
+                    logger.info(f"{self.log_prefix}🔄 准备重试发布商品...")
+                    self.page.wait_for_timeout(2000)
+                    # 继续循环，下次会再次执行 _publish_product()
+                else:
+                    # 最后一次重试失败
+                    error_msg = f"经过 {max_retries} 次重试后仍未检测到dialog元素，发布可能失败"
+                    if self.browser_id and self.sku:
+                        error_msg = f"BrowserID: {self.browser_id}, SKU: {self.sku}, {error_msg}"
+                    logger.error(error_msg)
+                    raise CriticalOperationFailed(error_msg)
                         
             except Exception as e:
                 logger.warning(f"{self.log_prefix}⚠️ 第 {attempt + 1} 次尝试发布商品时发生异常: {e}")
@@ -598,7 +598,7 @@ class BaseUploader:
                     logger.error(error_msg)
                     raise CriticalOperationFailed(error_msg)
         
-        # 如果所有重试都失败，抛出异常
+        # 如果所有重试都失败，抛出异常（这行代码不应该被执行到，因为成功时会return True）
         error_msg = f"经过 {max_retries} 次重试后发布商品失败"
         if self.browser_id and self.sku:
             error_msg = f"BrowserID: {self.browser_id}, SKU: {self.sku}, {error_msg}"
