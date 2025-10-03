@@ -235,8 +235,14 @@ class BaseUploader:
         # 发布商品并检测dialog
         self._publish_product_with_dialog_detection()
             
-        # 等待页面加载结束
-        self.page.wait_for_load_state("networkidle")
+        # 等待页面加载结束（使用较短的超时时间）
+        try:
+            self.page.wait_for_load_state("networkidle", timeout=50000)
+            logger.info(f"{self.log_prefix}✅ 页面网络活动已结束")
+        except Exception as e:
+            logger.warning(f"{self.log_prefix}⚠️ 等待页面网络活动结束超时: {e}")
+            # 即使超时也继续执行，因为dialog已经消失，操作基本完成
+            logger.info(f"{self.log_prefix}✅ 继续执行后续流程")
     
     # HK逻辑
     def _closewhatsapp(self):
