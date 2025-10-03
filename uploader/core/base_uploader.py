@@ -2,6 +2,7 @@
 基础上传器类 - 包含所有地域和类目的公共功能
 保持原有的点击操作顺序和CSS选择器不变
 """
+import time
 from typing import Optional
 from playwright.sync_api import Page  # pyright: ignore[reportMissingImports]
 from core.models import ProductInfo, UploadConfig
@@ -231,27 +232,8 @@ class BaseUploader:
         # 等待页面稳定
         self.page.wait_for_timeout(10000)
 
-        # 发布商品
-        self._publish_product()
-
-        # 判断dialog消失 - 使用role="dialog"元素消失作为判断条件
-        try:
-            # 等待dialog元素消失
-            dialog_element = self.page.locator('[role="dialog"]')
-            
-            # 检查dialog是否存在
-            if dialog_element.count() > 0:
-                logger.info(f"{self.log_prefix}检测到dialog元素，等待其消失...")
-                # 等待dialog消失
-                dialog_element.wait_for(state="hidden", timeout=30000)
-                logger.info(f"{self.log_prefix}Dialog已消失，操作完成，继续执行后续流程")
-            else:
-                logger.info(f"{self.log_prefix}未检测到dialog元素，可能已经消失，继续执行后续流程")
-                
-        except Exception as e:
-            logger.warning(f"{self.log_prefix}等待dialog消失时发生异常: {e}")
-            # 即使出现异常，也继续执行，因为dialog可能已经消失
-            logger.info(f"{self.log_prefix}继续执行后续流程")
+        # 发布商品并检测dialog
+        self._publish_product_with_dialog_detection()
             
         # 等待页面加载结束
         self.page.wait_for_load_state("networkidle")
@@ -561,6 +543,66 @@ class BaseUploader:
             "publishing.publish_button", self.region, must_exist=True,
             operation="点击发布按钮"
         )
+    
+    def _publish_product_with_dialog_detection(self):
+        """发布商品并检测dialog，支持重试机制"""
+        max_retries = 3
+        
+        for attempt in range(max_retries):
+            logger.info(f"{self.log_prefix}🔄 第 {attempt + 1}/{max_retries} 次尝试发布商品")
+            
+            try:
+                # 发布商品
+                self._publish_product()
+                
+                # 等待一段时间让dialog出现
+                self.page.wait_for_timeout(3000)
+                
+                # 检测dialog是否存在
+                dialog_element = self.page.locator('[role="dialog"]')
+                dialog_count = dialog_element.count()
+                
+                if dialog_count > 0:
+                    logger.info(f"{self.log_prefix}✅ 检测到dialog元素，等待其消失...")
+                    # 等待dialog消失
+                    dialog_element.wait_for(state="hidden", timeout=30000)
+                    logger.info(f"{self.log_prefix}✅ Dialog已消失，操作完成，继续执行后续流程")
+                    return True
+                else:
+                    logger.warning(f"{self.log_prefix}⚠️ 第 {attempt + 1} 次尝试未检测到dialog元素")
+                    
+                    if attempt < max_retries - 1:
+                        logger.info(f"{self.log_prefix}🔄 准备重试发布商品...")
+                        self.page.wait_for_timeout(2000)
+
+                    else:
+                        # 最后一次重试失败
+                        error_msg = f"经过 {max_retries} 次重试后仍未检测到dialog元素，发布可能失败"
+                        if self.browser_id and self.sku:
+                            error_msg = f"BrowserID: {self.browser_id}, SKU: {self.sku}, {error_msg}"
+                        logger.error(error_msg)
+                        raise CriticalOperationFailed(error_msg)
+                        
+            except Exception as e:
+                logger.warning(f"{self.log_prefix}⚠️ 第 {attempt + 1} 次尝试发布商品时发生异常: {e}")
+                
+                if attempt < max_retries - 1:
+                    logger.info(f"{self.log_prefix}🔄 准备重试发布商品...")
+                    self.page.wait_for_timeout(2000)
+                    # 继续循环，下次会再次执行 _publish_product()
+                else:
+                    # 最后一次重试失败
+                    error_msg = f"经过 {max_retries} 次重试后发布商品失败: {e}"
+                    if self.browser_id and self.sku:
+                        error_msg = f"BrowserID: {self.browser_id}, SKU: {self.sku}, {error_msg}"
+                    logger.error(error_msg)
+                    raise CriticalOperationFailed(error_msg)
+        
+        # 如果所有重试都失败，抛出异常
+        error_msg = f"经过 {max_retries} 次重试后发布商品失败"
+        if self.browser_id and self.sku:
+            error_msg = f"BrowserID: {self.browser_id}, SKU: {self.sku}, {error_msg}"
+        raise CriticalOperationFailed(error_msg)
         
     # ========= 公共方法：编辑模式 =========
     def _enter_edit_mode(self):
@@ -646,33 +688,35 @@ class BaseUploader:
         self.page.wait_for_timeout(2000)
 
     def _click_activate_button(self):
-        """点击激活按钮"""
+        """点击激活按钮并等待激活完成"""
         logger.info(f"{self.log_prefix}🚀 点击激活按钮")
+        
+        # 获取按钮选择器
+        button_selector = self.safe_actions.get_selector("editing.activate_button", self.region)
+        
+        # 点击前先获取按钮的初始文字
+        try:
+            element = self.page.query_selector(button_selector)
+            if element:
+                initial_text = element.text_content().strip()
+                logger.info(f"{self.log_prefix}📝 按钮初始文字: '{initial_text}'")
+            else:
+                initial_text = None
+                logger.warning(f"{self.log_prefix}⚠️ 无法获取按钮初始文字")
+        except Exception as e:
+            initial_text = None
+            logger.warning(f"{self.log_prefix}⚠️ 获取按钮初始文字失败: {e}")
+        
+        # 点击激活按钮
         self.safe_actions.safe_click_with_config(
             "editing.activate_button", self.region, must_exist=True,
             operation="点击激活商品"
         )
-
-    def _wait_for_activation_complete(self):
-        """等待激活完成"""
-        logger.info(f"{self.log_prefix}⏳ 等待激活完成...")
         
-        try:
-            # 等待激活按钮消失或状态改变
-            self._wait_for_element_to_disappear(
-                self.safe_actions.get_selector("editing.activate_button", self.region),
-                timeout=15000
-            )
-            logger.info(f"{self.log_prefix}✅ 激活按钮已消失")
-            
-            # 额外等待确保状态更新
-            self.page.wait_for_timeout(2000)
-            logger.info(f"{self.log_prefix}✅ 商品激活完成")
-            
-        except Exception as e:
-            logger.warning(f"{self.log_prefix}⚠️ 激活完成等待超时: {e}")
-            # 即使超时也继续执行
-            self.page.wait_for_timeout(3000)
+        # 立即等待激活完成（按钮文字变化）
+        logger.info(f"{self.log_prefix}⏳ 等待激活完成...")
+        self._wait_for_activation_complete(button_selector, initial_text, timeout=15000)
+        logger.info(f"{self.log_prefix}✅ 商品激活完成")
 
     def _activate_product(self):
         """激活商品 - 主流程"""
@@ -685,11 +729,8 @@ class BaseUploader:
             # 点击未激活的商品
             self._click_inactive_product()
             
-            # 点击激活按钮
+            # 点击激活按钮（已包含等待激活完成逻辑）
             self._click_activate_button()
-            
-            # 等待激活完成
-            self._wait_for_activation_complete()
             
             logger.info(f"{self.log_prefix}✅ 激活商品流程完成")
             
@@ -742,6 +783,140 @@ class BaseUploader:
             error_msg += f", 失败原因: {e}"
             logger.error(error_msg)
             raise CriticalOperationFailed(error_msg)
+    
+    def _wait_for_activation_complete(self, selector: str = "button[innerText='Mark as active']", initial_text: str = None, timeout: int = 60000):
+        """
+        等待激活完成，通过监控按钮文字变化
+        
+        Args:
+            selector: 按钮CSS选择器，默认查找 "Mark as active" 按钮
+            initial_text: 按钮初始文字，如果提供则等待文字从初始文字改变
+            timeout: 超时时间（毫秒），默认60秒
+        """
+        logger.info(f"{self.log_prefix}等待激活完成: {selector}, 初始文字: {initial_text}, 超时时间: {timeout}ms")
+        
+        start_time = time.time()
+        last_text = ""
+        
+        while (time.time() - start_time) * 1000 < timeout:
+            try:
+                # 检查按钮是否存在
+                element = self.page.query_selector(selector)
+                if not element:
+                    logger.info(f"{self.log_prefix}激活按钮已消失，激活可能完成")
+                    return True
+                
+                # 获取当前按钮文字
+                current_text = element.text_content().strip() if element else ""
+                
+                # 如果文字发生变化，记录日志
+                if current_text != last_text:
+                    logger.info(f"{self.log_prefix}按钮文字变化: '{last_text}' -> '{current_text}'")
+                    last_text = current_text
+                
+                # 如果提供了初始文字，检查是否已从初始文字改变
+                if initial_text and current_text != initial_text:
+                    logger.info(f"{self.log_prefix}激活完成，按钮文字已从初始文字改变: '{initial_text}' -> '{current_text}'")
+                    return True
+                
+                # 如果没有提供初始文字，使用默认逻辑（按钮文字不再是 "Mark as active"）
+                if not initial_text and current_text and current_text != "Mark as active":
+                    logger.info(f"{self.log_prefix}激活完成，按钮文字变为: '{current_text}'")
+                    return True
+                
+                # 检查是否按钮变为不可用状态（表示激活完成）
+                if element.is_disabled():
+                    logger.info(f"{self.log_prefix}按钮变为禁用状态，激活完成")
+                    return True
+                
+                # 等待一段时间后再次检查
+                self.page.wait_for_timeout(1000)
+                
+            except Exception as e:
+                logger.warning(f"{self.log_prefix}检查激活状态时出错: {e}")
+                self.page.wait_for_timeout(1000)
+        
+        # 超时处理
+        try:
+            element = self.page.query_selector(selector)
+            if element:
+                current_text = element.text_content().strip() if element else ""
+                error_msg = f"等待激活完成超时: {selector}, 当前文字: '{current_text}', 超时时间: {timeout}ms"
+            else:
+                error_msg = f"等待激活完成超时: {selector}, 按钮已消失, 超时时间: {timeout}ms"
+        except Exception as e:
+            error_msg = f"等待激活完成超时: {selector}, 超时时间: {timeout}ms, 错误: {e}"
+        
+        if self.browser_id and self.sku:
+            error_msg = f"BrowserID: {self.browser_id}, SKU: {self.sku}, {error_msg}"
+        
+        logger.error(error_msg)
+        raise CriticalOperationFailed(error_msg)
+    
+    def _wait_for_button_text_change(self, selector: str, initial_text: str = None, expected_texts: list = None, timeout: int = 60000):
+        """
+        等待按钮文字变化
+        
+        Args:
+            selector: 按钮CSS选择器
+            initial_text: 初始文字，如果提供则等待文字从初始文字改变
+            expected_texts: 期望的文字列表，如果提供则等待文字变为期望文字之一
+            timeout: 超时时间（毫秒），默认60秒
+        """
+        logger.info(f"{self.log_prefix}等待按钮文字变化: {selector}, 初始文字: {initial_text}, 期望文字: {expected_texts}, 超时时间: {timeout}ms")
+        
+        start_time = time.time()
+        last_text = ""
+        
+        while (time.time() - start_time) * 1000 < timeout:
+            try:
+                # 检查按钮是否存在
+                element = self.page.query_selector(selector)
+                if not element:
+                    logger.info(f"{self.log_prefix}按钮已消失: {selector}")
+                    return True
+                
+                # 获取当前按钮文字
+                current_text = element.text_content().strip() if element else ""
+                
+                # 如果文字发生变化，记录日志
+                if current_text != last_text:
+                    logger.info(f"{self.log_prefix}按钮文字变化: '{last_text}' -> '{current_text}'")
+                    last_text = current_text
+                
+                # 如果提供了初始文字，检查是否已从初始文字改变
+                if initial_text and current_text != initial_text:
+                    logger.info(f"{self.log_prefix}按钮文字已从初始文字改变: '{initial_text}' -> '{current_text}'")
+                    return True
+                
+                # 如果提供了期望文字，检查是否达到期望文字
+                if expected_texts and current_text in expected_texts:
+                    logger.info(f"{self.log_prefix}按钮文字已达到期望文字: '{current_text}'")
+                    return True
+                
+                # 等待一段时间后再次检查
+                self.page.wait_for_timeout(1000)
+                
+            except Exception as e:
+                logger.warning(f"{self.log_prefix}检查按钮文字变化时出错: {e}")
+                self.page.wait_for_timeout(1000)
+        
+        # 超时处理
+        try:
+            element = self.page.query_selector(selector)
+            if element:
+                current_text = element.text_content().strip() if element else ""
+                error_msg = f"等待按钮文字变化超时: {selector}, 当前文字: '{current_text}', 初始文字: {initial_text}, 期望文字: {expected_texts}, 超时时间: {timeout}ms"
+            else:
+                error_msg = f"等待按钮文字变化超时: {selector}, 按钮已消失, 超时时间: {timeout}ms"
+        except Exception as e:
+            error_msg = f"等待按钮文字变化超时: {selector}, 超时时间: {timeout}ms, 错误: {e}"
+        
+        if self.browser_id and self.sku:
+            error_msg = f"BrowserID: {self.browser_id}, SKU: {self.sku}, {error_msg}"
+        
+        logger.error(error_msg)
+        raise CriticalOperationFailed(error_msg)
     
     def _wait_for_element_visible(self, selector: str, timeout: int = 30000):
         """
