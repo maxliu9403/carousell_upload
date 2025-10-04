@@ -62,8 +62,8 @@ popups_and_settings:
     primary: '#FieldSetField-Container-field_mailing_details .D_tk'
   delivery_toggle:
     description: 送货开关 (固定选择器不要随意修改！！！)
-    fallback: xpath=//form//p[normalize-space(.)="Delivery"], xpath=//form//p[normalize-space(.)="送貨"]
-    primary: xpath=//form//p[normalize-space(.)="Delivery"], xpath=//form//p[normalize-space(.)="送貨"]
+    fallback: xpath=//form//p[normalize-space(.)="Delivery"], xpath=//form//p[normalize-space(.)="送貨"], xpath=//form//p[normalize-space(.)="郵寄&速遞"]
+    primary: xpath=//form//p[normalize-space(.)="Delivery"], xpath=//form//p[normalize-space(.)="送貨"], xpath=//form//p[normalize-space(.)="郵寄&速遞"]
   meetup_input:
     description: 面交地点输入框
     fallback: xpath=//form//input[@type="text"][@aria-label="添加地點"], xpath=//form//input[@type="text"][@aria-label="Add location"]
