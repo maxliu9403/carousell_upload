@@ -188,6 +188,140 @@ class BaseUploader:
         # 初始化增强安全操作
         self.safe_actions = create_enhanced_safe_actions(page, browser_id, sku, self.region, self.category)
         
+        # 初始化按钮文本捕获属性
+        self.sell_button_text = None
+        
+    def _get_button_text(self, element_key: str, allow_user_input: bool = True) -> str:
+        """
+        获取按钮的innerText值
+        
+        Args:
+            element_key: 元素键名
+            allow_user_input: 是否允许用户输入CSS选择器
+            
+        Returns:
+            str: 按钮的innerText值，如果获取失败返回None
+        """
+        try:
+            # 检查并重新加载配置（支持热更新）
+            self.safe_actions.css_manager.check_and_reload()
+            
+            # 获取选择器
+            primary_selector, fallback_selector = self.safe_actions.css_manager.get_selector_with_fallback(
+                element_key, self.region, self.category
+            )
+            
+            if not primary_selector:
+                logger.warning(f"⚠️ 找不到选择器配置: {element_key}")
+                return None
+            
+            # 尝试主选择器
+            try:
+                if primary_selector.startswith("//"):
+                    element = self.page.wait_for_selector(f"xpath={primary_selector}", timeout=5000)
+                elif ":has-text(" in primary_selector:
+                    element = self.page.locator(primary_selector)
+                    element.wait_for(state="visible", timeout=5000)
+                else:
+                    element = self.page.wait_for_selector(primary_selector, timeout=5000)
+                
+                if element:
+                    text = element.inner_text()
+                    logger.debug(f"✅ 获取到按钮文本: '{text}'")
+                    return text
+                    
+            except Exception as e:
+                logger.debug(f"主选择器获取文本失败: {e}")
+            
+            # 尝试备用选择器
+            if fallback_selector and fallback_selector != primary_selector:
+                try:
+                    if fallback_selector.startswith("//"):
+                        element = self.page.wait_for_selector(f"xpath={fallback_selector}", timeout=5000)
+                    elif ":has-text(" in fallback_selector:
+                        element = self.page.locator(fallback_selector)
+                        element.wait_for(state="visible", timeout=5000)
+                    else:
+                        element = self.page.wait_for_selector(fallback_selector, timeout=5000)
+                    
+                    if element:
+                        text = element.inner_text()
+                        logger.debug(f"✅ 获取到按钮文本 (备用选择器): '{text}'")
+                        return text
+                        
+                except Exception as e:
+                    logger.debug(f"备用选择器获取文本失败: {e}")
+            
+            logger.warning(f"⚠️ 无法获取按钮文本: {element_key}")
+            
+            # 如果允许用户输入，尝试让用户输入新的选择器
+            if allow_user_input:
+                logger.info(f"🔄 尝试让用户输入新的CSS选择器来获取按钮文本")
+                return self._get_button_text_with_user_input(element_key)
+            
+            return None
+            
+        except Exception as e:
+            logger.error(f"❌ 获取按钮文本异常: {e}")
+            
+            # 如果允许用户输入，尝试让用户输入新的选择器
+            if allow_user_input:
+                logger.info(f"🔄 尝试让用户输入新的CSS选择器来获取按钮文本")
+                return self._get_button_text_with_user_input(element_key)
+            
+            return None
+    
+    def _get_button_text_with_user_input(self, element_key: str) -> str:
+        """
+        通过用户输入CSS选择器来获取按钮文本
+        
+        Args:
+            element_key: 元素键名
+            
+        Returns:
+            str: 按钮的innerText值，如果获取失败返回None
+        """
+        try:
+            # 复用现有的用户输入逻辑
+            prompt = f"获取按钮文本 - {element_key}"
+            new_selector = self.safe_actions._get_user_input(prompt, element_key, must_exist=False, region=self.region)
+            
+            if new_selector == "SKIP":
+                logger.info("用户选择跳过获取按钮文本")
+                return None
+            
+            if not new_selector or new_selector == "SKIP":
+                return None
+            
+            # 使用用户输入的选择器尝试获取文本
+            logger.info(f"🔄 使用用户输入的选择器尝试获取按钮文本: {new_selector}")
+            
+            try:
+                # 判断选择器类型并获取元素
+                if new_selector.startswith("//"):
+                    element = self.page.wait_for_selector(f"xpath={new_selector}", timeout=5000)
+                elif ":has-text(" in new_selector:
+                    element = self.page.locator(new_selector)
+                    element.wait_for(state="visible", timeout=5000)
+                else:
+                    element = self.page.wait_for_selector(new_selector, timeout=5000)
+                
+                if element:
+                    text = element.inner_text()
+                    logger.info(f"✅ 使用用户选择器成功获取按钮文本: '{text}'")
+                    return text
+                else:
+                    logger.warning("⚠️ 用户选择器未找到元素")
+                    return None
+                    
+            except Exception as e:
+                logger.warning(f"⚠️ 用户选择器获取文本失败: {e}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"❌ 用户输入获取按钮文本异常: {e}")
+            return None
+        
     def _get_domain_by_region(self) -> str:
         """根据地域获取对应的域名"""
         if self.region not in self.config.domains:
@@ -432,6 +566,16 @@ class BaseUploader:
     # ========= 公共方法：上传流程 =========
     def _start_upload_flow(self, folder_path: str):
         """开始上传流程"""
+
+        # 获取按钮文本并保存到self中，支持默认值
+        self.sell_button_text = self._get_button_text("basic_elements.sell_button")
+        if not self.sell_button_text:
+            # 根据地区设置默认按钮文本
+            self.sell_button_text = "賣嘢" if self.region == "HK" else "Sell"
+            logger.warning(f"⚠️ 未能获取到Sell按钮文本，使用默认值: '{self.sell_button_text}'")
+        else:
+            logger.info(f"✅ 已获取Sell按钮文本: '{self.sell_button_text}'")
+
         # 点击sell按钮
         self.safe_actions.safe_click_with_config(
             "basic_elements.sell_button", self.region, must_exist=True,
@@ -489,21 +633,23 @@ class BaseUploader:
         
     def _get_service_search_keyword(self) -> str:
         """
-        根据地域获取服务类目搜索关键词
+        根据按钮文本或地域获取服务类目搜索关键词
         
         Returns:
             str: 搜索关键词
         """
-        service_keywords = {
-            "SG": "others",    # 新加坡使用 "others"
-            "HK": "其他",      # 香港使用 "其他"
-            "MY": "others"     # 马来西亚使用 "others"
-        }
+        # 优先根据按钮文本判断语言
+        if self.sell_button_text == "賣嘢":
+            keyword = "其他"
+        elif self.sell_button_text == "Sell":
+            keyword = "others"
+        else:
+            # 备用方案：根据地区判断
+            keyword = "其他" if self.region == "HK" else "others"
         
-        keyword = service_keywords.get(self.region, "others")
-        logger.info(f"使用地域 {self.region} 的服务搜索关键词: {keyword}")
+        logger.info(f"使用服务搜索关键词: '{keyword}' (按钮文本: '{self.sell_button_text}', 地区: {self.region})")
         return keyword
-        
+    
     def _fill_basic_info(self, enriched_info: ProductInfo):
         """填写基本信息"""
         # 输入产品标题

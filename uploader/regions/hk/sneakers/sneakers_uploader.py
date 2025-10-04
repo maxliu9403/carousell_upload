@@ -95,10 +95,16 @@ class HKSneakersUploader(BaseUploader):
             operation="修改产品类目"
         )
 
-        # 输入运动鞋搜索关键词
-        search_keyword = self.safe_actions.css_manager.get_selector(
-            "sneakers_specific.category_search_keyword", self.region, "primary"
-        ) or "波鞋"
+        # 根据按钮文本决定运动鞋搜索关键词
+        if self.sell_button_text == "賣嘢":
+            search_keyword = "波鞋"  # 香港中文界面
+        elif self.sell_button_text == "Sell":
+            search_keyword = "sneakers"  # 英文界面
+        else:
+            # 备用方案：根据地区判断
+            search_keyword = "波鞋" if self.region == "HK" else "sneakers"
+        
+        logger.info(f"使用运动鞋搜索关键词: '{search_keyword}' (按钮文本: '{self.sell_button_text}', 地区: {self.region})")
         
         self.safe_actions.safe_input_with_config(
             "sneakers_specific.category_search_input", search_keyword, self.region, must_exist=True,
@@ -138,10 +144,16 @@ class HKSneakersUploader(BaseUploader):
             operation="点击品牌选择"
         )
 
-        # 点击搜索品牌
-        brand_search_keyword = self.safe_actions.css_manager.get_selector(
-            "sneakers_specific.brand_search_keyword", self.region, "primary"
-        ) or "其他"
+        # 根据按钮文本决定品牌搜索关键词
+        if self.sell_button_text == "賣嘢":
+            brand_search_keyword = "其他"  # 香港中文界面
+        elif self.sell_button_text == "Sell":
+            brand_search_keyword = "Other"  # 英文界面
+        else:
+            # 备用方案：根据地区判断
+            brand_search_keyword = "其他" if self.region == "HK" else "Other"
+        
+        logger.info(f"使用品牌搜索关键词: '{brand_search_keyword}' (按钮文本: '{self.sell_button_text}', 地区: {self.region})")
         
         self.safe_actions.safe_input_with_config(
             "sneakers_specific.brand_search_input", brand_search_keyword, self.region, must_exist=True,
