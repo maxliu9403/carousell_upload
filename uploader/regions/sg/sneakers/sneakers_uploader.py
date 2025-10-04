@@ -95,10 +95,16 @@ class SGSneakersUploader(BaseUploader):
             operation="修改产品类目"
         )
 
-        # 输入运动鞋搜索关键词
-        search_keyword = self.safe_actions.css_manager.get_selector(
-            "sneakers_specific.category_search_keyword", self.region, "primary"
-        ) or "sneakers"
+        # 根据按钮文本决定运动鞋搜索关键词
+        if self.sell_button_text == "賣嘢":
+            search_keyword = "波鞋"  # 中文界面
+        elif self.sell_button_text == "Sell":
+            search_keyword = "sneakers"  # 英文界面
+        else:
+            # 备用方案：根据地区判断
+            search_keyword = "sneakers" if self.region == "SG" else "波鞋"
+        
+        logger.info(f"使用运动鞋搜索关键词: '{search_keyword}' (按钮文本: '{self.sell_button_text}', 地区: {self.region})")
         
         self.safe_actions.safe_input_with_config(
             "sneakers_specific.category_search_input", search_keyword, self.region, must_exist=True,
@@ -138,10 +144,16 @@ class SGSneakersUploader(BaseUploader):
             operation="点击品牌选择"
         )
 
-        # 点击搜索品牌
-        brand_search_keyword = self.safe_actions.css_manager.get_selector(
-            "sneakers_specific.brand_search_keyword", self.region, "primary"
-        ) or "other"
+        # 根据按钮文本决定品牌搜索关键词
+        if self.sell_button_text == "賣嘢":
+            brand_search_keyword = "其他"  # 中文界面
+        elif self.sell_button_text == "Sell":
+            brand_search_keyword = "Other"  # 英文界面
+        else:
+            # 备用方案：根据地区判断
+            brand_search_keyword = "Other" if self.region == "SG" else "其他"
+        
+        logger.info(f"使用品牌搜索关键词: '{brand_search_keyword}' (按钮文本: '{self.sell_button_text}', 地区: {self.region})")
         
         self.safe_actions.safe_input_with_config(
             "sneakers_specific.brand_search_input", brand_search_keyword, self.region, must_exist=True,
