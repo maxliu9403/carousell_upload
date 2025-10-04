@@ -45,10 +45,40 @@ class EnhancedSafeActions:
     def _smart_click(self, selector: str, must_exist: bool = True, timeout: int = None) -> bool:
         """
         智能点击方法，支持CSS、XPath和Playwright Locator
+        支持逗号分隔的多个选择器（或条件）
         """
         if timeout is None:
             timeout = DEFAULT_TIMEOUT
         
+        # 检查是否包含逗号分隔的多个选择器
+        if "," in selector:
+            selectors = [s.strip() for s in selector.split(",")]
+            logger.info(f"{self.log_prefix}检测到多个选择器，将依次尝试: {len(selectors)}个")
+            
+            for i, single_selector in enumerate(selectors, 1):
+                try:
+                    logger.info(f"{self.log_prefix}尝试第{i}个选择器: {single_selector}")
+                    if self._try_single_selector(single_selector, timeout):
+                        logger.info(f"{self.log_prefix}第{i}个选择器成功: {single_selector}")
+                        return True
+                    else:
+                        logger.debug(f"{self.log_prefix}第{i}个选择器失败: {single_selector}")
+                except Exception as e:
+                    logger.debug(f"{self.log_prefix}第{i}个选择器异常: {single_selector}, 错误: {e}")
+                    continue
+            
+            # 所有选择器都失败
+            if must_exist:
+                raise RuntimeError(f"所有选择器都失败: {selector}")
+            return False
+        else:
+            # 单个选择器
+            return self._try_single_selector(selector, timeout)
+    
+    def _try_single_selector(self, selector: str, timeout: int) -> bool:
+        """
+        尝试单个选择器
+        """
         try:
             # 判断选择器类型
             if selector.startswith("//"):
@@ -78,22 +108,49 @@ class EnhancedSafeActions:
                 
                 return True
             else:
-                if must_exist:
-                    raise RuntimeError(f"元素未找到: {selector}")
                 return False
                 
         except Exception as e:
-            if must_exist:
-                raise RuntimeError(f"点击失败: {selector}, 错误: {e}")
+            logger.debug(f"{self.log_prefix}选择器失败: {selector}, 错误: {e}")
             return False
     
     def _smart_input(self, selector: str, text: str, must_exist: bool = True, timeout: int = None) -> bool:
         """
         智能输入方法，支持CSS、XPath和Playwright Locator
+        支持逗号分隔的多个选择器（或条件）
         """
         if timeout is None:
             timeout = DEFAULT_TIMEOUT
         
+        # 检查是否包含逗号分隔的多个选择器
+        if "," in selector:
+            selectors = [s.strip() for s in selector.split(",")]
+            logger.info(f"{self.log_prefix}检测到多个输入选择器，将依次尝试: {len(selectors)}个")
+            
+            for i, single_selector in enumerate(selectors, 1):
+                try:
+                    logger.info(f"{self.log_prefix}尝试第{i}个输入选择器: {single_selector}")
+                    if self._try_single_input_selector(single_selector, text, timeout):
+                        logger.info(f"{self.log_prefix}第{i}个输入选择器成功: {single_selector}")
+                        return True
+                    else:
+                        logger.debug(f"{self.log_prefix}第{i}个输入选择器失败: {single_selector}")
+                except Exception as e:
+                    logger.debug(f"{self.log_prefix}第{i}个输入选择器异常: {single_selector}, 错误: {e}")
+                    continue
+            
+            # 所有选择器都失败
+            if must_exist:
+                raise RuntimeError(f"所有输入选择器都失败: {selector}")
+            return False
+        else:
+            # 单个选择器
+            return self._try_single_input_selector(selector, text, timeout)
+    
+    def _try_single_input_selector(self, selector: str, text: str, timeout: int) -> bool:
+        """
+        尝试单个输入选择器
+        """
         try:
             # 判断选择器类型
             if selector.startswith("//"):
@@ -126,13 +183,10 @@ class EnhancedSafeActions:
                 
                 return True
             else:
-                if must_exist:
-                    raise RuntimeError(f"元素未找到: {selector}")
                 return False
                 
         except Exception as e:
-            if must_exist:
-                raise RuntimeError(f"输入失败: {selector}, 错误: {e}")
+            logger.debug(f"{self.log_prefix}输入选择器失败: {selector}, 错误: {e}")
             return False
     
     def _get_user_input(self, prompt: str, element_key: str, must_exist: bool = True, region: str = None) -> str:
