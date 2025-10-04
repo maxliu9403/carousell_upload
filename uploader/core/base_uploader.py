@@ -232,6 +232,9 @@ class BaseUploader:
         # 等待页面稳定
         self.page.wait_for_timeout(10000)
 
+        # 发布商品
+        self._publish_product()
+
         # 发布商品并检测dialog
         # self._publish_product_with_dialog_detection()
         # 判断dialog消失 - 使用role="dialog"元素消失作为判断条件
