@@ -96,7 +96,7 @@ product_info:
   title_input:
     description: 商品标题输入框 (固定选择器不要随意修改！！！)
     fallback: input[name='title'], input[placeholder='Product title']
-    primary: label:has-text('產品名稱'), xpath=//form//input[@type="text"][@name="field_title"]
+    primary: xpath=//form//input[@type="text"][@name="field_title"]
 publishing:
   publish_button:
     description: 发布按钮 (固定选择器不要随意修改！！！)
