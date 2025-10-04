@@ -429,7 +429,8 @@ class BaseUploader:
         
         try:
             # 直接检测面交状态文字
-            meetup_enabled = self.page.locator("text=添加地點").is_visible()
+            meetup_enabled = (self.page.locator("text=添加地點").is_visible() or 
+                            self.page.locator("text=Add location").is_visible())
             
             if meetup_enabled:
                 logger.info(f"{self.log_prefix}检测到面交已开启，准备关闭")
