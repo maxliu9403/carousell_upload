@@ -30,7 +30,7 @@ class ExcelProductParser:
             
             # 验证必要的列是否存在
             required_columns = [
-                'URL', 'SKU', 'BrowserID', 'ProductNameCn', 'ProductNameEn',
+                'SKU', 'BrowserID', 'ProductNameCn', 'ProductNameEn',
                 'GenderEn', 'HKPrice', 'SGPrice', 'MYPrice',
                 'Brand', 'Folder'
             ]
@@ -52,7 +52,6 @@ class ExcelProductParser:
                         continue
                     
                     product_info = {
-                        'url': str(row['URL']) if not pd.isna(row['URL']) else '',
                         'sku': self._normalize_text(str(row['SKU'])),
                         'browser_id': str(row['BrowserID']),
                         'product_name_cn': self._normalize_text(str(row['ProductNameCn'])) if not pd.isna(row['ProductNameCn']) else '',
