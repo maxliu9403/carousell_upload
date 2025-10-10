@@ -555,13 +555,13 @@ class BaseUploader:
     def _navigate_to_homepage(self):
         """导航到主页"""
         domain = self._get_domain_by_region()
-        smart_goto(self.page, domain, wait_until="domcontentloaded", timeout=20000)
+        smart_goto(self.page, domain, wait_until="domcontentloaded", timeout=30000)
         logger.info("🌐 已打开主页")
         
     def _navigate_to_manage_page(self):
         """导航到管理页面"""
         domain = self._get_domain_by_region()
-        smart_goto(self.page, f"{domain}/manage-listings/", wait_until="domcontentloaded", timeout=20000)
+        smart_goto(self.page, f"{domain}/manage-listings/", wait_until="domcontentloaded", timeout=30000)
         logger.info("🌐 已打开目标页面")
         
     # ========= 公共方法：上传流程 =========
@@ -582,6 +582,14 @@ class BaseUploader:
             "basic_elements.sell_button", self.region, must_exist=True,
             operation="点击Sell按钮"
         )
+        
+        # 等待页面加载（最多10秒，超时继续执行）
+        try:
+            logger.info(f"{self.log_prefix}等待页面加载完成（最多10秒）...")
+            self.page.wait_for_load_state("domcontentloaded", timeout=10000)
+            logger.info(f"{self.log_prefix}页面加载完成")
+        except Exception as e:
+            logger.warning(f"{self.log_prefix}页面加载等待超时，继续执行: {e}")
         
         # 点击上传图片
         self.safe_actions.safe_click_with_config(
