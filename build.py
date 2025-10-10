@@ -3,7 +3,21 @@
 """
 Carousell Uploader 构建脚本 - 使用 PyInstaller 打包项目
 支持 regions 中各地域 CSS 配置文件的外部配置
-优化版：自动安装依赖、CI/CD 友好、日志统一化
+优化版：自动安装依赖、CI/CD 友好、日志统一化、自动清理
+
+使用方法:
+    python build.py                    # 默认：单文件模式，自动清理
+    python build.py --keep-temp        # 保留临时文件（build、dist、*.spec）
+    python build.py --onedir           # 使用目录模式（而非单文件）
+    python build.py --help             # 显示帮助信息
+    python build.py --version          # 显示版本信息
+
+特性:
+    ✅ 自动检测并安装缺失的依赖
+    ✅ 只复制 YAML 配置文件到 regions（不包含 Python 代码）
+    ✅ 自动清理构建临时文件
+    ✅ 跨平台支持（Windows/Mac/Linux）
+    ✅ 完整收集 pyautogui、pyperclip 等依赖
 """
 
 import os
@@ -269,6 +283,34 @@ read -p "按 Enter 键继续..."
                 f.write(sh_content)
             os.chmod(sh_file, 0o755)
 
+    # ---------------------- 自动清理临时文件 ----------------------
+    def auto_cleanup_temp_files(self):
+        """构建完成后自动清理临时文件"""
+        self.log("🧹 自动清理构建临时文件...")
+        
+        temp_items = ['build', 'dist', f'{self.app_name}.spec']
+        for item in temp_items:
+            item_path = self.project_root / item
+            if item_path.exists():
+                if item_path.is_dir():
+                    shutil.rmtree(item_path)
+                    self.log(f"删除目录: {item}")
+                else:
+                    item_path.unlink()
+                    self.log(f"删除文件: {item}")
+        
+        # 清理 __pycache__
+        pycache_count = 0
+        for pycache in self.project_root.rglob('__pycache__'):
+            if pycache.is_dir():
+                shutil.rmtree(pycache)
+                pycache_count += 1
+        
+        if pycache_count > 0:
+            self.log(f"删除 {pycache_count} 个 __pycache__ 目录")
+        
+        self.log("✅ 临时文件清理完成")
+
     # ---------------------- 构建流程 ----------------------
     def build(self):
         try:
@@ -277,7 +319,13 @@ read -p "按 Enter 键继续..."
             self.clean_build_artifacts()
             self.run_build()
             release_dir, exe_file = self.create_release_package()
-            self.log(f"🎉 构建完成: {exe_file} -> {release_dir}")
+            
+            # 自动清理临时文件（除非设置了 keep_temp）
+            if not self.keep_temp:
+                self.auto_cleanup_temp_files()
+            
+            self.log(f"🎉 构建完成: {exe_file.name} -> {release_dir.name}")
+            self.log(f"📂 发布包位置: {release_dir}")
         except KeyboardInterrupt:
             self.log("用户中断构建", "WARN")
             sys.exit(1)
@@ -289,7 +337,21 @@ read -p "按 Enter 键继续..."
 
 # ---------------------- 主函数 ----------------------
 def main():
-    builder = CarousellBuilder()
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Carousell Uploader 构建工具')
+    parser.add_argument('--keep-temp', action='store_true', 
+                        help='保留临时文件（build、dist、*.spec）')
+    parser.add_argument('--onedir', action='store_true',
+                        help='使用目录模式（默认为单文件模式）')
+    parser.add_argument('--version', action='version', version='%(prog)s 1.0.0')
+    
+    args = parser.parse_args()
+    
+    builder = CarousellBuilder(
+        keep_temp=args.keep_temp,
+        onefile=not args.onedir
+    )
     builder.build()
 
 if __name__ == '__main__':
