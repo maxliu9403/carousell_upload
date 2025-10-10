@@ -44,56 +44,70 @@
 
 ### 🔨 构建可执行文件
 
-项目支持构建Windows可执行文件，方便在没有Python环境的机器上运行：
+项目支持使用 PyInstaller 构建跨平台的可执行文件，方便在没有 Python 环境的机器上运行：
 
-**快速构建**:
+**一键构建**:
 ```bash
-# Linux/macOS
-./build.sh --mode onefile    # 构建单文件版本
-./build.sh --mode onedir     # 构建单目录版本
-./build.sh --clean           # 清理构建文件
-./build.sh --help            # 显示帮助信息
+# 构建可执行文件（所有平台）
+python3 build.py
 
-# 简化用法（推荐）
-./build.sh onefile           # 构建单文件版本
-./build.sh onedir            # 构建单目录版本
-./build.sh clean             # 清理构建文件
+# 或使用可执行权限（Unix/Mac）
+./build.py
 ```
 
-更多构建详情请参考 [build/README.md](build/README.md)。
+**构建特性**:
+- ✅ 自动环境检查和依赖安装
+- ✅ 跨平台支持（Windows/Mac/Linux）
+- ✅ 外部配置文件（config/、uploader/regions/）
+- ✅ CSS 配置热更新（无需重新打包）
+- ✅ 自动生成使用文档和启动脚本
+- ✅ 完整的发布包（2-5 分钟完成）
+
+**发布包内容**:
+```
+release/carousell_uploader_1.0.0_<系统>_<时间>/
+├── carousell_uploader[.exe]      # 可执行文件
+├── config/                        # 配置文件（可修改）
+├── uploader/regions/             # CSS 配置（支持热更新）
+├── example_products.xlsx         # 示例文件
+├── README.md, USAGE.txt          # 使用文档
+└── run.sh / run.bat              # 快速启动脚本
+```
+
+更多构建详情请参考：
+- [BUILD.md](BUILD.md) - 完整构建指南
+- [QUICK_BUILD.md](QUICK_BUILD.md) - 快速入门（3分钟）
+- [BUILD_FEATURES.md](BUILD_FEATURES.md) - 特性详解
 
 ### 🎯 快速安装
 
-**方式一：一键安装 (推荐)**
+**推荐方式：手动安装**
 ```bash
-# 一键安装 (自动检测系统并安装)
-curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/install.sh | bash
-```
-
-**方式二：克隆部署**
-```bash
-# 克隆项目
+# 1. 克隆项目
 git clone https://github.com/maxliu9403/carousell_upload.git
 cd carousell_upload
 
-# 运行统一部署脚本 (自动检测最佳方式)
-./deploy.sh
-```
-
-**方式三：手动安装**
-```bash
-# 克隆项目
-git clone https://github.com/maxliu9403/carousell_upload.git
-cd carousell_upload
-
-# 创建虚拟环境
-python -m venv venv
+# 2. 创建虚拟环境
+python3 -m venv venv
 source venv/bin/activate  # Linux/macOS
 # 或 venv\Scripts\activate  # Windows
 
-# 安装依赖
+# 3. 安装依赖
 pip install -r requirements.txt
 playwright install chromium
+
+# 4. 配置文件
+cp config/settings.example.yaml config/settings.yaml
+# 编辑 config/settings.yaml 填写您的配置
+```
+
+**开发模式安装**
+```bash
+# 使用 pip 开发模式安装
+pip install -e .
+
+# 或使用 setup.py
+python setup.py develop
 ```
 
 ### 🔧 开发环境设置
@@ -125,75 +139,89 @@ pytest
 
 ### 🎯 推荐部署方式
 
-**一键部署 (最简单)**
+**方式一：源码运行（开发/测试）**
 ```bash
-# 克隆项目
+# 1. 克隆并安装
 git clone https://github.com/maxliu9403/carousell_upload.git
 cd carousell_upload
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 
-# 运行统一部署脚本 (自动检测最佳方式)
-./deploy.sh
+# 2. 配置
+cp config/settings.example.yaml config/settings.yaml
+nano config/settings.yaml
+
+# 3. 运行
+python -m cli.main
 ```
 
-**一键安装脚本 (无需克隆)**
+**方式二：构建可执行文件（生产/分发）**
 ```bash
-# 一键安装 (自动检测系统并安装)
-curl -fsSL https://raw.githubusercontent.com/maxliu9403/carousell_upload/main/install.sh | bash
+# 1. 构建发布包
+python3 build.py
+
+# 2. 分发给用户
+# 用户只需：
+cd release/carousell_uploader_*/
+./run.sh  # 或 run.bat (Windows)
+
+# 用户配置：
+cp config/settings.example.yaml config/settings.yaml
+nano config/settings.yaml
 ```
 
-### 📁 CSS选择器备份功能
+### 🔧 CSS 选择器配置
 
-项目支持智能的CSS选择器备份功能，在代码更新时自动保护重要的CSS选择器配置：
+项目支持灵活的 CSS 选择器配置，可随时修改无需重新打包：
 
-#### 🔧 备份特性
-
-- **精准备份**: 只备份`css_selectors.yaml`文件，避免备份不必要的文件
-- **地域支持**: 支持HK、SG、MY三个地域
-- **类目支持**: 支持sneakers、bags、clothes三个类目
-- **单一备份**: 使用固定备份目录`backup_css_selectors`，每次更新都覆盖
-- **自动备份**: 检测到未提交更改时自动备份CSS选择器文件
-
-#### 📊 备份结构
+#### 📁 配置文件位置
 
 ```
-backup_css_selectors/
-├── uploader/
-│   └── regions/
-│       ├── hk/
-│       │   ├── sneakers/css_selectors.yaml
-│       │   ├── bags/css_selectors.yaml
-│       │   └── clothes/css_selectors.yaml
-│       ├── sg/
-│       │   ├── sneakers/css_selectors.yaml
-│       │   ├── bags/css_selectors.yaml
-│       │   └── clothes/css_selectors.yaml
-│       └── my/
-│           ├── sneakers/css_selectors.yaml
-│           ├── bags/css_selectors.yaml
-│           └── clothes/css_selectors.yaml
-└── README.md
+uploader/regions/
+├── hk/              # 香港地区
+│   ├── sneakers/    # 运动鞋
+│   │   └── css_selectors.yaml
+│   ├── bags/        # 包包
+│   └── clothes/     # 服装
+├── sg/              # 新加坡地区
+│   ├── sneakers/
+│   ├── bags/
+│   └── clothes/
+└── my/              # 马来西亚地区
+    ├── sneakers/
+    ├── bags/
+    └── clothes/
 ```
 
-#### 🔄 恢复方法
+#### ⭐ 高级特性
 
-```bash
-# 恢复单个文件
-cp backup_css_selectors/uploader/regions/hk/sneakers/css_selectors.yaml \
-    uploader/regions/hk/sneakers/css_selectors.yaml
-
-# 恢复所有文件
-cp -r backup_css_selectors/uploader/regions/* uploader/regions/
-
-# 恢复特定地域
-cp -r backup_css_selectors/uploader/regions/hk/* uploader/regions/hk/
+**1. 多条件判断（逗号分隔，或逻辑）**
+```yaml
+activate_button:
+  description: 激活按钮
+  primary: >-
+    innerText:has-text("Mark as active"),
+    innerText:has-text("標記為有效")
+  fallback: button.D_bra
 ```
 
-#### 💡 使用说明
+**2. 多选择器类型支持**
+- CSS 选择器：`button.D_bra`
+- XPath：`xpath=//button[@class='active']`
+- 文本选择器：`innerText:has-text("激活")`
+- 混合使用：`button.D_bra, innerText:has-text("激活")`
 
-- **自动备份**: 运行`./install.sh`时自动检测并备份
-- **覆盖机制**: 每次执行都会覆盖上次备份，节省磁盘空间
-- **长期保存**: 如需长期保存，请手动复制到其他位置
-- **备份说明**: 备份目录包含详细的README.md说明文件
+**3. 热更新**
+- ✅ 修改后立即生效
+- ✅ 无需重新打包
+- ✅ 支持用户交互式更新（失败时提示）
+
+**4. 主选择器 + 备用选择器**
+```yaml
+primary: button.D_bra              # 主选择器
+fallback: button[class*='activate'] # 备用选择器
+```
 
 ### ☁️ 云服务器部署
 
@@ -421,16 +449,15 @@ carousell_upload/
 ├── config/                   # 配置文件
 │   ├── settings.yaml         # 主配置文件
 │   └── settings.example.yaml # 配置示例文件
-├── scripts/                  # 部署脚本
-│   ├── quick-deploy.sh       # 快速部署脚本
-│   └── docker-deploy.sh      # Docker部署脚本
 ├── logs/                     # 日志文件目录
 ├── requirements.txt          # 生产依赖
 ├── requirements-dev.txt      # 开发依赖
-├── setup.py                  # 安装配置
-├── pyproject.toml           # 现代Python项目配置
-├── install.sh               # 系统级安装脚本
-├── deploy.sh                # 统一部署脚本
+├── build.py                  # 构建脚本（PyInstaller）
+├── setup.py                  # Python 包安装配置
+├── pyproject.toml           # Python 项目配置
+├── BUILD.md                 # 构建指南
+├── QUICK_BUILD.md           # 快速构建指南
+├── BUILD_FEATURES.md        # 构建特性详解
 └── README.md                # 项目说明
 ```
 
@@ -449,8 +476,9 @@ carousell_upload/
   - **regions/**: 地域特定上传器，按地域和类目组织
 - **cli/**: 命令行接口模块，提供主程序入口和CLI接口
 - **config/**: 配置文件目录，存放YAML配置文件
-- **scripts/**: 部署脚本目录，包含各种部署方式
 - **logs/**: 日志文件目录，存放运行日志
+- **build.py**: PyInstaller 构建脚本，用于打包可执行文件
+- **BUILD*.md**: 构建相关文档，包含详细说明和使用指南
 
 ### 🎯 架构优势
 
@@ -503,18 +531,28 @@ docker build -t carousell_upload .
 # 运行容器
 docker run -it --rm \
   -v $(pwd)/config:/app/config \
+  -v $(pwd)/uploader/regions:/app/uploader/regions \
   -v $(pwd)/data:/app/data \
   carousell_upload
 ```
 
-### 🔧 开发环境部署
+### 📦 生产环境部署
 
+**使用构建的可执行文件**
 ```bash
-# 快速开发部署
-./scripts/quick-deploy.sh
+# 1. 在开发机上构建
+python3 build.py
 
-# Docker开发部署
-./scripts/docker-deploy.sh
+# 2. 分发到生产服务器
+scp -r release/carousell_uploader_*/ user@server:/opt/
+
+# 3. 在生产服务器上配置
+cd /opt/carousell_uploader_*/
+cp config/settings.example.yaml config/settings.yaml
+nano config/settings.yaml
+
+# 4. 运行
+./run.sh
 ```
 
 ## 🛠️ 故障排除
