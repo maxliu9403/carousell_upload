@@ -22,7 +22,7 @@ basic_elements:
   upload_images_button:
     description: 上传图片按钮
     fallback: div[class*='upload']
-    primary: div.D_Ky
+    primary: div.D_Mp
 category_selection:
   category_search_input:
     description: 类目搜索输入框 (固定选择器不要随意修改！！！)
@@ -31,16 +31,16 @@ category_selection:
   service_category_option:
     description: 点击类目输入其他
     fallback: .D_aEk:nth-child(2) > .D_aEs > .D_la
-    primary: .D_aFv:nth-child(2) > .D_aFC
+    primary: div.D_aGS:nth-child(2)
   service_category_selector:
     description: 服务类目选择器
     fallback: div[class*='category']
-    primary: div.D_aFo
+    primary: div.D_aGL
 editing:
   activate_button:
     description: 激活按钮
-    fallback: innerText:has-text("Mark as active")
-    primary: button.D_bsJ
+    fallback: innerText:has-text("Mark as active"), innerText:has-text("標記為有效")
+    primary: innerText:has-text("Mark as active"), innerText:has-text("標記為有效")
   edit_button:
     description: 编辑按钮（固定选择器不要随意修改！！！）
     fallback: span:has-text('Edit Listing'), span:has-text('編輯產品')
@@ -48,7 +48,7 @@ editing:
   inactive_image:
     description: 未活跃图片
     fallback: img.D_acC
-    primary: img.D_acC
+    primary: img.D_aaP
 metadata:
   category: sneakers
   description: 运动鞋CSS选择器配置文件
@@ -70,16 +70,20 @@ popups_and_settings:
     primary: '#FieldSetField-Container-field_mailing_details .D_tk'
   delivery_toggle:
     description: 送货开关 (固定选择器不要随意修改！！！)
-    fallback: xpath=//form//p[normalize-space(.)="Delivery"], xpath=//form//p[normalize-space(.)="送貨"], xpath=//form//p[normalize-space(.)="郵寄&速遞"]
-    primary: xpath=//form//p[normalize-space(.)="Delivery"], xpath=//form//p[normalize-space(.)="送貨"], xpath=//form//p[normalize-space(.)="郵寄&速遞"]
+    fallback: xpath=//form//p[normalize-space(.)="Delivery"], xpath=//form//p[normalize-space(.)="送貨"],
+      xpath=//form//p[normalize-space(.)="郵寄&速遞"]
+    primary: xpath=//form//p[normalize-space(.)="Delivery"], xpath=//form//p[normalize-space(.)="送貨"],
+      xpath=//form//p[normalize-space(.)="郵寄&速遞"]
   meetup_input:
     description: 面交地点输入框
-    fallback: xpath=//form//input[@type="text"][@aria-label="添加地點"], xpath=//form//input[@type="text"][@aria-label="Add location"]
-    primary: xpath=//form//input[@type="text"][@aria-label="添加地點"], xpath=//form//input[@type="text"][@aria-label="Add location"]
+    fallback: xpath=//form//input[@type="text"][@aria-label="添加地點"], xpath=//form//input[@type="text"][@aria-label="Add
+      location"]
+    primary: xpath=//form//input[@type="text"][@aria-label="添加地點"], xpath=//form//input[@type="text"][@aria-label="Add
+      location"]
   meetup_option:
     description: 面交地点选项
     fallback: .D_mK
-    primary: div.D_cFi:nth-child(2)
+    primary: div.D_cEN:nth-child(2)
   meetup_toggle:
     description: 面交开关 (固定选择器不要随意修改！！！)
     fallback: xpath=//form//p[normalize-space(.)="Meet-up"], xpath=//form//p[normalize-space(.)="面交"]
@@ -109,7 +113,8 @@ publishing:
   publish_button:
     description: 发布按钮
     fallback: button[type='submit']
-    primary: button[type='button']:has-text('更新'), button[type='button']:has-text('即刻刊登'), button[type='button']:has-text('List now'), button[type='button']:has-text('Update')
+    primary: button[type='button']:has-text('更新'), button[type='button']:has-text('即刻刊登'),
+      button[type='button']:has-text('List now'), button[type='button']:has-text('Update')
 sneakers_specific:
   brand_input:
     description: 品牌输入框
@@ -118,7 +123,7 @@ sneakers_specific:
   brand_option:
     description: 其他品牌选项
     fallback: li[class*='brand']
-    primary: xpath=//form//ul/li//p[normalize-space(.)="Other Brands"]
+    primary: li.D_abf
   brand_search_input:
     description: 品牌搜索输入框 (固定选择器不要随意修改！！！)
     fallback: .D_Kr
@@ -158,7 +163,7 @@ sneakers_specific:
   men_sneakers_option:
     description: 男装波鞋选项
     fallback: .D_aFp:nth-child(2) .D_mx
-    primary: .D_aFv:nth-child(2) > .D_aFC
+    primary: div.D_aGS:nth-child(2)
   multi_quantity_checkbox:
     description: 多产品销售复选框
     fallback: .D_axg
@@ -166,7 +171,7 @@ sneakers_specific:
   size_option:
     description: 尺寸选项
     fallback: .D_aeQ .D_mx
-    primary: .D_acR:nth-child(1) .D_acW > .D_aec > .D_le
+    primary: li.D_abf
   size_search_input:
     description: 尺寸搜索输入框 (固定选择器不要随意修改！！！)
     fallback: input[type='search'][placeholder='Search'], input[type='search'][placeholder='搜尋']
@@ -178,4 +183,4 @@ sneakers_specific:
   women_sneakers_option:
     description: 女装波鞋选项
     fallback: .D_aFp:nth-child(1) .D_mx
-    primary: .D_aFv:nth-child(3) > .D_aFC > .D_le
+    primary: div.D_aGS:nth-child(3)
