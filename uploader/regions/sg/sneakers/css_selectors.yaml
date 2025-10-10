@@ -39,8 +39,8 @@ category_selection:
 editing:
   activate_button:
     description: 激活按钮
-    fallback: innerText:has-text("Mark as active")
-    primary: button.D_bra
+    fallback: innerText:has-text("Mark as active"), innerText:has-text("標記為有效")
+    primary: button.D_bra, innerText:has-text("Mark as active"), innerText:has-text("標記為有效")
   edit_button:
     description: 编辑按钮（固定选择器不要随意修改！！！）
     fallback: span:has-text('Edit Listing'), span:has-text('編輯產品')
