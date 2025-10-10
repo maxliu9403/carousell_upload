@@ -897,7 +897,7 @@ class BaseUploader:
             self._wait_for_page_stability()
             
             # 点击未激活的商品
-            self._click_inactive_product()
+            # self._click_inactive_product()
             
             # 点击激活按钮（已包含等待激活完成逻辑）
             self._click_activate_button()
