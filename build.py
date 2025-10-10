@@ -186,7 +186,7 @@ class CarousellBuilder:
         """清理构建产物"""
         self.print_section("🧹 清理旧的构建产物")
         
-        artifacts = ['build', 'dist', '__pycache__', f'{self.app_name}.spec']
+        artifacts = ['build', 'dist', f'{self.app_name}.spec']
         for artifact in artifacts:
             artifact_path = self.project_root / artifact
             if artifact_path.exists():
@@ -196,6 +196,16 @@ class CarousellBuilder:
                 else:
                     artifact_path.unlink()
                     print(f"🗑️  删除文件: {artifact}")
+        
+        # 清理所有 __pycache__ 目录
+        pycache_count = 0
+        for pycache in self.project_root.rglob('__pycache__'):
+            if pycache.is_dir():
+                shutil.rmtree(pycache)
+                pycache_count += 1
+        
+        if pycache_count > 0:
+            print(f"🗑️  删除 {pycache_count} 个 __pycache__ 目录")
         
         print("✅ 清理完成")
     
@@ -210,6 +220,8 @@ class CarousellBuilder:
             "--clean",  # 清理临时文件
             "--noconfirm",  # 不询问确认
             "--paths", str(self.project_root),  # 添加项目根目录到搜索路径
+            "--noupx",  # 禁用 UPX 压缩，避免某些平台问题
+            "--log-level", "WARN",  # 减少日志输出
         ]
         
         # 添加图标（如果存在）
@@ -258,9 +270,19 @@ class CarousellBuilder:
         
         if result != 0:
             print("\n❌ 打包失败！")
+            print("\n💡 常见问题解决方案:")
+            print("1. 确保所有依赖已正确安装: pip install -r requirements.txt")
+            print("2. 删除旧的 .spec 文件: rm -f *.spec")
+            print("3. 清理缓存: rm -rf build dist __pycache__")
+            print("4. 如果是 pandas 元数据错误，重新安装: pip install --force-reinstall pandas")
             sys.exit(1)
         
         print("\n✅ 可执行文件构建成功！")
+        
+        # 构建后清理 .spec 文件（可选）
+        spec_file = self.project_root / f"{self.app_name}.spec"
+        if spec_file.exists():
+            print(f"ℹ️  保留 .spec 文件以供调试: {spec_file}")
     
     def create_release_package(self):
         """创建发布包"""
