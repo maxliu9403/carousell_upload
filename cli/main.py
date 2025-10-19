@@ -17,11 +17,11 @@ def signal_handler(signum, frame):
     """信号处理函数，处理键盘中断"""
     global program_running, current_uploader
     
-    print("\n" + "⚠️" + "=" * 50 + "⚠️")
-    print(" " * 18 + "🛑 程序中断请求 🛑")
-    print("⚠️" + "=" * 50 + "⚠️")
-    print(" " * 15 + "检测到键盘中断信号 (Ctrl+C/Command+C)")
-    print(" " * 15 + "正在安全退出程序...")
+    logger.warning("\n" + "⚠️" + "=" * 50 + "⚠️")
+    logger.warning(" " * 18 + "🛑 程序中断请求 🛑")
+    logger.warning("⚠️" + "=" * 50 + "⚠️")
+    logger.warning(" " * 15 + "检测到键盘中断信号 (Ctrl+C/Command+C)")
+    logger.warning(" " * 15 + "正在安全退出程序...")
     
     # 记录中断日志
     logger.warning("用户请求中断程序 (KeyboardInterrupt)")
@@ -29,16 +29,16 @@ def signal_handler(signum, frame):
     # 如果有正在运行的上传器，尝试安全关闭
     if current_uploader:
         try:
-            print(" " * 15 + "🔄 正在关闭浏览器...")
+            logger.info(" " * 15 + "🔄 正在关闭浏览器...")
             # 这里可以添加浏览器关闭逻辑
             logger.info("正在安全关闭浏览器...")
         except Exception as e:
             logger.warning(f"关闭浏览器时出错: {e}")
     
     program_running = False
-    print(" " * 15 + "✅ 程序已安全退出")
-    print(" " * 15 + "感谢使用 Carousell Uploader!")
-    print("⚠️" + "=" * 50 + "⚠️")
+    logger.info(" " * 15 + "✅ 程序已安全退出")
+    logger.info(" " * 15 + "感谢使用 Carousell Uploader!")
+    logger.warning("⚠️" + "=" * 50 + "⚠️")
     
     # 优雅退出
     sys.exit(0)
@@ -80,14 +80,14 @@ def run():
         logger.info("🔧" + "=" * 30 + "🔧")
         
         # 指纹浏览器选择 - 第一个用户输入参数
-        print("\n" + "🔧" + "=" * 30 + "🔧")
-        print(" " * 12 + "🌐 指纹浏览器选择 🌐")
-        print("🔧" + "=" * 30 + "🔧")
-        print(" " * 12 + "请选择您使用的指纹浏览器类型:")
-        print()
-        print(" " * 8 + "1. 🔵 BitBrowser")
-        print(" " * 8 + "2. 🟢 IxBrowser")
-        print()
+        logger.info("\n" + "🔧" + "=" * 30 + "🔧")
+        logger.info(" " * 12 + "🌐 指纹浏览器选择 🌐")
+        logger.info("🔧" + "=" * 30 + "🔧")
+        logger.info(" " * 12 + "请选择您使用的指纹浏览器类型:")
+        logger.info("")
+        logger.info(" " * 8 + "1. 🔵 BitBrowser")
+        logger.info(" " * 8 + "2. 🟢 IxBrowser")
+        logger.info("")
         
         while True:
             try:
@@ -101,9 +101,9 @@ def run():
                     browser_name = "IxBrowser"
                     break
                 else:
-                    print(" " * 12 + "❌ 无效选择，请输入 1 或 2")
+                    logger.warning(" " * 12 + "❌ 无效选择，请输入 1 或 2")
             except KeyboardInterrupt:
-                print("\n❌ 用户取消选择")
+                logger.warning("\n❌ 用户取消选择")
                 return
         
         logger.info(f"✅ 已选择指纹浏览器: {browser_name} ({browser_type})")
@@ -150,12 +150,12 @@ def run():
             return
         
         # 地域选择 - 优化版本
-        print("\n" + "🌍" + "=" * 30 + "🌍")
-        print(" " * 12 + "📍 请选择上传地域 📍")
-        print("🌍" + "=" * 30 + "🌍")
-        print(" " * 8 + "1. 🇭🇰 HK (香港)")
-        print(" " * 8 + "2. 🇲🇾 MY (马来西亚)")
-        print(" " * 8 + "3. 🇸🇬 SG (新加坡)")
+        logger.info("\n" + "🌍" + "=" * 30 + "🌍")
+        logger.info(" " * 12 + "📍 请选择上传地域 📍")
+        logger.info("🌍" + "=" * 30 + "🌍")
+        logger.info(" " * 8 + "1. 🇭🇰 HK (香港)")
+        logger.info(" " * 8 + "2. 🇲🇾 MY (马来西亚)")
+        logger.info(" " * 8 + "3. 🇸🇬 SG (新加坡)")
         
         while True:
             try:
@@ -167,18 +167,18 @@ def run():
                     logger.info(f"✅ 选择的地域: {region}")
                     break
                 else:
-                    print(" " * 8 + "❌ 无效选择，请输入 1、2 或 3")
+                    logger.warning(" " * 8 + "❌ 无效选择，请输入 1、2 或 3")
             except KeyboardInterrupt:
-                print("\n❌ 用户取消选择")
+                logger.warning("\n❌ 用户取消选择")
                 return
         
         # 选择商品类目 - 优化版本
-        print("\n" + "📦" + "=" * 30 + "📦")
-        print(" " * 12 + "🛍️ 请选择商品类目 🛍️")
-        print("📦" + "=" * 30 + "📦")
-        print(" " * 8 + "1. 👟 sneakers (运动鞋)")
-        print(" " * 8 + "2. 👜 bags (包包)")
-        print(" " * 8 + "3. 👕 clothes (服装)")
+        logger.info("\n" + "📦" + "=" * 30 + "📦")
+        logger.info(" " * 12 + "🛍️ 请选择商品类目 🛍️")
+        logger.info("📦" + "=" * 30 + "📦")
+        logger.info(" " * 8 + "1. 👟 sneakers (运动鞋)")
+        logger.info(" " * 8 + "2. 👜 bags (包包)")
+        logger.info(" " * 8 + "3. 👕 clothes (服装)")
         
         while True:
             try:
@@ -190,9 +190,9 @@ def run():
                     logger.info(f"✅ 选择的类目: {category}")
                     break
                 else:
-                    print(" " * 8 + "❌ 无效选择，请输入 1、2 或 3")
+                    logger.warning(" " * 8 + "❌ 无效选择，请输入 1、2 或 3")
             except KeyboardInterrupt:
-                print("\n❌ 用户取消选择")
+                logger.warning("\n❌ 用户取消选择")
                 return
         
         # 创建多账号上传器
@@ -229,73 +229,73 @@ def run():
             logger.error("⚠️ 请检查日志详情 ⚠️")
         
         # 显示详细结果
-        print("\n" + "🎊" + "=" * 60 + "🎊")
-        print(" " * 22 + "📊 上传结果详情 📊")
-        print("🎊" + "=" * 60 + "🎊")
+        logger.info("\n" + "🎊" + "=" * 60 + "🎊")
+        logger.info(" " * 22 + "📊 上传结果详情 📊")
+        logger.info("🎊" + "=" * 60 + "🎊")
         
         # 居中显示统计信息 
-        print(" " * 18 + f"🔢 总账号数: {result.get('total_accounts', 0)}")
-        print(" " * 18 + f"📦 总商品数: {result.get('total_products', 0)}")
-        print(" " * 18 + f"✅ 成功数量: {result.get('success_count', 0)}")
-        print(" " * 18 + f"❌ 失败数量: {result.get('failed_count', 0)}")
-        print(" " * 18 + f"📈 成功率: {result.get('success_rate', 0.0):.2f}%")
+        logger.info(" " * 18 + f"🔢 总账号数: {result.get('total_accounts', 0)}")
+        logger.info(" " * 18 + f"📦 总商品数: {result.get('total_products', 0)}")
+        logger.info(" " * 18 + f"✅ 成功数量: {result.get('success_count', 0)}")
+        logger.info(" " * 18 + f"❌ 失败数量: {result.get('failed_count', 0)}")
+        logger.info(" " * 18 + f"📈 成功率: {result.get('success_rate', 0.0):.2f}%")
         
         if result.get('failed_count', 0) > 0:
-            print("\n" + " " * 18 + "⚠️  失败的商品详情:")
+            logger.warning("\n" + " " * 18 + "⚠️  失败的商品详情:")
             for account in result.get('account_details', []):
                 # 安全地检查失败商品列表
                 failed_products = account.get('failed_products', [])
                 if failed_products:
-                    print(" " * 22 + f"🌐 浏览器 {account.get('browser_id', 'Unknown')}: {', '.join(failed_products)}")
+                    logger.warning(" " * 22 + f"🌐 浏览器 {account.get('browser_id', 'Unknown')}: {', '.join(failed_products)}")
                 else:
                     # 如果没有具体的失败商品列表，显示账号级别的失败信息
                     if account.get('failed_count', 0) > 0:
-                        print(" " * 22 + f"🌐 浏览器 {account.get('browser_id', 'Unknown')}: {account.get('failed_count', 0)} 个商品失败")
+                        logger.warning(" " * 22 + f"🌐 浏览器 {account.get('browser_id', 'Unknown')}: {account.get('failed_count', 0)} 个商品失败")
         
         # 天天爆单
-        print("\n" + "🚀" + "=" * 60 + "🚀")
-        print(" " * 22 + "💰 天天爆单 💰")
-        print(" " * 18 + "❄️ 订单如雪花飘来 ❄️")
-        print(" " * 18 + "💎 财富如潮水涌来 💎")
-        print(" " * 18 + "🔥 生意红火到爆表 🔥")
-        print(" " * 18 + "⭐ 每天都是爆单日 ⭐")
-        print(" " * 18 + "💪 努力就有好收获 💪")
-        print(" " * 18 + "🎊 恭喜发财发大财 🎊")
-        print(" " * 18 + "🏆 业绩翻倍不是梦 🏆")
-        print(" " * 18 + "💸 钞票滚滚来不停 💸")
-        print(" " * 18 + "🎉 爆单爆单再爆单 🎉")
-        print("🚀" + "=" * 60 + "🚀")
+        logger.info("\n" + "🚀" + "=" * 60 + "🚀")
+        logger.info(" " * 22 + "💰 天天爆单 💰")
+        logger.info(" " * 18 + "❄️ 订单如雪花飘来 ❄️")
+        logger.info(" " * 18 + "💎 财富如潮水涌来 💎")
+        logger.info(" " * 18 + "🔥 生意红火到爆表 🔥")
+        logger.info(" " * 18 + "⭐ 每天都是爆单日 ⭐")
+        logger.info(" " * 18 + "💪 努力就有好收获 💪")
+        logger.info(" " * 18 + "🎊 恭喜发财发大财 🎊")
+        logger.info(" " * 18 + "🏆 业绩翻倍不是梦 🏆")
+        logger.info(" " * 18 + "💸 钞票滚滚来不停 💸")
+        logger.info(" " * 18 + "🎉 爆单爆单再爆单 🎉")
+        logger.info("🚀" + "=" * 60 + "🚀")
         
         # 所有数据执行完成后，程序自动退出
-        print("\n" + " " * 22 + "🔵 所有任务完成，程序自动退出... 🔵")
+        logger.info("\n" + " " * 22 + "🔵 所有任务完成，程序自动退出... 🔵")
         logger.info("所有任务完成，程序自动退出")
         
     except KeyboardInterrupt:
         # 处理键盘中断
-        print("\n" + "⚠️" + "=" * 50 + "⚠️")
-        print(" " * 18 + "🛑 程序中断请求 🛑")
-        print("⚠️" + "=" * 50 + "⚠️")
-        print(" " * 15 + "检测到键盘中断信号 (Ctrl+C/Command+C)")
-        print(" " * 15 + "正在安全退出程序...")
+        logger.warning("\n" + "⚠️" + "=" * 50 + "⚠️")
+        logger.warning(" " * 18 + "🛑 程序中断请求 🛑")
+        logger.warning("⚠️" + "=" * 50 + "⚠️")
+        logger.warning(" " * 15 + "检测到键盘中断信号 (Ctrl+C/Command+C)")
+        logger.warning(" " * 15 + "正在安全退出程序...")
         
         logger.warning("用户请求中断程序 (KeyboardInterrupt)")
         
         # 如果有正在运行的上传器，尝试安全关闭
         if current_uploader:
             try:
-                print(" " * 15 + "🔄 正在关闭浏览器...")
+                logger.info(" " * 15 + "🔄 正在关闭浏览器...")
                 logger.info("正在安全关闭浏览器...")
             except Exception as e:
                 logger.warning(f"关闭浏览器时出错: {e}")
         
-        print(" " * 15 + "✅ 程序已安全退出")
-        print(" " * 15 + "感谢使用 Carousell Uploader!")
-        print("⚠️" + "=" * 50 + "⚠️")
+        logger.info(" " * 15 + "✅ 程序已安全退出")
+        logger.info(" " * 15 + "感谢使用 Carousell Uploader!")
+        logger.warning("⚠️" + "=" * 50 + "⚠️")
         
     except Exception as e:
         logger.error(f"程序执行出错: {e}")
-        print(f"\n❌ 程序执行出错: {e}")
-        print("请检查日志文件获取详细信息")
+        logger.error(f"\n❌ 程序执行出错: {e}")
+        logger.error("请检查日志文件获取详细信息")
         raise
 
 if __name__ == "__main__":
