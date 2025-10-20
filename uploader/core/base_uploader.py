@@ -563,6 +563,12 @@ class BaseUploader:
         domain = self._get_domain_by_region()
         smart_goto(self.page, f"{domain}/manage-listings/", wait_until="domcontentloaded", timeout=30000)
         logger.info("🌐 已打开目标页面")
+    
+    def _navigate_to_upload_page(self):
+        """导航到上穿图片页面"""
+        domain = self._get_domain_by_region()
+        smart_goto(self.page, f"{domain}/sell?source=nav_bar", wait_until="domcontentloaded", timeout=30000)
+        logger.info("🌐 已打开目标页面")
         
     # ========= 公共方法：上传流程 =========
     def _start_upload_flow(self, folder_path: str):
@@ -578,11 +584,12 @@ class BaseUploader:
             logger.info(f"✅ 已获取Sell按钮文本: '{self.sell_button_text}'")
 
         # 点击sell按钮
-        self.safe_actions.safe_click_with_config(
-            "basic_elements.sell_button", self.region, must_exist=True,
-            operation="点击Sell按钮"
-        )
-        
+        # self.safe_actions.safe_click_with_config(
+        #     "basic_elements.sell_button", self.region, must_exist=True,
+        #     operation="点击Sell按钮"
+        # )
+        self._navigate_to_upload_page(self)
+
         # 等待页面加载（最多10秒，超时继续执行）
         try:
             logger.info(f"{self.log_prefix}等待页面加载完成（最多10秒）...")
@@ -825,9 +832,9 @@ class BaseUploader:
         logger.info(f"{self.log_prefix}🚀 直接进入编辑模式")
         self._enter_edit_mode()
 
-    def _wait_for_page_stability(self, timeout: int = 30000):
+    def _wait_for_page_stability(self, timeout: int = 10000):
         """
-        等待页面稳定
+        等待页面稳定 - 简化版本
         
         Args:
             timeout: 超时时间（毫秒）
@@ -835,26 +842,14 @@ class BaseUploader:
         logger.info(f"{self.log_prefix}⏳ 等待页面稳定...")
         
         try:
-            # 等待网络活动结束
-            self.page.wait_for_load_state("networkidle", timeout=timeout)
-            logger.info(f"{self.log_prefix}✅ 页面网络活动已结束")
-            
-            # 等待DOM内容加载完成
+            # 只等待DOM内容加载完成，这是最重要的
             self.page.wait_for_load_state("domcontentloaded", timeout=timeout)
-            logger.info(f"{self.log_prefix}✅ DOM内容已加载")
-            
-            # 等待所有资源加载完成
-            self.page.wait_for_load_state("load", timeout=timeout)
-            logger.info(f"{self.log_prefix}✅ 所有资源已加载")
-            
-            # 额外等待确保页面完全稳定
-            self.page.wait_for_timeout(2000)
             logger.info(f"{self.log_prefix}✅ 页面已稳定")
             
         except Exception as e:
             logger.warning(f"{self.log_prefix}⚠️ 页面稳定等待超时: {e}")
             # 即使超时也继续执行，但记录警告
-            self.page.wait_for_timeout(1000)  # 至少等待1秒
+            self.page.wait_for_timeout(500)  # 至少等待0.5秒
 
     def _click_inactive_product(self):
         """点击未激活的商品"""
