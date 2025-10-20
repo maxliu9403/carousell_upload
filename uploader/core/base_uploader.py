@@ -588,7 +588,7 @@ class BaseUploader:
         #     "basic_elements.sell_button", self.region, must_exist=True,
         #     operation="点击Sell按钮"
         # )
-        self._navigate_to_upload_page(self)
+        self._navigate_to_upload_page()
 
         # 等待页面加载（最多10秒，超时继续执行）
         try:
