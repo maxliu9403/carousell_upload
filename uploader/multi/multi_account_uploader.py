@@ -15,6 +15,7 @@ from browser.browser import (
 from data.excel_parser import ExcelProductParser
 from core.logger import logger
 from data.record_manager import SuccessRecordManager
+from ..utils.ip_validator import IPValidator
 
 class MultiAccountUploader:
     """多账号串行上传器"""
@@ -188,9 +189,43 @@ class MultiAccountUploader:
                     profile_id
                 )
                 
-                current_uploader = CarousellUploader(page, self.config, self.region, browser_id, sku)
                 current_browser_id = browser_id
                 current_profile_id = profile_id
+                
+                # 校验IP地域
+                logger.info(f"正在校验浏览器 {browser_id} 的IP地域...")
+                is_region_match, actual_region, actual_ip = IPValidator.quick_validate(page, self.region)
+                
+                if not is_region_match:
+                    logger.error(f"❌ IP地域校验失败: 期望={self.region}, 实际={actual_region}, IP={actual_ip}")
+                    logger.error(f"🚫 跳过浏览器 {browser_id} 的所有商品，关闭浏览器...")
+                    
+                    # 记录失败结果
+                    results.append({
+                        'browser_id': browser_id,
+                        'sku': sku,
+                        'success': False,
+                        'error': f'IP地域不匹配: 期望={self.region}, 实际={actual_region}, IP={actual_ip}'
+                    })
+                    
+                    # 关闭浏览器
+                    try:
+                        close_browser_unified(current_profile_id)
+                        current_playwright.stop()
+                    except Exception as close_error:
+                        logger.warning(f"关闭浏览器时出错: {close_error}")
+                    finally:
+                        current_browser = None
+                        current_playwright = None
+                        current_browser_id = None
+                        current_profile_id = None
+                    
+                    continue
+                
+                logger.info(f"✅ IP地域校验通过: {actual_region}, IP={actual_ip}")
+                
+                # 创建uploader
+                current_uploader = CarousellUploader(page, self.config, self.region, browser_id, sku)
                 
             except Exception as e:
                 logger.error(f"启动浏览器 {browser_id} 失败: {e}")
@@ -201,6 +236,20 @@ class MultiAccountUploader:
                     'success': False,
                     'error': str(e)
                 })
+                
+                # 如果浏览器已启动，尝试关闭
+                if current_browser and current_profile_id:
+                    try:
+                        close_browser_unified(current_profile_id)
+                        current_playwright.stop()
+                    except Exception as close_error:
+                        logger.warning(f"关闭浏览器时出错: {close_error}")
+                    finally:
+                        current_browser = None
+                        current_playwright = None
+                        current_browser_id = None
+                        current_profile_id = None
+                
                 continue
             
             # 执行商品上传
