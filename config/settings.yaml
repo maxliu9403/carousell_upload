@@ -10,7 +10,7 @@ browser:
       api_port: 53200
       api_key: ""  # 可选
   # 当前选择的浏览器类型（运行时设置）
-  current_type: "bitBrowser"
+  current_type: "ixBrowser"
 
 # 地域域名配置
 domains:
