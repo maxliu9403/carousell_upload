@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any, Tuple, Optional
 from playwright.sync_api import sync_playwright
 from core.logger import logger
+import time
 
 
 class BrowserInterface(ABC):
@@ -308,44 +309,63 @@ class IxBrowserInterface(BrowserInterface):
             return False
     
     def start_browser(self, profile_id: str) -> Tuple[Any, Any, Any]:
-        """启动IxBrowser"""
-        try:
-            import requests
-            
-            # 构建API URL
-            api_url = f"http://127.0.0.1:{self.api_port}/api/v2/profile-open"
-            headers = {
-                "x-api-key": self.api_key,
-                "Content-Type": "application/json"
-            }
-            payload = {
-                "profile_id": int(profile_id),
-                "load_extensions": True,
-                "load_profile_info_page": True
-            }
-            
-            resp = requests.post(api_url, headers=headers, json=payload)
-            resp.raise_for_status()
-            
-            data = resp.json()
-            error_info = data.get("error", {})
-            if error_info.get("code") != 0:
-                raise RuntimeError(f"启动IxBrowser失败: {error_info}")
-            
-            ws_endpoint = data["data"]["ws"]
-            logger.info(f"IxBrowser已启动，WebSocket: {ws_endpoint}")
+        """启动IxBrowser，支持重试机制"""
+        import requests
+        
+        # 构建API URL
+        api_url = f"http://127.0.0.1:{self.api_port}/api/v2/profile-open"
+        headers = {
+            "x-api-key": self.api_key,
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "profile_id": int(profile_id),
+            "load_extensions": True,
+            "load_profile_info_page": True
+        }
+        
+        max_retries = 3
+        retry_delay = 10  # 秒
+        
+        for attempt in range(max_retries):
+            try:
+                resp = requests.post(api_url, headers=headers, json=payload)
+                resp.raise_for_status()
+                
+                data = resp.json()
+                error_info = data.get("error", {})
+                error_code = error_info.get("code")
+                
+                # 如果code为1003，且未达到最大重试次数，则重试
+                if error_code == 1003 and attempt < max_retries - 1:
+                    logger.warning(f"启动IxBrowser返回code=1003，第{attempt + 1}次重试，等待{retry_delay}秒后重试...")
+                    time.sleep(retry_delay)
+                    continue
+                
+                # 如果code不为0，抛出异常
+                if error_code != 0:
+                    raise RuntimeError(f"启动IxBrowser失败: {error_info}")
+                
+                # 成功启动
+                ws_endpoint = data["data"]["ws"]
+                logger.info(f"IxBrowser已启动，WebSocket: {ws_endpoint}")
 
-            playwright = sync_playwright().start()
-            browser = playwright.chromium.connect_over_cdp(ws_endpoint)
-            context = browser.contexts[0] if browser.contexts else browser.new_context()
-            page = context.new_page()
-            
-            logger.info("IxBrowser连接成功")
-            return playwright, browser, page
-            
-        except Exception as e:
-            logger.error(f"启动IxBrowser失败: {e}")
-            raise
+                playwright = sync_playwright().start()
+                browser = playwright.chromium.connect_over_cdp(ws_endpoint)
+                context = browser.contexts[0] if browser.contexts else browser.new_context()
+                page = context.new_page()
+                
+                logger.info("IxBrowser连接成功")
+                return playwright, browser, page
+                
+            except Exception as e:
+                # 如果是最后一次尝试，直接抛出异常
+                if attempt == max_retries - 1:
+                    logger.error(f"启动IxBrowser失败，已重试{max_retries}次: {e}")
+                    raise
+                else:
+                    logger.warning(f"启动IxBrowser出现异常，第{attempt + 1}次尝试失败: {e}")
+                    time.sleep(retry_delay)
     
     def close_browser(self, profile_id: str) -> bool:
         """关闭IxBrowser"""
