@@ -202,6 +202,10 @@ class EnhancedSafeActions:
         Returns:
             str: 用户输入的选择器
         """
+        # 获取当前使用的选择器
+        current_primary = self.css_manager.get_selector(element_key, region, "primary", self.category)
+        current_fallback = self.css_manager.get_selector(element_key, region, "fallback", self.category)
+        
         print(f"\n{'='*80}")
         print(f"🔧 CSS选择器更新请求")
         print(f"{'='*80}")
@@ -209,17 +213,38 @@ class EnhancedSafeActions:
         print(f"🎯 元素键名: {element_key}")
         print(f"📋 元素描述: {self.css_manager.get_element_description(element_key, region, self.category)}")
         print(f"🌐 当前页面: {self.page.url}")
+        print(f"{'='*80}")
+        
+        # 显示当前使用的选择器
+        print(f"📌 当前使用的CSS选择器:")
+        if current_primary:
+            print(f"   🔹 主选择器: {current_primary}")
+        else:
+            print(f"   🔹 主选择器: 未配置")
+            
+        if current_fallback:
+            print(f"   🔸 备用选择器: {current_fallback}")
+        else:
+            print(f"   🔸 备用选择器: 未配置")
+        
+        print(f"{'='*80}")
         print(f"📝 请使用浏览器开发者工具捕获新的CSS选择器")
         print(f"💡 提示: 右键元素 -> 检查 -> 复制选择器")
+        print(f"💡 参考: 可以基于当前选择器进行修改")
         print(f"{'='*80}")
         
         while True:
             try:
+                # 构建输入提示，包含当前选择器信息
+                input_prompt = f"请输入新的CSS选择器"
+                if current_primary:
+                    input_prompt += f" (当前主选择器: {current_primary})"
+                
                 if not must_exist:
                     print(f"⚠️ 这是非必要操作，如果当前页面没有此元素，可以选择跳过")
-                    new_selector = input(f"请输入新的CSS选择器 (输入'q'退出程序, 输入'skip'跳过此操作, 输入'next'退出当前流程继续下一个商品): ").strip()
+                    new_selector = input(f"{input_prompt} (输入'q'退出程序, 输入'skip'跳过此操作, 输入'next'退出当前流程继续下一个商品): ").strip()
                 else:
-                    new_selector = input(f"请输入新的CSS选择器 (输入'q'退出程序, 输入'next'退出当前流程继续下一个商品): ").strip()
+                    new_selector = input(f"{input_prompt} (输入'q'退出程序, 输入'next'退出当前流程继续下一个商品): ").strip()
                 
                 if new_selector.lower() == 'q':
                     logger.info("用户选择退出程序")
