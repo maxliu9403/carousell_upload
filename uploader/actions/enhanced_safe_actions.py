@@ -204,7 +204,6 @@ class EnhancedSafeActions:
         """
         # 获取当前使用的选择器
         current_primary = self.css_manager.get_selector(element_key, region, "primary", self.category)
-        current_fallback = self.css_manager.get_selector(element_key, region, "fallback", self.category)
         
         print(f"\n{'='*80}")
         print(f"🔧 CSS选择器更新请求")
@@ -221,11 +220,6 @@ class EnhancedSafeActions:
             print(f"   🔹 主选择器: {current_primary}")
         else:
             print(f"   🔹 主选择器: 未配置")
-            
-        if current_fallback:
-            print(f"   🔸 备用选择器: {current_fallback}")
-        else:
-            print(f"   🔸 备用选择器: 未配置")
         
         print(f"{'='*80}")
         print(f"📝 请使用浏览器开发者工具捕获新的CSS选择器")
@@ -382,7 +376,7 @@ class EnhancedSafeActions:
         self.css_manager.check_and_reload()
         
         # 获取选择器
-        primary_selector, fallback_selector = self.css_manager.get_selector_with_fallback(
+        primary_selector, _ = self.css_manager.get_selector_with_fallback(
             element_key, region, self.category
         )
         
@@ -415,16 +409,6 @@ class EnhancedSafeActions:
                         return False
                     
                     logger.warning(f"{self.log_prefix}主选择器失败: {primary_selector}")
-                    
-                    # 尝试备用选择器
-                    if fallback_selector and fallback_selector != primary_selector:
-                        logger.info(f"{self.log_prefix}尝试备用选择器: {fallback_selector}")
-                        result = self._smart_click(fallback_selector, must_exist, timeout)
-                        if result:
-                            logger.info(f"{self.log_prefix}{full_operation}成功 (备用选择器)")
-                            return True
-                        else:
-                            logger.warning(f"{self.log_prefix}备用选择器也失败: {fallback_selector}")
                     
                     # 如果重试次数达到上限，请求用户输入新选择器
                     if attempt >= max_retries:
@@ -472,7 +456,7 @@ class EnhancedSafeActions:
         self.css_manager.check_and_reload()
         
         # 获取选择器
-        primary_selector, fallback_selector = self.css_manager.get_selector_with_fallback(
+        primary_selector, _ = self.css_manager.get_selector_with_fallback(
             element_key, region, self.category
         )
         
@@ -505,16 +489,6 @@ class EnhancedSafeActions:
                         return False
                     
                     logger.warning(f"{self.log_prefix}主选择器失败: {primary_selector}")
-                    
-                    # 尝试备用选择器
-                    if fallback_selector and fallback_selector != primary_selector:
-                        logger.info(f"{self.log_prefix}尝试备用选择器: {fallback_selector}")
-                        result = self._smart_input(fallback_selector, text, must_exist, timeout)
-                        if result:
-                            logger.info(f"{self.log_prefix}{full_operation}成功 (备用选择器)")
-                            return True
-                        else:
-                            logger.warning(f"{self.log_prefix}备用选择器也失败: {fallback_selector}")
                     
                     # 如果重试次数达到上限，请求用户输入新选择器
                     if attempt >= max_retries:

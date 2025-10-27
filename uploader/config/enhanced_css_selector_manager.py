@@ -34,7 +34,7 @@ class EnhancedCSSSelectorManager:
     
     def get_selector_with_fallback(self, element_key: str, region: str = None, category: str = "sneakers") -> Tuple[Optional[str], Optional[str]]:
         """
-        获取选择器配置（主选择器和备用选择器）
+        获取选择器配置（只返回主选择器，fallback已废弃）
         
         Args:
             element_key: 元素键名
@@ -42,7 +42,7 @@ class EnhancedCSSSelectorManager:
             category: 类别代码
             
         Returns:
-            Tuple[Optional[str], Optional[str]]: (主选择器, 备用选择器)
+            Tuple[Optional[str], Optional[str]]: (主选择器, None)
         """
         if not region:
             logger.error(f"❌ 必须提供地域代码: {element_key}")
@@ -50,11 +50,10 @@ class EnhancedCSSSelectorManager:
         
         try:
             primary = self.regional_loader.get_selector_value(region, category, element_key, "primary")
-            fallback = self.regional_loader.get_selector_value(region, category, element_key, "fallback")
             
             if primary:
                 logger.debug(f"✅ 使用地域特定配置: {region}-{category}-{element_key}")
-                return primary, fallback
+                return primary, None  # fallback已废弃，返回None
             else:
                 logger.warning(f"⚠️ 找不到地域特定配置: {region}-{category}-{element_key}")
                 return None, None
@@ -70,7 +69,7 @@ class EnhancedCSSSelectorManager:
         Args:
             element_key: 元素键名
             region: 地域代码
-            selector_type: 选择器类型 (primary, fallback, description)
+            selector_type: 选择器类型 (primary, description) - fallback已废弃
             category: 类别代码
             
         Returns:

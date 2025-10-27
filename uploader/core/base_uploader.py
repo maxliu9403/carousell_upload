@@ -45,55 +45,7 @@ def safe_click_with_wait(page: Page, selector: str, must_exist: bool = False, ti
             logger.warning(f"{log_prefix}{operation}失败: {selector}, 原因: {e}")
         raise
 
-def safe_click_with_fallback(page: Page, primary_selector: str, fallback_selector: str, 
-                            must_exist: bool = False, timeout: int = None,
-                            browser_id: str = None, sku: str = None, operation: str = "点击操作"):
-    """
-    支持备用选择器的安全点击操作
-    先尝试主选择器，失败后尝试备用选择器
-    
-    Args:
-        page: Playwright页面对象
-        primary_selector: 主选择器
-        fallback_selector: 备用选择器
-        must_exist: 是否必须存在
-        timeout: 超时时间
-        browser_id: 浏览器ID
-        sku: 商品SKU
-        operation: 操作描述
-    """
-    # 设置默认超时时间
-    if timeout is None:
-        timeout = DEFAULT_TIMEOUT
-    
-    log_prefix = f"BrowserID: {browser_id}, SKU: {sku}, " if browser_id and sku else ""
-    
-    # 先尝试主选择器
-    try:
-        logger.info(f"{log_prefix}正在{operation}: {primary_selector}")
-        result = click_with_wait(page, primary_selector, must_exist, timeout)
-        logger.info(f"{log_prefix}{operation}成功: {primary_selector}")
-        return result
-    except RuntimeError as e:
-        logger.warning(f"{log_prefix}主选择器失败: {primary_selector}, 原因: {e}")
-        
-        # 尝试备用选择器
-        try:
-            logger.info(f"{log_prefix}尝试备用选择器: {fallback_selector}")
-            result = click_with_wait(page, fallback_selector, must_exist, timeout)
-            logger.info(f"{log_prefix}{operation}成功: {fallback_selector} (备用选择器)")
-            return result
-        except RuntimeError as fallback_e:
-            if must_exist:
-                error_msg = f"关键{operation}失败"
-                if browser_id and sku:
-                    error_msg = f"BrowserID: {browser_id}, SKU: {sku}, {error_msg}"
-                error_msg += f", 主选择器: {primary_selector}, 备用选择器: {fallback_selector}, 失败原因: {e}, 备用失败原因: {fallback_e}"
-                logger.error(error_msg)
-                raise CriticalOperationFailed(error_msg)
-            else:
-                logger.warning(f"{log_prefix}主选择器和备用选择器都失败: {primary_selector}, {fallback_selector}, 原因: {e}, 备用失败原因: {fallback_e}")
-            raise
+# safe_click_with_fallback 函数已废弃 - fallback选择器逻辑已移除
 
 def safe_input_with_wait(page: Page, selector: str, text: str, must_exist: bool = False, timeout: int = None,
                         browser_id: str = None, sku: str = None, operation: str = "输入操作"):
@@ -122,56 +74,7 @@ def safe_input_with_wait(page: Page, selector: str, text: str, must_exist: bool 
             logger.warning(f"{log_prefix}{operation}失败: {selector}, 输入内容: '{text}', 原因: {e}")
         raise
 
-def safe_input_with_fallback(page: Page, primary_selector: str, fallback_selector: str, text: str, 
-                            must_exist: bool = False, timeout: int = None,
-                            browser_id: str = None, sku: str = None, operation: str = "输入操作"):
-    """
-    支持备用选择器的安全输入操作
-    先尝试主选择器，失败后尝试备用选择器
-    
-    Args:
-        page: Playwright页面对象
-        primary_selector: 主选择器
-        fallback_selector: 备用选择器
-        text: 要输入的文本
-        must_exist: 是否必须存在
-        timeout: 超时时间
-        browser_id: 浏览器ID
-        sku: 商品SKU
-        operation: 操作描述
-    """
-    # 设置默认超时时间
-    if timeout is None:
-        timeout = DEFAULT_TIMEOUT
-    
-    log_prefix = f"BrowserID: {browser_id}, SKU: {sku}, " if browser_id and sku else ""
-    
-    # 先尝试主选择器
-    try:
-        logger.info(f"{log_prefix}正在{operation}: {primary_selector}, 输入内容: '{text}'")
-        result = input_with_wait(page, primary_selector, text, must_exist, timeout)
-        logger.info(f"{log_prefix}{operation}成功: {primary_selector}")
-        return result
-    except RuntimeError as e:
-        logger.warning(f"{log_prefix}主选择器失败: {primary_selector}, 原因: {e}")
-        
-        # 尝试备用选择器
-        try:
-            logger.info(f"{log_prefix}尝试备用选择器: {fallback_selector}")
-            result = input_with_wait(page, fallback_selector, text, must_exist, timeout)
-            logger.info(f"{log_prefix}{operation}成功: {fallback_selector} (备用选择器)")
-            return result
-        except RuntimeError as fallback_e:
-            if must_exist:
-                error_msg = f"关键{operation}失败"
-                if browser_id and sku:
-                    error_msg = f"BrowserID: {browser_id}, SKU: {sku}, {error_msg}"
-                error_msg += f", 主选择器: {primary_selector}, 备用选择器: {fallback_selector}, 输入内容: '{text}', 失败原因: {e}, 备用失败原因: {fallback_e}"
-                logger.error(error_msg)
-                raise CriticalOperationFailed(error_msg)
-            else:
-                logger.warning(f"{log_prefix}主选择器和备用选择器都失败: {primary_selector}, {fallback_selector}, 原因: {e}, 备用失败原因: {fallback_e}")
-            raise
+# safe_input_with_fallback 函数已废弃 - fallback选择器逻辑已移除
 
 class BaseUploader:
     """基础上传器类 - 包含所有地域和类目的公共功能"""
@@ -207,7 +110,7 @@ class BaseUploader:
             self.safe_actions.css_manager.check_and_reload()
             
             # 获取选择器
-            primary_selector, fallback_selector = self.safe_actions.css_manager.get_selector_with_fallback(
+            primary_selector, _ = self.safe_actions.css_manager.get_selector_with_fallback(
                 element_key, self.region, self.category
             )
             
@@ -232,25 +135,6 @@ class BaseUploader:
                     
             except Exception as e:
                 logger.debug(f"主选择器获取文本失败: {e}")
-            
-            # 尝试备用选择器
-            if fallback_selector and fallback_selector != primary_selector:
-                try:
-                    if fallback_selector.startswith("//"):
-                        element = self.page.wait_for_selector(f"xpath={fallback_selector}", timeout=5000)
-                    elif ":has-text(" in fallback_selector:
-                        element = self.page.locator(fallback_selector)
-                        element.wait_for(state="visible", timeout=5000)
-                    else:
-                        element = self.page.wait_for_selector(fallback_selector, timeout=5000)
-                    
-                    if element:
-                        text = element.inner_text()
-                        logger.debug(f"✅ 获取到按钮文本 (备用选择器): '{text}'")
-                        return text
-                        
-                except Exception as e:
-                    logger.debug(f"备用选择器获取文本失败: {e}")
             
             logger.warning(f"⚠️ 无法获取按钮文本: {element_key}")
             
