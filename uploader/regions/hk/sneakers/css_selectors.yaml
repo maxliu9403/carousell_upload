@@ -1,45 +1,35 @@
 basic_elements:
   ai_writing_cancel_button:
     description: AI文案取消按钮（固定选择器不要随意修改！！！）
-    fallback: button:has-text('改為手動填寫'), button:has-text('Fill in manually instead')
     primary: button:has-text('改為手動填寫'), button:has-text('Fill in manually instead')
   new_account_popup_close:
     description: 新账号弹窗关闭按钮
-    fallback: .D_oN .D_oZ
     primary: .D_ayk > .D_oN > .D_oZ
   sell_button:
     description: Sell按钮
-    fallback: a[href*='sell']
     primary: a.D_Bn
   upload_images_button:
     description: 上传图片按钮
-    fallback: div[class*='upload']
     primary: div.D_Ky
 category_selection:
   category_search_input:
     description: 类目搜索输入框
-    fallback: input[placeholder*='搜尋'], input[placeholder='搜尋分類']
     primary: input[placeholder='搜尋分類'], input[placeholder='Search for a category...']
   service_category_option:
     description: 点击类目输入其他
-    fallback: .D_aEk:nth-child(2) > .D_aEs > .D_la
     primary: div.D_aFv:nth-child(1)
   service_category_selector:
     description: 服务类目选择器
-    fallback: div[class*='category']
     primary: div.D_aFo
 editing:
   edit_button:
     description: 编辑按钮（固定选择器不要随意修改！！！）
-    fallback: span:has-text('編輯產品'), span:has-text('Edit Listing')
     primary: span:has-text('編輯產品'), span:has-text('Edit Listing')
   inactive_image:
     description: 未活跃图片
-    fallback: img.D_acC
     primary: img.D_acC
   activate_button:
     description: 激活按钮
-    fallback: innerText:has-text("標記為有效"), innerText:has-text("Mark as active")
     primary: innerText:has-text("標記為有效"), innerText:has-text("Mark as active")
 metadata:
   category: sneakers
@@ -50,124 +40,94 @@ metadata:
 popups_and_settings:
   buyer_protection_confirm:
     description: 确认关闭收款保障
-    fallback: .D_mx
     primary: .button.D_pA
   buyer_protection_toggle:
     description: 收款保障开关
-    fallback: .D_mx
     primary: .D_agH:nth-child(2) .D_kI
   delivery_detection:
     description: 送货输入框
-    fallback: .D_tk[class*='mailing']
     primary: '#FieldSetField-Container-field_mailing_details .D_tk'
   delivery_toggle:
     description: 送货开关 (固定选择器不要随意修改！！！)
-    fallback: xpath=//form//p[normalize-space(.)="Delivery"], xpath=//form//p[normalize-space(.)="送貨"], xpath=//form//p[normalize-space(.)="郵寄&速遞"]
     primary: xpath=//form//p[normalize-space(.)="Delivery"], xpath=//form//p[normalize-space(.)="送貨"], xpath=//form//p[normalize-space(.)="郵寄&速遞"]
   meetup_input:
     description: 面交地点输入框
-    fallback: xpath=//form//input[@type="text"][@aria-label="添加地點"], xpath=//form//input[@type="text"][@aria-label="Add location"]
     primary: xpath=//form//input[@type="text"][@aria-label="添加地點"], xpath=//form//input[@type="text"][@aria-label="Add location"]
   meetup_option:
     description: 面交地点选项
-    fallback: .D_mK
     primary: div.D_cFi:nth-child(2)
   meetup_toggle:
     description: 面交开关 (固定选择器不要随意修改！！！)
-    fallback: xpath=//form//p[normalize-space(.)="面交"], xpath=//form//p[normalize-space(.)="Meet-up"]
     primary: xpath=//form//p[normalize-space(.)="面交"], xpath=//form//p[normalize-space(.)="Meet-up"]
   whatsapp_close:
     description: WhatsApp弹窗关闭
-    fallback: button[aria-label*='close']
     primary: rect.D_axg
   whatsapp_detection:
     description: 添加WhatsApp号码
-    fallback: button[class*='D_mk']
     primary: button.D_mk
 product_info:
   description_input:
     description: 商品描述输入框 (固定选择器不要随意修改！！！)
-    fallback: textarea[placeholder='產品描述'], textarea[placeholder='Product description']
     primary: textarea[name='field_description'], textarea[placeholder='Product description']
   price_input:
     description: 商品价格输入框
-    fallback: input[name='price']
     primary: input#price
   title_input:
     description: 商品标题输入框 (固定选择器不要随意修改！！！)
-    fallback: input[name='title'], input[placeholder='Product title']
     primary: xpath=//form//input[@type="text"][@name="field_title"]
 publishing:
   publish_button:
     description: 发布按钮 (固定选择器不要随意修改！！！)
-    fallback: button[type='submit']
     primary: button[type='button']:has-text('更新'), button[type='button']:has-text('即刻刊登'), button[type='button']:has-text('List now'), button[type='button']:has-text('Update')
 sneakers_specific:
   brand_input:
     description: 品牌输入框 (固定选择器不要随意修改！！！)
-    fallback: input[name='brand']
     primary: xpath=//form//label[normalize-space(.)="品牌"], xpath=//form//label[normalize-space(.)="Brand"]
   brand_option:
     description: 其他品牌选项
-    fallback: li[class*='brand']
     primary: li.D_acS
   brand_search_input:
     description: 品牌搜索输入框 (固定选择器不要随意修改！！！)
-    fallback: .D_Kr
     primary: input[placeholder='搜尋'], input[placeholder='Search']
   brand_search_keyword:
     description: 品牌搜索关键词
-    fallback: Other
     primary: 其他
   brand_selector:
     description: 品牌选择器 (固定选择器不要随意修改！！！)
-    fallback: .D_sp
     primary: xpath=//form//button[normalize-space(.)="品牌"], xpath=//form//button[normalize-space(.)="Brand"]
   category_search_input:
     description: 运动鞋类目搜索输入框 (固定选择器不要随意修改！！！)
-    fallback: input[placeholder='搜尋分類']
     primary: input[placeholder='搜尋分類'], input[placeholder='Search for a category...']
   category_search_keyword:
     description: 运动鞋搜索关键词
-    fallback: 运动鞋
     primary: 波鞋
   category_selector:
     description: 运动鞋类目选择器
-    fallback: div[class*='category']
     primary: div.D_aEN
   condition_selector:
     description: 新旧条件选择器
-    fallback: button:has-text('新')
     primary: button.D_up:nth-child(1)
   confirm_platform_payment:
     description: 确认关闭平台收款 (固定选择器不要随意修改！！！)
-    fallback: button:has-text('無論如何停用'), button:has-text('Disable anyway')
     primary: button:has-text('無論如何停用'), button:has-text('Disable anyway')
   men_sneakers_option:
     description: 男装波鞋选项
-    fallback: .D_aFp:nth-child(2) .D_mx
     primary: div.D_aFv:nth-child(2)
   multi_quantity_checkbox:
     description: 多产品销售复选框
-    fallback: .D_axg
     primary: innerText:has-text('我正出售多於一件相同的商品')
   platform_payment_close:
     description: 平台收款关闭按钮
-    fallback: .D_aeF .D_mx
     primary: .D_aeF:nth-child(2) .D_mx
   size_option:
     description: 尺寸选项
-    fallback: .D_aeQ .D_mx
     primary: li.D_acS
   size_search_input:
     description: 尺寸搜索输入框 (固定选择器不要随意修改！！！)
-    fallback: input[placeholder='搜尋'], input[placeholder='Search']
     primary: input[placeholder='Search'], input[placeholder='搜尋']
   size_selector:
     description: 尺寸选择器 (固定选择器不要随意修改！！！)
-    fallback: button:has-text('產品大小'), button:has-text('Size')
     primary: button:has-text('產品大小'), button:has-text('Size')
   women_sneakers_option:
     description: 女装波鞋选项
-    fallback: .D_aFp:nth-child(1) .D_mx
     primary: div.D_aFv:nth-child(1)
