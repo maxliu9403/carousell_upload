@@ -13,7 +13,7 @@ basic_elements:
     primary: xpath=//button[normalize-space(.)="Save & close"]
   sell_button:
     description: Sell按钮
-    primary: a.D_Bn
+    primary: a[href*='sell']
   upload_images_button:
     description: 上传图片按钮
     primary: div.D_Mp
