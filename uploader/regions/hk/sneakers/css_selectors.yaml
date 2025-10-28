@@ -7,7 +7,7 @@ basic_elements:
     primary: .D_ayk > .D_oN > .D_oZ
   sell_button:
     description: Sell按钮
-    primary: a.D_Bn
+    primary: a[href*='sell']
   upload_images_button:
     description: 上传图片按钮
     primary: div.D_Ky

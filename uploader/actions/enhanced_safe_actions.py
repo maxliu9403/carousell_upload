@@ -376,9 +376,7 @@ class EnhancedSafeActions:
         self.css_manager.check_and_reload()
         
         # 获取选择器
-        primary_selector, _ = self.css_manager.get_selector_with_fallback(
-            element_key, region, self.category
-        )
+        primary_selector = self.css_manager.get_selector(element_key, region, "primary", self.category)
         
         if not primary_selector:
             logger.error(f"❌ 找不到CSS选择器配置: {element_key}")
@@ -389,7 +387,7 @@ class EnhancedSafeActions:
         element_description = self.css_manager.get_element_description(element_key, region, self.category)
         full_operation = f"{operation}: {element_description}"
         
-        # 尝试主选择器
+        # 尝试选择器
         for attempt in range(max_retries + 1):
             try:
                 if attempt > 0:
@@ -403,12 +401,12 @@ class EnhancedSafeActions:
                     logger.info(f"{self.log_prefix}{full_operation}成功")
                     return True
                 else:
-                    # 如果must_exist=False且primary选择器返回False，说明元素不存在，直接返回False
+                    # 如果must_exist=False且选择器返回False，说明元素不存在，直接返回False
                     if not must_exist:
                         logger.info(f"{self.log_prefix}元素不存在，跳过操作: {primary_selector}")
                         return False
                     
-                    logger.warning(f"{self.log_prefix}主选择器失败: {primary_selector}")
+                    logger.warning(f"{self.log_prefix}选择器失败: {primary_selector}")
                     
                     # 如果重试次数达到上限，请求用户输入新选择器
                     if attempt >= max_retries:
@@ -456,9 +454,7 @@ class EnhancedSafeActions:
         self.css_manager.check_and_reload()
         
         # 获取选择器
-        primary_selector, _ = self.css_manager.get_selector_with_fallback(
-            element_key, region, self.category
-        )
+        primary_selector = self.css_manager.get_selector(element_key, region, "primary", self.category)
         
         if not primary_selector:
             logger.error(f"❌ 找不到CSS选择器配置: {element_key}")
@@ -469,26 +465,26 @@ class EnhancedSafeActions:
         element_description = self.css_manager.get_element_description(element_key, region, self.category)
         full_operation = f"{operation}: {element_description}"
         
-        # 尝试主选择器
+        # 尝试选择器
         for attempt in range(max_retries + 1):
             try:
                 if attempt > 0:
-                    logger.info(f"{self.log_prefix}第{attempt + 1}次尝试{full_operation}, 输入内容: '{text}'")
+                    logger.info(f"{self.log_prefix}第{attempt + 1}次尝试{full_operation}")
                     human_delay(1, 2)
                 else:
-                    logger.info(f"{self.log_prefix}正在{full_operation}: {primary_selector}, 输入内容: '{text}'")
+                    logger.info(f"{self.log_prefix}正在{full_operation}: {primary_selector}")
                 
                 result = self._smart_input(primary_selector, text, must_exist, timeout)
                 if result:
                     logger.info(f"{self.log_prefix}{full_operation}成功")
                     return True
                 else:
-                    # 如果must_exist=False且primary选择器返回False，说明元素不存在，直接返回False
+                    # 如果must_exist=False且选择器返回False，说明元素不存在，直接返回False
                     if not must_exist:
                         logger.info(f"{self.log_prefix}元素不存在，跳过操作: {primary_selector}")
                         return False
                     
-                    logger.warning(f"{self.log_prefix}主选择器失败: {primary_selector}")
+                    logger.warning(f"{self.log_prefix}选择器失败: {primary_selector}")
                     
                     # 如果重试次数达到上限，请求用户输入新选择器
                     if attempt >= max_retries:

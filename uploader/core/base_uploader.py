@@ -109,16 +109,16 @@ class BaseUploader:
             # 检查并重新加载配置（支持热更新）
             self.safe_actions.css_manager.check_and_reload()
             
-            # 获取选择器
-            primary_selector, _ = self.safe_actions.css_manager.get_selector_with_fallback(
-                element_key, self.region, self.category
+            # 获取主选择器
+            primary_selector = self.safe_actions.css_manager.get_selector(
+                element_key, self.region, "primary", self.category
             )
             
             if not primary_selector:
                 logger.warning(f"⚠️ 找不到选择器配置: {element_key}")
                 return None
             
-            # 尝试主选择器
+            # 尝试获取元素文本
             try:
                 if primary_selector.startswith("//"):
                     element = self.page.wait_for_selector(f"xpath={primary_selector}", timeout=5000)
@@ -134,7 +134,7 @@ class BaseUploader:
                     return text
                     
             except Exception as e:
-                logger.debug(f"主选择器获取文本失败: {e}")
+                logger.debug(f"选择器获取文本失败: {e}")
             
             logger.warning(f"⚠️ 无法获取按钮文本: {element_key}")
             
@@ -467,11 +467,7 @@ class BaseUploader:
         else:
             logger.info(f"✅ 已获取Sell按钮文本: '{self.sell_button_text}'")
 
-        # 点击sell按钮
-        # self.safe_actions.safe_click_with_config(
-        #     "basic_elements.sell_button", self.region, must_exist=True,
-        #     operation="点击Sell按钮"
-        # )
+    
         self._navigate_to_upload_page()
 
         # 等待页面加载（最多10秒，超时继续执行）

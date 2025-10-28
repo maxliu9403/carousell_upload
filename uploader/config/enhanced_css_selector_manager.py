@@ -31,37 +31,8 @@ class EnhancedCSSSelectorManager:
         # 清除缓存以强制重新加载
         self.regional_loader.clear_cache()
         return True
-    
-    def get_selector_with_fallback(self, element_key: str, region: str = None, category: str = "sneakers") -> Tuple[Optional[str], Optional[str]]:
-        """
-        获取选择器配置（只返回主选择器，fallback已废弃）
-        
-        Args:
-            element_key: 元素键名
-            region: 地域代码
-            category: 类别代码
-            
-        Returns:
-            Tuple[Optional[str], Optional[str]]: (主选择器, None)
-        """
-        if not region:
-            logger.error(f"❌ 必须提供地域代码: {element_key}")
-            return None, None
-        
-        try:
-            primary = self.regional_loader.get_selector_value(region, category, element_key, "primary")
-            
-            if primary:
-                logger.debug(f"✅ 使用地域特定配置: {region}-{category}-{element_key}")
-                return primary, None  # fallback已废弃，返回None
-            else:
-                logger.warning(f"⚠️ 找不到地域特定配置: {region}-{category}-{element_key}")
-                return None, None
-                
-        except Exception as e:
-            logger.error(f"❌ 获取地域特定配置失败: {region}-{category}-{element_key}, 错误: {e}")
-            return None, None
-    
+
+ 
     def get_selector(self, element_key: str, region: str = None, selector_type: str = "primary", category: str = "sneakers") -> Optional[str]:
         """
         获取指定类型的选择器值
