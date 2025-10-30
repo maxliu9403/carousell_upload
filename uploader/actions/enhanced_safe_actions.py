@@ -10,6 +10,14 @@ from browser.actions import click_with_wait, input_with_wait, human_delay, DEFAU
 from core.logger import logger
 from ..config.enhanced_css_selector_manager import get_enhanced_css_manager, EnhancedCSSSelectorManager
 
+# 运行模式控制：默认有人值守
+_UNATTENDED_MODE = False
+
+def set_unattended_mode(flag: bool) -> None:
+    """设置运行模式：True 为无人值守，False 为有人值守（默认）"""
+    global _UNATTENDED_MODE
+    _UNATTENDED_MODE = bool(flag)
+
 class SkipCurrentProduct(Exception):
     """跳过当前商品，继续下一个商品的异常"""
     pass
@@ -41,6 +49,8 @@ class EnhancedSafeActions:
         self.category = category
         self.css_manager = get_enhanced_css_manager()
         self.log_prefix = f"BrowserID: {browser_id}, SKU: {sku}, " if browser_id and sku else ""
+        # 固化当前实例的运行模式
+        self.unattended = _UNATTENDED_MODE
     
     def _smart_click(self, selector: str, must_exist: bool = True, timeout: int = None) -> bool:
         """
@@ -204,6 +214,15 @@ class EnhancedSafeActions:
         """
         # 获取当前使用的选择器
         current_primary = self.css_manager.get_selector(element_key, region, "primary", self.category)
+
+        # 无人值守模式：直接使用当前主选择器；若不存在主选择器则跳过当前商品
+        if self.unattended:
+            if current_primary:
+                logger.info(f"{self.log_prefix}无人值守模式：直接使用当前主选择器: {current_primary}")
+                return current_primary
+            else:
+                logger.error(f"{self.log_prefix}无人值守模式：当前无主选择器可用，跳过该商品: {element_key}")
+                raise SkipCurrentProduct("无人值守模式下无主选择器可用，跳过该商品")
         
         print(f"\n{'='*80}")
         print(f"🔧 CSS选择器更新请求")
