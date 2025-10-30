@@ -10,6 +10,14 @@ from browser.actions import click_with_wait, input_with_wait, human_delay, DEFAU
 from core.logger import logger
 from ..config.enhanced_css_selector_manager import get_enhanced_css_manager, EnhancedCSSSelectorManager
 
+# 运行模式控制：默认有人值守
+_UNATTENDED_MODE = False
+
+def set_unattended_mode(flag: bool) -> None:
+    """设置运行模式：True 为无人值守，False 为有人值守（默认）"""
+    global _UNATTENDED_MODE
+    _UNATTENDED_MODE = bool(flag)
+
 class SkipCurrentProduct(Exception):
     """跳过当前商品，继续下一个商品的异常"""
     pass
@@ -41,6 +49,8 @@ class EnhancedSafeActions:
         self.category = category
         self.css_manager = get_enhanced_css_manager()
         self.log_prefix = f"BrowserID: {browser_id}, SKU: {sku}, " if browser_id and sku else ""
+        # 固化当前实例的运行模式
+        self.unattended = _UNATTENDED_MODE
     
     def _smart_click(self, selector: str, must_exist: bool = True, timeout: int = None) -> bool:
         """
@@ -204,6 +214,15 @@ class EnhancedSafeActions:
         """
         # 获取当前使用的选择器
         current_primary = self.css_manager.get_selector(element_key, region, "primary", self.category)
+
+        # 无人值守模式：直接使用当前主选择器；若不存在主选择器则跳过当前商品
+        if self.unattended:
+            if current_primary:
+                logger.info(f"{self.log_prefix}无人值守模式：直接使用当前主选择器: {current_primary}")
+                return current_primary
+            else:
+                logger.error(f"{self.log_prefix}无人值守模式：当前无主选择器可用，跳过该商品: {element_key}")
+                raise SkipCurrentProduct("无人值守模式下无主选择器可用，跳过该商品")
         
         print(f"\n{'='*80}")
         print(f"🔧 CSS选择器更新请求")
@@ -227,10 +246,11 @@ class EnhancedSafeActions:
         print(f"💡 参考: 可以基于当前选择器进行修改")
         print(f"{'='*80}")
         
+        # 支持快捷键：输入 'd' 直接使用当前主选择器
         while True:
             try:
                 # 构建输入提示，包含当前选择器信息
-                input_prompt = f"请输入新的CSS选择器"
+                input_prompt = f"请输入新的CSS选择器（输入 d 使用当前主选择器）"
                 if current_primary:
                     input_prompt += f" (当前主选择器: {current_primary})"
                 
@@ -253,8 +273,17 @@ class EnhancedSafeActions:
                     return "SKIP"
                 
                 if not new_selector:
-                    print("❌ 选择器不能为空，请重新输入")
+                    print("❌ 选择器不能为空，请重新输入（或输入 d 使用当前主选择器）")
                     continue
+
+                # 快捷键：使用当前主选择器
+                if new_selector.lower() == 'd':
+                    if current_primary:
+                        print(f"✅ 已选择使用当前主选择器: {current_primary}")
+                        return current_primary
+                    else:
+                        print("❌ 当前无主选择器可用，请输入新的CSS选择器")
+                        continue
                 
                 # 验证选择器格式
                 if not self.css_manager.validate_selector(new_selector):
@@ -339,7 +368,8 @@ class EnhancedSafeActions:
                 return True
             else:
                 logger.error(f"❌ 使用新选择器操作仍然失败: {element_key}")
-                return False
+                # 直接退出当前任务，继续下一个
+                raise SkipCurrentProduct(f"使用新选择器仍失败: {element_key}")
                 
         except KeyboardInterrupt:
             logger.info("用户中断操作")
@@ -349,7 +379,8 @@ class EnhancedSafeActions:
             raise
         except Exception as e:
             logger.error(f"❌ 更新选择器并重试失败: {element_key}, 错误: {e}")
-            return False
+            # 出现异常时也退出当前任务
+            raise SkipCurrentProduct(f"更新并重试异常: {element_key}, {e}")
     
     def safe_click_with_config(self, element_key: str, region: str = None, 
                               must_exist: bool = True, timeout: int = None,
@@ -416,6 +447,9 @@ class EnhancedSafeActions:
                             must_exist, region, primary_selector, must_exist, timeout
                         )
                         
+            except SkipCurrentProduct:
+                # 向上抛出以便上层跳过当前任务
+                raise
             except Exception as e:
                 logger.warning(f"{self.log_prefix}第{attempt + 1}次尝试异常: {e}")
                 
@@ -494,6 +528,9 @@ class EnhancedSafeActions:
                             must_exist, region, primary_selector, text, must_exist, timeout
                         )
                         
+            except SkipCurrentProduct:
+                # 向上抛出以便上层跳过当前任务
+                raise
             except Exception as e:
                 logger.warning(f"{self.log_prefix}第{attempt + 1}次尝试异常: {e}")
                 

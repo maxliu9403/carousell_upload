@@ -7,6 +7,7 @@ from uploader.core.carousell_uploader import CarousellUploader
 from core.models import ProductInfo
 from core.logger import logger
 from uploader.multi.multi_account_uploader import MultiAccountUploader
+from uploader.actions.enhanced_safe_actions import set_unattended_mode
 from data.excel_parser import ExcelProductParser
 
 # 全局变量用于跟踪程序状态
@@ -195,6 +196,25 @@ def run():
                 logger.warning("\n❌ 用户取消选择")
                 return
         
+        # 运行模式选择（默认有人值守）
+        logger.info("\n" + "🧭" + "=" * 30 + "🧭")
+        logger.info(" " * 12 + "🔧 请选择运行模式 🔧")
+        logger.info("🧭" + "=" * 30 + "🧭")
+        logger.info(" " * 8 + "1. 👤 有人值守（默认）")
+        logger.info(" " * 8 + "2. 🤖 无人值守（遇到选择器更新时自动使用当前主选择器）")
+
+        unattended = False
+        try:
+            mode_choice = input("\n" + " " * 8 + "🎯 请输入选择 (1/2，默认1): ").strip()
+            if mode_choice == "2":
+                unattended = True
+        except KeyboardInterrupt:
+            logger.warning("\n❌ 用户取消选择，使用默认模式：有人值守")
+            unattended = False
+
+        set_unattended_mode(unattended)
+        logger.info(f"✅ 已选择运行模式: {'无人值守' if unattended else '有人值守'}")
+
         # 创建多账号上传器
         multi_uploader = MultiAccountUploader(config, excel_path, region, category)
         

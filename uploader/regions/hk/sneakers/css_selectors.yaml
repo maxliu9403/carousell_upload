@@ -22,15 +22,15 @@ category_selection:
     description: 服务类目选择器
     primary: div.D_aFo
 editing:
+  activate_button:
+    description: 激活按钮
+    primary: innerText:has-text("標記為有效"), innerText:has-text("Mark as active")
   edit_button:
     description: 编辑按钮（固定选择器不要随意修改！！！）
     primary: span:has-text('編輯產品'), span:has-text('Edit Listing')
   inactive_image:
     description: 未活跃图片
     primary: img.D_acC
-  activate_button:
-    description: 激活按钮
-    primary: innerText:has-text("標記為有效"), innerText:has-text("Mark as active")
 metadata:
   category: sneakers
   description: 运动鞋CSS选择器配置文件
@@ -49,10 +49,12 @@ popups_and_settings:
     primary: '#FieldSetField-Container-field_mailing_details .D_tk'
   delivery_toggle:
     description: 送货开关 (固定选择器不要随意修改！！！)
-    primary: xpath=//form//p[normalize-space(.)="Delivery"], xpath=//form//p[normalize-space(.)="送貨"], xpath=//form//p[normalize-space(.)="郵寄&速遞"]
+    primary: xpath=//form//p[normalize-space(.)="Delivery"], xpath=//form//p[normalize-space(.)="送貨"],
+      xpath=//form//p[normalize-space(.)="郵寄&速遞"]
   meetup_input:
     description: 面交地点输入框
-    primary: xpath=//form//input[@type="text"][@aria-label="添加地點"], xpath=//form//input[@type="text"][@aria-label="Add location"]
+    primary: xpath=//form//input[@type="text"][@aria-label="添加地點"], xpath=//form//input[@type="text"][@aria-label="Add
+      location"]
   meetup_option:
     description: 面交地点选项
     primary: div.D_cFi:nth-child(2)
@@ -78,7 +80,8 @@ product_info:
 publishing:
   publish_button:
     description: 发布按钮 (固定选择器不要随意修改！！！)
-    primary: button[type='button']:has-text('更新'), button[type='button']:has-text('即刻刊登'), button[type='button']:has-text('List now'), button[type='button']:has-text('Update')
+    primary: button[type='button']:has-text('更新'), button[type='button']:has-text('即刻刊登'),
+      button[type='button']:has-text('List now'), button[type='button']:has-text('Update')
 sneakers_specific:
   brand_input:
     description: 品牌输入框 (固定选择器不要随意修改！！！)
