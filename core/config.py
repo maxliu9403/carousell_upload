@@ -59,7 +59,8 @@ def create_upload_config() -> UploadConfig:
         female_sizes=config["product"]["female_sizes"],
         meetup_locations=config["product"]["meetup_locations"],
         domains=config["domains"],
-        categories=config["product"]["categories"]
+        categories=config["product"]["categories"],
+        navigation_timeouts=config.get("navigation", {})
     )
 
 # 保持向后兼容 - 移除模块级别的配置加载以避免重复日志

@@ -2,10 +2,24 @@
 # 复制此文件为 settings.yaml 并填入您的实际配置
 
 browser:
-  # API 密钥
-  api_key: "bba29e64820c4282ade6afc480b5c78e"
-  # 用于获取浏览器窗口列表的端口
-  api_port: 54347
+  # 多指纹浏览器配置
+  browsers:
+    bitBrowser:
+      type: "bitBrowser"
+      api_port: 54345
+      api_key: "your_bitbrowser_api_key"  # 替换为您的 BitBrowser API Key
+    ixBrowser:
+      type: "ixBrowser"
+      api_port: 53200
+      api_key: ""  # 可选
+  # 当前选择的浏览器类型（运行时会被覆盖）
+  current_type: "ixBrowser"
+
+# 地域域名配置
+domains:
+  SG: "https://www.carousell.sg"
+  HK: "https://www.carousell.com.hk"
+  MY: "https://www.carousell.com.my"
 
 upload:
   # 支持的图片格式
@@ -14,14 +28,47 @@ upload:
 # 商品信息配置
 product:
   descriptions:
-    - "高品质商品，适合日常使用"
-    - "全新商品，包装完好"
-    - "优质材料制作，经久耐用"
-    - "时尚设计，舒适体验"
-    - "品牌正品，质量保证"
-    - "精美包装，送礼佳品"
-    - "实用性强，性价比高"
-    - "经典款式，永不过时"
+    - "Brand new item with box, all sizes available"
+    - "Completely new condition, ready to ship"
+    - "All sizes in stock, brand new and unused"
+    - "Brand new pair with full size range"
+    - "100% new condition, shipped with box"
+    - "Never worn, comes with box and tag"
+    - "Fresh stock, all sizes ready for order"
+    - "Brand new and clean, available in all sizes"
+    - "New arrival, every size currently available"
+    - "Brand new with packaging, ships quickly"
+    - "Unworn and unused, available in all sizes"
+    - "All sizes ready to ship, brand new condition"
+    - "Completely new stock, box included"
+    - "Brand new sneakers, full size range in stock"
+    - "All sizes open for order, brand new with box"
+    - "New condition, available for both men and women"
+    - "All sizes ready, brand new and packed safely"
+    - "Brand new item, ships out fast"
+    - "New in box, full size selection"
+    - "Every size available, all items brand new"
+  
+  # 支持的商品类目
+  categories:
+    sneakers:
+      name: "运动鞋"
+      search_keyword: "sneakers"
+      subcategories:
+        male: "男装波鞋"
+        female: "女装波鞋"
+    bags:
+      name: "包包"
+      search_keyword: "bags"
+      subcategories:
+        male: "男装包包"
+        female: "女装包包"
+    clothes:
+      name: "服装"
+      search_keyword: "clothes"
+      subcategories:
+        male: "男装"
+        female: "女装"
   
   # 男性尺码：40-45
   male_sizes: ["40", "41", "42", "43", "44", "45"]
@@ -29,24 +76,58 @@ product:
   # 女性尺码：36-40
   female_sizes: ["36", "37", "38", "39", "40"]
   
-  # 面交地点
+  # 面交地点 - 按地域分类
   meetup_locations:
-    - "MTR"
-    - "Central"
-    - "Orchard"
-    - "Marina Bay"
-    - "Chinatown"
-    - "Little India"
-    - "Bugis"
-    - "Tampines"
-    - "Jurong East"
-    - "Woodlands"
+    SG:  # 新加坡
+      - "MTR"
+      - "Central"
+      - "Orchard"
+      - "Marina Bay"
+      - "Chinatown"
+      - "Little India"
+      - "Bugis"
+      - "Tampines"
+      - "Jurong East"
+      - "Woodlands"
+    HK:  # 香港
+      - "Central"
+      - "Tsim Sha Tsui"
+      - "Causeway Bay"
+      - "Mong Kok"
+      - "Admiralty"
+      - "Wan Chai"
+      - "Sheung Wan"
+      - "Jordan"
+      - "Prince Edward"
+      - "Lai Chi Kok"
+    MY:  # 马来西亚
+      - "KL Sentral"
+      - "Bukit Bintang"
+      - "Pavilion"
+      - "Sunway Pyramid"
+      - "Mid Valley"
+      - "1 Utama"
+      - "The Gardens"
+      - "Suria KLCC"
+      - "Times Square"
+      - "IOI City Mall"
 
 # 页面操作配置
 actions:
   default_timeout: 8000    # 默认超时时间（毫秒）
   retry_times: 3           # 重试次数
   retry_delay: 1.0         # 每次重试间隔（秒）
+
+# 页面导航超时配置
+navigation:
+  homepage_timeout: 120000       # 主页加载超时（毫秒）
+  upload_page_timeout: 30000     # 上传页面加载超时（毫秒）
+  manage_page_timeout: 30000     # 管理页面加载超时（毫秒）
+  page_load_timeout: 10000       # 页面加载等待超时（毫秒）
+  element_timeout: 5000          # 元素等待超时（毫秒）
+  dialog_timeout: 30000          # 对话框等待超时（毫秒）
+  activation_timeout: 15000      # 激活完成等待超时（毫秒）
+  network_idle_timeout: 5000     # 网络空闲等待超时（毫秒）
 
 # 可选：商品默认信息
 product_defaults:

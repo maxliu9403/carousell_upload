@@ -119,14 +119,15 @@ class BaseUploader:
                 return None
             
             # 尝试获取元素文本
+            element_timeout = self.config.navigation_timeouts.get("element_timeout", 5000)
             try:
                 if primary_selector.startswith("//"):
-                    element = self.page.wait_for_selector(f"xpath={primary_selector}", timeout=5000)
+                    element = self.page.wait_for_selector(f"xpath={primary_selector}", timeout=element_timeout)
                 elif ":has-text(" in primary_selector:
                     element = self.page.locator(primary_selector)
-                    element.wait_for(state="visible", timeout=5000)
+                    element.wait_for(state="visible", timeout=element_timeout)
                 else:
-                    element = self.page.wait_for_selector(primary_selector, timeout=5000)
+                    element = self.page.wait_for_selector(primary_selector, timeout=element_timeout)
                 
                 if element:
                     text = element.inner_text()
@@ -180,15 +181,16 @@ class BaseUploader:
             # 使用用户输入的选择器尝试获取文本
             logger.info(f"🔄 使用用户输入的选择器尝试获取按钮文本: {new_selector}")
             
+            element_timeout = self.config.navigation_timeouts.get("element_timeout", 5000)
             try:
                 # 判断选择器类型并获取元素
                 if new_selector.startswith("//"):
-                    element = self.page.wait_for_selector(f"xpath={new_selector}", timeout=5000)
+                    element = self.page.wait_for_selector(f"xpath={new_selector}", timeout=element_timeout)
                 elif ":has-text(" in new_selector:
                     element = self.page.locator(new_selector)
-                    element.wait_for(state="visible", timeout=5000)
+                    element.wait_for(state="visible", timeout=element_timeout)
                 else:
-                    element = self.page.wait_for_selector(new_selector, timeout=5000)
+                    element = self.page.wait_for_selector(new_selector, timeout=element_timeout)
                 
                 if element:
                     text = element.inner_text()
@@ -264,7 +266,8 @@ class BaseUploader:
             if dialog_element.count() > 0:
                 logger.info(f"{self.log_prefix}检测到dialog元素，等待其消失...")
                 # 等待dialog消失
-                dialog_element.wait_for(state="hidden", timeout=30000)
+                dialog_timeout = self.config.navigation_timeouts.get("dialog_timeout", 30000)
+                dialog_element.wait_for(state="hidden", timeout=dialog_timeout)
                 logger.info(f"{self.log_prefix}Dialog已消失，操作完成，继续执行后续流程")
             else:
                 logger.info(f"{self.log_prefix}未检测到dialog元素，可能已经消失，继续执行后续流程")
@@ -275,9 +278,10 @@ class BaseUploader:
             logger.info(f"{self.log_prefix}继续执行后续流程")
             
             
-        # 等待页面加载结束（使用较短的超时时间）
+        # 等待页面加载结束（从配置读取超时时间）
+        network_idle_timeout = self.config.navigation_timeouts.get("network_idle_timeout", 5000)
         try:
-            self.page.wait_for_load_state("networkidle", timeout=5000)
+            self.page.wait_for_load_state("networkidle", timeout=network_idle_timeout)
             logger.info(f"{self.log_prefix}✅ 页面网络活动已结束")
         except Exception as e:
             logger.warning(f"{self.log_prefix}⚠️ 等待页面网络活动结束超时: {e}")
@@ -439,19 +443,22 @@ class BaseUploader:
     def _navigate_to_homepage(self):
         """导航到主页"""
         domain = self._get_domain_by_region()
-        smart_goto(self.page, domain, wait_until="domcontentloaded", timeout=30000)
+        timeout = self.config.navigation_timeouts.get("homepage_timeout", 120000)
+        smart_goto(self.page, domain, wait_until="domcontentloaded", timeout=timeout)
         logger.info("🌐 已打开主页")
         
     def _navigate_to_manage_page(self):
         """导航到管理页面"""
         domain = self._get_domain_by_region()
-        smart_goto(self.page, f"{domain}/manage-listings/", wait_until="domcontentloaded", timeout=30000)
+        timeout = self.config.navigation_timeouts.get("manage_page_timeout", 30000)
+        smart_goto(self.page, f"{domain}/manage-listings/", wait_until="domcontentloaded", timeout=timeout)
         logger.info("🌐 已打开目标页面")
     
     def _navigate_to_upload_page(self):
-        """导航到上穿图片页面"""
+        """导航到上传图片页面"""
         domain = self._get_domain_by_region()
-        smart_goto(self.page, f"{domain}/sell?source=nav_bar", wait_until="domcontentloaded", timeout=30000)
+        timeout = self.config.navigation_timeouts.get("upload_page_timeout", 30000)
+        smart_goto(self.page, f"{domain}/sell?source=nav_bar", wait_until="domcontentloaded", timeout=timeout)
         logger.info("🌐 已打开目标页面")
         
     # ========= 公共方法：上传流程 =========
@@ -470,10 +477,11 @@ class BaseUploader:
     
         self._navigate_to_upload_page()
 
-        # 等待页面加载（最多10秒，超时继续执行）
+        # 等待页面加载（从配置读取超时时间，默认10秒）
+        page_load_timeout = self.config.navigation_timeouts.get("page_load_timeout", 10000)
         try:
-            logger.info(f"{self.log_prefix}等待页面加载完成（最多10秒）...")
-            self.page.wait_for_load_state("domcontentloaded", timeout=10000)
+            logger.info(f"{self.log_prefix}等待页面加载完成（最多{page_load_timeout/1000:.0f}秒）...")
+            self.page.wait_for_load_state("domcontentloaded", timeout=page_load_timeout)
             logger.info(f"{self.log_prefix}页面加载完成")
         except Exception as e:
             logger.warning(f"{self.log_prefix}页面加载等待超时，继续执行: {e}")
@@ -632,7 +640,8 @@ class BaseUploader:
                 if dialog_count > 0:
                     logger.info(f"{self.log_prefix}✅ 检测到dialog元素，等待其消失...")
                     # 等待dialog消失
-                    dialog_element.wait_for(state="hidden", timeout=30000)
+                    dialog_timeout = self.config.navigation_timeouts.get("dialog_timeout", 30000)
+                    dialog_element.wait_for(state="hidden", timeout=dialog_timeout)
                     logger.info(f"{self.log_prefix}✅ Dialog已消失，操作完成，继续执行后续流程")
                     return True
                 else:
@@ -768,7 +777,8 @@ class BaseUploader:
         
         # 立即等待激活完成（按钮文字变化）
         logger.info(f"{self.log_prefix}⏳ 等待激活完成...")
-        self._wait_for_activation_complete(button_selector, initial_text, timeout=15000)
+        activation_timeout = self.config.navigation_timeouts.get("activation_timeout", 15000)
+        self._wait_for_activation_complete(button_selector, initial_text, timeout=activation_timeout)
         logger.info(f"{self.log_prefix}✅ 商品激活完成")
 
     def _activate_product(self):
