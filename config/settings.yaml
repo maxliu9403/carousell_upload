@@ -24,8 +24,26 @@ upload:
 # 商品信息配置
 product:
   descriptions:
-    - "Brand new with box, all sizes available"
-    - "In-stock and ready to ship"
+    - "Brand new item with box, all sizes available"
+    - "Completely new condition, ready to ship"
+    - "All sizes in stock, brand new and unused"
+    - "Brand new pair with full size range"
+    - "100% new condition, shipped with box"
+    - "Never worn, comes with box and tag"
+    - "Fresh stock, all sizes ready for order"
+    - "Brand new and clean, available in all sizes"
+    - "New arrival, every size currently available"
+    - "Brand new with packaging, ships quickly"
+    - "Unworn and unused, available in all sizes"
+    - "All sizes ready to ship, brand new condition"
+    - "Completely new stock, box included"
+    - "Brand new sneakers, full size range in stock"
+    - "All sizes open for order, brand new with box"
+    - "New condition, available for both men and women"
+    - "All sizes ready, brand new and packed safely"
+    - "Brand new item, ships out fast"
+    - "New in box, full size selection"
+    - "Every size available, all items brand new"
   
   # 支持的商品类目
   categories:
@@ -95,6 +113,17 @@ actions:
   default_timeout: 5000    # 默认超时时间（毫秒）
   retry_times: 1           # 重试次数
   retry_delay: 1.0         # 每次重试间隔（秒）
+  
+# 页面导航超时配置
+navigation:
+  homepage_timeout: 120000       # 主页加载超时（毫秒）
+  upload_page_timeout: 30000     # 上传页面加载超时（毫秒）
+  manage_page_timeout: 30000     # 管理页面加载超时（毫秒）
+  page_load_timeout: 10000       # 页面加载等待超时（毫秒）
+  element_timeout: 5000          # 元素等待超时（毫秒）
+  dialog_timeout: 30000          # 对话框等待超时（毫秒）
+  activation_timeout: 15000      # 激活完成等待超时（毫秒）
+  network_idle_timeout: 5000     # 网络空闲等待超时（毫秒）
 
 # 日志配置
 logging:
