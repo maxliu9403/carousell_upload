@@ -1,0 +1,123 @@
+basic_elements:
+  ai_writing_cancel_button:
+    description: AI文案取消按钮（固定选择器不要随意修改！！！）
+    primary: button:has-text('Fill in manually instead'), button:has-text('改為手動填寫')
+  location_option:
+    description: 服务区域选项
+    primary: xpath=//form//p[normalize-space(.)="All of Singapore"]
+  location_selector:
+    description: 服务区域输入框
+    primary: input[aria-label='Service area(s)']
+  new_account_popup_close:
+    description: 关闭图片上传提示（固定选择器不要随意修改！！！）
+    primary: xpath=//button[normalize-space(.)="Save & close"]
+  sell_button:
+    description: Sell按钮
+    primary: a[href*='sell']
+  upload_images_button:
+    description: 上传图片按钮
+    primary: div.D_Mp
+category_selection:
+  category_search_input:
+    description: 类目搜索输入框 (固定选择器不要随意修改！！！)
+    primary: input[placeholder='Search for a category...'], input[placeholder='搜尋分類']
+  service_category_option:
+    description: 点击类目输入其他
+    primary: div.D_aGS:nth-child(2)
+  service_category_selector:
+    description: 服务类目选择器
+    primary: div.D_aGL
+editing:
+  activate_button:
+    description: 激活按钮
+    primary: innerText:has-text("Mark as active"), innerText:has-text("標記為有效")
+  edit_button:
+    description: 编辑按钮（固定选择器不要随意修改！！！）
+    primary: span:has-text('Edit Listing'), span:has-text('編輯產品')
+  inactive_image:
+    description: 未活跃图片
+    primary: img.D_aaP
+metadata:
+  category: bags
+  description: 包包CSS选择器配置文件
+  last_updated: '2025-11-10T00:00:00.000000'
+  region: SG
+  version: 1.0.0
+popups_and_settings:
+  buyer_protection_confirm:
+    description: 确认关闭收款保障
+    primary: .button.D_pA
+  buyer_protection_toggle:
+    description: 收款保障开关
+    primary: .D_agH:nth-child(2) .D_kI
+  delivery_detection:
+    description: 送货输入框
+    primary: '#FieldSetField-Container-field_mailing_details .D_tk'
+  delivery_toggle:
+    description: 送货开关 (固定选择器不要随意修改！！！)
+    primary: xpath=//form//p[normalize-space(.)="Delivery"], xpath=//form//p[normalize-space(.)="送貨"], xpath=//form//p[normalize-space(.)="郵寄&速遞"]
+  meetup_input:
+    description: 面交地点输入框
+    primary: xpath=//form//input[@type="text"][@aria-label="添加地點"], xpath=//form//input[@type="text"][@aria-label="Add location"]
+  meetup_option:
+    description: 面交地点选项
+    primary: div.D_cEN:nth-child(2)
+  meetup_toggle:
+    description: 面交开关 (固定选择器不要随意修改！！！)
+    primary: xpath=//form//p[normalize-space(.)="Meet-up"], xpath=//form//p[normalize-space(.)="面交"]
+  whatsapp_close:
+    description: WhatsApp弹窗关闭
+    primary: rect.D_axg
+  whatsapp_detection:
+    description: 添加WhatsApp号码
+    primary: button.D_mk
+product_info:
+  description_input:
+    description: 商品描述输入框 (固定选择器不要随意修改！！！)
+    primary: textarea[name='field_description'], textarea[placeholder='Product description']
+  price_input:
+    description: 商品价格输入框
+    primary: input#price
+  title_input:
+    description: 商品标题输入框
+    primary: xpath=//form//input[@type="text"][@name="field_title"]
+publishing:
+  publish_button:
+    description: 发布按钮
+    primary: button[type='button']:has-text('更新'), button[type='button']:has-text('即刻刊登'), button[type='button']:has-text('List now'), button[type='button']:has-text('Update')
+bags_specific:
+  brand_input:
+    description: 品牌输入框
+    primary: xpath=//form//label[normalize-space(.)="Brand"]
+  brand_option:
+    description: 其他品牌选项
+    primary: li.D_abf
+  brand_search_input:
+    description: 品牌搜索输入框 (固定选择器不要随意修改！！！)
+    primary: input[type='search'][placeholder='Search'], input[type='search'][placeholder='搜尋']
+  brand_selector:
+    description: 品牌选择器 (固定选择器不要随意修改！！！)
+    primary: xpath=//form//button[normalize-space(.)="品牌"], xpath=//form//button[normalize-space(.)="Brand"]
+  category_search_input:
+    description: 包包类目搜索输入框 (固定选择器不要随意修改！！！)
+    primary: input[placeholder='Search for a category...'], input[placeholder='搜尋分類']
+  category_selector:
+    description: 包包类目选择器
+    primary: div.D_aEN
+  condition_selector:
+    description: 新旧条件选择器
+    primary: .D_ahS:nth-child(2) .D_up:nth-child(1)
+  confirm_platform_payment:
+    description: 确认关闭平台收款 (固定选择器不要随意修改！！！)
+    primary: button:has-text('Disable anyway'), button:has-text('無論如何停用')
+  delivery_toggle:
+    description: 送货开关
+    primary: xpath=//form//p[normalize-space(.)="Delivery"], xpath=//form//p[normalize-space(.)="送貨"]
+  men_bags_option:
+    description: 男装包包选项
+    primary: div.D_aGS:nth-child(2)
+  women_bags_option:
+    description: 女装包包选项
+    primary: div.D_aGS:nth-child(3)
+
+
