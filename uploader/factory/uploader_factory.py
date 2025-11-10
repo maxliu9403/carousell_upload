@@ -35,8 +35,8 @@ class UploaderFactory:
             module = __import__(module_name, fromlist=[class_name])
             uploader_class = getattr(module, class_name)
             
-            # 创建实例
-            uploader = uploader_class(page, config, region, browser_id, sku)
+            # 创建实例，传递 category 参数
+            uploader = uploader_class(page, config, region, browser_id, sku, category)
             logger.info(f"✅ 成功创建上传器: {region}-{category}")
             
             return uploader

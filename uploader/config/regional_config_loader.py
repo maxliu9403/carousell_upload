@@ -42,26 +42,30 @@ class RegionalConfigLoader:
     
     def _get_config_file_path(self, region: str, category: str) -> Optional[Path]:
         """获取配置文件路径，支持外部和内部配置"""
+        # 统一转换为小写，避免路径大小写问题
+        region_lower = region.lower()
+        category_lower = category.lower()
+        
         if getattr(sys, 'frozen', False):
             # PyInstaller打包后的情况
             # 优先查找可执行文件同目录下的配置文件
             exe_dir = Path(sys.executable).parent
-            external_config = exe_dir / "uploader" / "regions" / region / category / "css_selectors.yaml"
+            external_config = exe_dir / "uploader" / "regions" / region_lower / category_lower / "css_selectors.yaml"
             if external_config.exists():
                 logger.info(f"使用外部CSS选择器配置: {external_config}")
                 return external_config
             
             # 如果外部配置文件不存在，使用打包在内部的配置文件
-            internal_config = Path(sys._MEIPASS) / "uploader" / "regions" / region / category / "css_selectors.yaml"
+            internal_config = Path(sys._MEIPASS) / "uploader" / "regions" / region_lower / category_lower / "css_selectors.yaml"
             if internal_config.exists():
                 logger.info(f"使用内部CSS选择器配置: {internal_config}")
                 return internal_config
             
-            logger.warning(f"未找到CSS选择器配置文件: {region}/{category}")
+            logger.warning(f"未找到CSS选择器配置文件: {region_lower}/{category_lower}")
             return None
         else:
             # 开发环境
-            config_path = self.base_path / region / category / "css_selectors.yaml"
+            config_path = self.base_path / region_lower / category_lower / "css_selectors.yaml"
             if config_path.exists():
                 logger.info(f"使用开发环境CSS选择器配置: {config_path}")
                 return config_path
@@ -78,7 +82,10 @@ class RegionalConfigLoader:
         Returns:
             Dict[str, Any]: 配置字典
         """
-        cache_key = f"{region}_{category}"
+        # 统一转换为小写，避免缓存键不一致
+        region_lower = region.lower()
+        category_lower = category.lower()
+        cache_key = f"{region_lower}_{category_lower}"
         
         # 检查缓存
         if cache_key in self._cache:
