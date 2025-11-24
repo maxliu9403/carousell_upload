@@ -414,33 +414,56 @@ def upload_folder_with_keyboard(folder_path: str, image_exts: set):
     - 选择 folder_path 下的所有指定后缀文件
     - 通过键盘粘贴路径并回车
     - 支持中文路径和特殊字符
+    
+    修复问题：
+    - 明确聚焦到地址栏（Alt+D）后再粘贴路径
+    - 进入文件夹后，明确聚焦到文件名输入框（Alt+N）后再粘贴文件名
+    - 避免剪贴板内容和焦点位置混乱
     """
     # 验证和标准化路径
     normalized_path = validate_and_normalize_path(folder_path)
     logger.info(f"准备上传文件夹: {normalized_path}")
     
-    # 进入文件夹
+    # 等待文件对话框完全打开
     time.sleep(1 + random.random() * 0.5)
-    pyautogui.click(10, 10)
-    time.sleep(0.4 + random.random() * 0.3)
     
-    # 使用剪贴板处理中文路径，避免编码问题
+    # ========= 第一步：在地址栏中粘贴路径并进入文件夹 =========
     try:
+        # 复制路径到剪贴板
         pyperclip.copy(normalized_path)
+        logger.info(f"已复制路径到剪贴板: {normalized_path}")
         time.sleep(0.2)
-        pyautogui.hotkey('ctrl', 'v')
-        time.sleep(0.3)
+        
+        # 明确聚焦到地址栏（Alt+D 是Windows文件对话框的快捷键）
+        pyautogui.hotkey('alt', 'd')
+        time.sleep(0.3 + random.random() * 0.2)
+        
+        # 清空地址栏并粘贴路径
+        pyautogui.hotkey("ctrl", "a")  # 全选地址栏内容
+        time.sleep(0.1)
+        pyautogui.hotkey('ctrl', 'v')  # 粘贴路径
+        time.sleep(0.3 + random.random() * 0.2)
+        logger.info("已在地址栏粘贴路径")
+        
     except Exception as e:
-        logger.warning(f"剪贴板方法失败，使用直接输入: {e}")
-        # 如果剪贴板失败，尝试直接输入
+        logger.warning(f"地址栏粘贴方法失败，尝试备用方案: {e}")
+        # 备用方案：直接输入路径
+        pyautogui.hotkey('alt', 'd')
+        time.sleep(0.3)
+        pyautogui.hotkey("ctrl", "a")
+        time.sleep(0.1)
         pyautogui.write(normalized_path, interval=0.05)
+        time.sleep(0.3)
     
-    pyautogui.click(10, 10)
-    time.sleep(0.3 + random.random() * 0.2)
-    pyautogui.press("enter"); time.sleep(0.3); pyautogui.press("enter")
+    # 按回车进入文件夹（可能需要按两次，确保进入）
+    pyautogui.press("enter")
+    time.sleep(0.5 + random.random() * 0.3)
+    # 如果第一次回车没有进入，再按一次
+    pyautogui.press("enter")
     time.sleep(0.8 + random.random() * 0.5)
+    logger.info("已进入目标文件夹")
 
-    # 过滤图片文件
+    # ========= 第二步：过滤图片文件 =========
     files = [
         f for f in os.listdir(normalized_path)
         if os.path.isfile(os.path.join(normalized_path, f))
@@ -448,18 +471,41 @@ def upload_folder_with_keyboard(folder_path: str, image_exts: set):
     ]
     if not files:
         raise RuntimeError(f"文件夹中没有可上传的图片: {normalized_path}")
+    
+    logger.info(f"找到 {len(files)} 个图片文件: {', '.join(files[:5])}{'...' if len(files) > 5 else ''}")
 
-    # 复制文件名并粘贴（保留文件扩展名）
-    input_str = " ".join(f'"{name}"' for name in files)
-    logger.info(f"复制文件名并粘贴: {', '.join(input_str)}")
-    pyperclip.copy(input_str)
-    pyautogui.click(10, 10)
-    time.sleep(0.2)
-    pyautogui.hotkey("ctrl", "a"); time.sleep(0.1)
-    pyautogui.press("delete"); time.sleep(0.2)
-    pyautogui.hotkey("ctrl", "v"); time.sleep(0.3 + random.random() * 0.3)
-    pyautogui.press("enter")
-    logger.info(f"已选择文件夹中所有文件上传: {', '.join(files)}")
+    # ========= 第三步：在文件名输入框中粘贴文件名列表 =========
+    try:
+        # 准备文件名列表（用引号包裹每个文件名）
+        input_str = " ".join(f'"{name}"' for name in files)
+        
+        # 复制文件名列表到剪贴板（这会覆盖之前剪贴板中的路径，但此时路径已经使用完毕）
+        pyperclip.copy(input_str)
+        logger.info(f"已复制 {len(files)} 个文件名到剪贴板")
+        time.sleep(0.2)
+        
+        # 明确聚焦到文件名输入框（Alt+N 是Windows文件对话框的快捷键）
+        pyautogui.hotkey('alt', 'n')
+        time.sleep(0.3 + random.random() * 0.2)
+        logger.info("已聚焦到文件名输入框")
+        
+        # 清空文件名输入框并粘贴文件名列表
+        pyautogui.hotkey("ctrl", "a")  # 全选
+        time.sleep(0.1)
+        pyautogui.press("delete")  # 删除现有内容（可能包含文件夹名）
+        time.sleep(0.2)
+        pyautogui.hotkey("ctrl", "v")  # 粘贴文件名列表
+        time.sleep(0.3 + random.random() * 0.3)
+        logger.info("已在文件名输入框粘贴文件名列表")
+        
+        # 按回车确认选择文件
+        pyautogui.press("enter")
+        time.sleep(0.3)
+        logger.info(f"已选择文件夹中所有 {len(files)} 个文件上传")
+        
+    except Exception as e:
+        logger.error(f"粘贴文件名列表失败: {e}")
+        raise RuntimeError(f"粘贴文件名列表失败: {e}")
 
 def smart_goto(page: Page, url: str, wait_until: str = "domcontentloaded", timeout: int = 15000, retry_times: int = 2):
     """
