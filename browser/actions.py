@@ -427,33 +427,23 @@ def upload_folder_with_keyboard(folder_path: str, image_exts: set):
     # 等待文件对话框完全打开
     time.sleep(1 + random.random() * 0.5)
     
-    # ========= 第一步：在地址栏中粘贴路径并进入文件夹 =========
+    # ========= 第一步：在地址栏中输入路径并进入文件夹 =========
     try:
-        # 复制路径到剪贴板
-        pyperclip.copy(normalized_path)
-        logger.info(f"已复制路径到剪贴板: {normalized_path}")
-        time.sleep(0.2)
-        
         # 明确聚焦到地址栏（Alt+D 是Windows文件对话框的快捷键）
-        pyautogui.hotkey('alt', 'd')
-        time.sleep(0.3 + random.random() * 0.2)
+        # pyautogui.hotkey('alt', 'd')
+        # time.sleep(0.3 + random.random() * 0.2)
+        # logger.info("已聚焦到地址栏")
         
-        # 清空地址栏并粘贴路径
+        # 清空地址栏并直接输入路径（不使用剪贴板，避免编码问题）
         pyautogui.hotkey("ctrl", "a")  # 全选地址栏内容
         time.sleep(0.1)
-        pyautogui.hotkey('ctrl', 'v')  # 粘贴路径
+        pyautogui.write(normalized_path, interval=0.05)  # 直接输入路径
         time.sleep(0.3 + random.random() * 0.2)
-        logger.info("已在地址栏粘贴路径")
+        logger.info(f"已在地址栏输入路径: {normalized_path}")
         
     except Exception as e:
-        logger.warning(f"地址栏粘贴方法失败，尝试备用方案: {e}")
-        # 备用方案：直接输入路径
-        pyautogui.hotkey('alt', 'd')
-        time.sleep(0.3)
-        pyautogui.hotkey("ctrl", "a")
-        time.sleep(0.1)
-        pyautogui.write(normalized_path, interval=0.05)
-        time.sleep(0.3)
+        logger.error(f"地址栏输入路径失败: {e}")
+        raise RuntimeError(f"地址栏输入路径失败: {e}")
     
     # 按回车进入文件夹（可能需要按两次，确保进入）
     pyautogui.press("enter")
