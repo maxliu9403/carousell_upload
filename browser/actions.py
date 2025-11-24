@@ -434,11 +434,6 @@ def upload_folder_with_keyboard(folder_path: str, image_exts: set):
         time.sleep(0.3 + random.random() * 0.2)
         logger.info("已点击空白处清除焦点")
         
-        # 明确聚焦到地址栏（Alt+D 是Windows文件对话框的快捷键）
-        # pyautogui.hotkey('alt', 'd')
-        # time.sleep(0.3 + random.random() * 0.2)
-        # logger.info("已聚焦到地址栏")
-        
         # 清空地址栏并直接输入路径（不使用剪贴板，避免编码问题）
         pyautogui.hotkey("ctrl", "a")  # 全选地址栏内容
         time.sleep(0.1)
@@ -453,9 +448,6 @@ def upload_folder_with_keyboard(folder_path: str, image_exts: set):
     # 按回车进入文件夹（可能需要按两次，确保进入）
     pyautogui.press("enter")
     time.sleep(0.5 + random.random() * 0.3)
-    # 如果第一次回车没有进入，再按一次
-    pyautogui.press("enter")
-    time.sleep(0.8 + random.random() * 0.5)
     logger.info("已进入目标文件夹")
 
     # ========= 第二步：过滤图片文件 =========
