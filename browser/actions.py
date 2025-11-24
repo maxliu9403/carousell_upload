@@ -429,6 +429,11 @@ def upload_folder_with_keyboard(folder_path: str, image_exts: set):
     
     # ========= 第一步：在地址栏中输入路径并进入文件夹 =========
     try:
+        # 先点击空白处清除当前焦点（确保后续操作能够正确执行）
+        pyautogui.click(10, 10)
+        time.sleep(0.3 + random.random() * 0.2)
+        logger.info("已点击空白处清除焦点")
+        
         # 明确聚焦到地址栏（Alt+D 是Windows文件对话框的快捷键）
         # pyautogui.hotkey('alt', 'd')
         # time.sleep(0.3 + random.random() * 0.2)
