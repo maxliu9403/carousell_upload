@@ -5,6 +5,8 @@ basic_elements:
   new_account_popup_close:
     description: 新账号弹窗关闭按钮（固定选择器不要随意修改！！！）
     primary: xpath=//button[@acc-name="Save & close"]
+    mouse_x: 649  # 第一次点击的鼠标X坐标
+    mouse_y: 700  # 第一次点击的鼠标Y坐标
   sell_button:
     description: Sell按钮
     primary: a[href*='sell']
