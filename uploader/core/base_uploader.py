@@ -502,14 +502,44 @@ class BaseUploader:
         # 新账号初次上品会出现（可选）
         if self.region == "SG":
             # 连续点击两次关闭按钮（某些环境下需要连续点击才能关闭）
-            for click_num in range(2):
+            # 第一次点击：移动鼠标到配置的位置并点击
+            try:
+                # 从配置中获取完整的配置信息（包含mouse_x和mouse_y）
+                full_config = self.safe_actions.css_manager.regional_loader.get_selector(
+                    self.region, self.category, "basic_elements.new_account_popup_close"
+                )
+                
+                mouse_x = full_config.get("mouse_x") if full_config else None
+                mouse_y = full_config.get("mouse_y") if full_config else None
+                
+                if mouse_x is not None and mouse_y is not None:
+                    logger.info(f"{self.log_prefix}第一次点击：移动鼠标到位置 ({mouse_x}, {mouse_y}) 并点击")
+                    self.page.mouse.move(int(mouse_x), int(mouse_y))
+                    self.page.wait_for_timeout(200)  # 等待鼠标移动
+                    self.page.mouse.click(int(mouse_x), int(mouse_y))
+                    logger.info(f"{self.log_prefix}第一次点击完成（鼠标位置点击）")
+                else:
+                    # 如果配置中没有鼠标位置，使用默认方法
+                    logger.warning(f"{self.log_prefix}配置中未找到鼠标位置，使用默认点击方法")
+                    self.safe_actions.safe_click_with_config(
+                        "basic_elements.new_account_popup_close", self.region, must_exist=False,
+                        operation="关闭新账号弹窗（第1次点击）"
+                    )
+            except Exception as e:
+                logger.warning(f"{self.log_prefix}第一次点击（鼠标位置）失败: {e}，使用默认方法")
                 self.safe_actions.safe_click_with_config(
                     "basic_elements.new_account_popup_close", self.region, must_exist=False,
-                    operation=f"关闭新账号弹窗（第{click_num + 1}次点击）"
+                    operation="关闭新账号弹窗（第1次点击）"
                 )
-                # 两次点击之间稍作等待
-                if click_num == 0:
-                    self.page.wait_for_timeout(1000)  # 等待1秒
+            
+            # 等待1秒
+            self.page.wait_for_timeout(1000)
+            
+            # 第二次点击：使用默认的safe_click_with_config方法
+            self.safe_actions.safe_click_with_config(
+                "basic_elements.new_account_popup_close", self.region, must_exist=False,
+                operation="关闭新账号弹窗（第2次点击）"
+            )
         
         # 处理AI文案相关操作（使用图片匹配）
         self._handle_ai_writing_operations()
