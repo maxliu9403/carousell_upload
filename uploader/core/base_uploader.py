@@ -501,10 +501,15 @@ class BaseUploader:
         
         # 新账号初次上品会出现（可选）
         if self.region == "SG":
-            self.safe_actions.safe_click_with_config(
-                "basic_elements.new_account_popup_close", self.region, must_exist=False,
-                operation="关闭新账号弹窗"
-            )
+            # 连续点击两次关闭按钮（某些环境下需要连续点击才能关闭）
+            for click_num in range(2):
+                self.safe_actions.safe_click_with_config(
+                    "basic_elements.new_account_popup_close", self.region, must_exist=False,
+                    operation=f"关闭新账号弹窗（第{click_num + 1}次点击）"
+                )
+                # 两次点击之间稍作等待
+                if click_num == 0:
+                    self.page.wait_for_timeout(500)  # 等待500ms
         
         # 处理AI文案相关操作（使用图片匹配）
         self._handle_ai_writing_operations()
