@@ -509,7 +509,7 @@ class BaseUploader:
                 )
                 # 两次点击之间稍作等待
                 if click_num == 0:
-                    self.page.wait_for_timeout(500)  # 等待500ms
+                    self.page.wait_for_timeout(1000)  # 等待1秒
         
         # 处理AI文案相关操作（使用图片匹配）
         self._handle_ai_writing_operations()
