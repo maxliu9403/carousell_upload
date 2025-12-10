@@ -5,6 +5,7 @@
 import time
 from typing import Optional
 from playwright.sync_api import Page  # pyright: ignore[reportMissingImports]
+import pyautogui  # 用于屏幕坐标点击（处理系统对话框）
 from core.models import ProductInfo, UploadConfig
 from browser.actions import (
     click_with_wait, 
@@ -499,6 +500,12 @@ class BaseUploader:
         else:
             raise ValueError("folder_path参数不能为空")
         
+        # 等待图片上传完成（从配置读取超时时间）
+        image_upload_wait_timeout = self.config.navigation_timeouts.get("image_upload_wait_timeout", 10000)
+        wait_seconds = image_upload_wait_timeout / 1000
+        logger.info(f"{self.log_prefix}等待图片上传完成（{wait_seconds:.0f}秒）...")
+        self.page.wait_for_timeout(image_upload_wait_timeout)
+        
         # 新账号初次上品会出现（可选）
         if self.region == "SG":
             # 连续点击两次关闭按钮（某些环境下需要连续点击才能关闭）
@@ -513,11 +520,12 @@ class BaseUploader:
                 mouse_y = full_config.get("mouse_y") if full_config else None
                 
                 if mouse_x is not None and mouse_y is not None:
-                    logger.info(f"{self.log_prefix}第一次点击：移动鼠标到位置 ({mouse_x}, {mouse_y}) 并点击")
-                    self.page.mouse.move(int(mouse_x), int(mouse_y))
-                    self.page.wait_for_timeout(200)  # 等待鼠标移动
-                    self.page.mouse.click(int(mouse_x), int(mouse_y))
-                    logger.info(f"{self.log_prefix}第一次点击完成（鼠标位置点击）")
+                    logger.info(f"{self.log_prefix}第一次点击：移动鼠标到屏幕位置 ({mouse_x}, {mouse_y}) 并点击")
+                    # 使用pyautogui点击，坐标是相对于整个电脑屏幕的（屏幕坐标）
+                    pyautogui.moveTo(int(mouse_x), int(mouse_y))
+                    time.sleep(0.2)  # 等待鼠标移动
+                    pyautogui.click(int(mouse_x), int(mouse_y))
+                    logger.info(f"{self.log_prefix}第一次点击完成（屏幕坐标点击）")
                 else:
                     # 如果配置中没有鼠标位置，使用默认方法
                     logger.warning(f"{self.log_prefix}配置中未找到鼠标位置，使用默认点击方法")

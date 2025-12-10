@@ -124,6 +124,7 @@ navigation:
   dialog_timeout: 30000          # 对话框等待超时（毫秒）
   activation_timeout: 15000      # 激活完成等待超时（毫秒）
   network_idle_timeout: 5000     # 网络空闲等待超时（毫秒）
+  image_upload_wait_timeout: 10000  # 图片上传完成等待超时（毫秒）
 
 # 日志配置
 logging:
