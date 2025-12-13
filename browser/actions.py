@@ -444,19 +444,13 @@ def upload_folder_with_keyboard(folder_path: str, image_exts: set):
         time.sleep(0.1)
         
         # 使用更慢的输入速度，确保路径完全输入
-        # 根据路径长度计算输入时间，确保有足够时间完成输入
         input_interval = 0.15  # 增加输入间隔到0.15秒，确保每个字符都能正确输入
         pyautogui.write(normalized_path, interval=input_interval)
         logger.info(f"已在地址栏输入路径: {normalized_path}")
         
-        # 根据路径长度计算等待时间，确保输入完全完成
-        # 路径越长，需要的等待时间越长（每个字符0.15秒 + 额外缓冲时间）
-        path_length = len(normalized_path)
-        min_wait_time = 0.5  # 最小等待时间
-        calculated_wait = path_length * input_interval * 1.5  # 路径长度 * 输入间隔 * 1.5倍安全系数
-        wait_time = max(min_wait_time, calculated_wait) + random.uniform(0.2, 0.5)  # 加上随机延迟
-        
-        logger.info(f"等待路径输入完成（路径长度: {path_length}，等待时间: {wait_time:.2f}秒）...")
+        # 等待路径输入完成（固定1-2秒随机延迟，确保输入完成）
+        wait_time = random.uniform(1.0, 2.0)
+        logger.info(f"等待路径输入完成（{wait_time:.2f}秒）...")
         time.sleep(wait_time)
         logger.info("准备按回车键进入文件夹...")
         
