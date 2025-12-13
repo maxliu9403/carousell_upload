@@ -435,20 +435,60 @@ def upload_folder_with_keyboard(folder_path: str, image_exts: set):
         logger.info("已点击空白处清除焦点")
         
         # 清空地址栏并直接输入路径（不使用剪贴板，避免编码问题）
+        # 先聚焦到地址栏（Alt+D）
+        pyautogui.hotkey('alt', 'd')
+        time.sleep(0.2 + random.random() * 0.1)
+        logger.info("已聚焦到地址栏")
+        
         pyautogui.hotkey("ctrl", "a")  # 全选地址栏内容
         time.sleep(0.1)
         pyautogui.write(normalized_path, interval=0.05)  # 直接输入路径
-        time.sleep(0.3 + random.random() * 0.2)
         logger.info(f"已在地址栏输入路径: {normalized_path}")
         
+        # 输入完成后，立即按回车键（确保焦点还在地址栏上）
+        time.sleep(0.1)  # 短暂等待，确保输入完成
+        logger.info("准备按回车键进入文件夹...")
+        
+        # 尝试多种按回车的方法，确保能够进入文件夹
+        enter_pressed = False
+        enter_methods = [
+            ("press_enter", lambda: pyautogui.press("enter")),
+            ("hotkey_return", lambda: pyautogui.hotkey("return")),
+            ("keyDown_Up", lambda: (pyautogui.keyDown("enter"), pyautogui.keyUp("enter"))),
+        ]
+        
+        for method_name, method_func in enter_methods:
+            try:
+                method_func()
+                time.sleep(0.3 + random.random() * 0.2)
+                logger.info(f"已使用 {method_name} 按回车键")
+                enter_pressed = True
+                break
+            except Exception as e:
+                logger.debug(f"{method_name} 失败: {e}，尝试下一个方法")
+                continue
+        
+        if not enter_pressed:
+            logger.warning("所有按回车键的方法都失败")
+        
+        # 多次按回车键，确保能够进入（某些环境下可能需要多次按回车）
+        for retry in range(3):
+            try:
+                pyautogui.press("enter")
+                time.sleep(0.3 + random.random() * 0.2)
+                logger.info(f"第{retry + 2}次按回车键（确保进入文件夹）")
+            except Exception as e:
+                logger.debug(f"第{retry + 2}次按回车键失败: {e}")
+        
+        # 等待文件夹加载完成（增加等待时间，确保真的进入了）
+        wait_time = 1.0 + random.random() * 0.5
+        logger.info(f"等待文件夹加载完成（{wait_time:.1f}秒）...")
+        time.sleep(wait_time)
+        logger.info("已尝试进入目标文件夹")
+        
     except Exception as e:
-        logger.error(f"地址栏输入路径失败: {e}")
-        raise RuntimeError(f"地址栏输入路径失败: {e}")
-    
-    # 按回车进入文件夹（可能需要按两次，确保进入）
-    pyautogui.press("enter")
-    time.sleep(0.5 + random.random() * 0.3)
-    logger.info("已进入目标文件夹")
+        logger.error(f"地址栏输入路径或进入文件夹失败: {e}")
+        raise RuntimeError(f"地址栏输入路径或进入文件夹失败: {e}")
 
     # ========= 第二步：过滤图片文件 =========
     files = [
